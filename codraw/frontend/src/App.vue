@@ -1,14 +1,16 @@
 <template>
   <NavBar msg="Welcome to Your Vue.js App"/>
+  <HeRo msg="test"></HeRo>
 </template>
 
 <script>
 import NavBar from './components/Navbar.vue'
-
+import HeRo from './components/Hero.vue'
 export default {
   name: 'App',
   components: {
-    NavBar
+    NavBar,
+    HeRo
   }
 }
 </script>

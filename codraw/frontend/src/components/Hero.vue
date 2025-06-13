@@ -1,0 +1,103 @@
+<template>
+      
+    <div class="hero-background p-5 col-lg-4" :style="`background-color: black;height:60vh`">
+        <h1 class="hero-title" style="color: white;">
+            CoDraw<br>
+        </h1>
+        <p style="color: white;">
+            CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life together!
+        </p>
+    </div>
+    <div class="py-4" style="background-color: black;">
+      <div class="row justify-content-center">
+        <div class="col-md-3 mb-3">
+          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card-body text-center">
+              <h5 class="card-title">Modern and Slick</h5>
+              <p class="card-text">A visually appealing interface designed for a seamless and enjoyable drawing experience.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card-body text-center">
+              <h5 class="card-title">Performance Oriented</h5>
+              <p class="card-text">Optimized for speed and responsiveness, ensuring smooth collaboration in real time.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card-body text-center">
+              <h5 class="card-title">Intuitive Design</h5>
+              <p class="card-text">Easy-to-use tools and layout, making creativity accessible for everyone.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</template>
+
+
+<script>
+    export default{
+        name:"HeRo",
+        props:{
+            msg:String
+        }
+    }
+</script>
+
+<style scoped>
+.hero-background {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  border: none;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  position: relative;
+  overflow: hidden;
+}
+.hero-title {
+  text-align: center;
+  padding-top: 6vh;
+  font-size: 4rem;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  margin-bottom: 1.5rem;
+}
+.hero-background p {
+  text-align: center;
+  font-size: 1.35rem;
+  color: #e0e0e0;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.3);
+}
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.2rem;
+    padding-top: 3vh;
+  }
+  .hero-background {
+    min-height: 40vh;
+    padding: 0 1rem;
+  }
+  .hero-background p {
+    font-size: 1rem;
+  }
+}
+</style>
