@@ -5,13 +5,13 @@
     </button>
     <div class="offcanvas offcanvas-end mx-2" style="background-color: black;" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
       <div class="offcanvas-body">
-        <a class="navbar-brand d-flex align-items-center" href="#">
+        <RouterLink class="navbar-brand d-flex align-items-center" to="/">
           <img :src="imageUrl" alt="logo" height="90" class="me-3" />
           <span>CoDraw</span>
-        </a>
+        </RouterLink>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
           <li class="nav-item mx-2">
-            <a class="nav-link" href="#">About</a>
+            <RouterLink class="nav-link" to="/#about" href="#">About</RouterLink>
           </li>
           <li class="nav-item mx-2">
             <RouterLink class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>

@@ -8,29 +8,31 @@
             CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life together!
         </p>
     </div>
-    <div class="py-4" style="background-color: black;">
-      <div class="row justify-content-center">
-        <div class="col-md-3 mb-3">
-          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
-            <div class="card-body text-center">
-              <h5 class="card-title">Modern and Slick</h5>
-              <p class="card-text">A visually appealing interface designed for a seamless and enjoyable drawing experience.</p>
+    <div style="background-color: black;overflow-x: hidden;">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-3 mb-3">
+            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+              <div class="card-body text-center">
+                <h5 class="card-title">Modern and Slick</h5>
+                <p class="card-text">A visually appealing interface designed for a seamless and enjoyable drawing experience.</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-3 mb-3">
-          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
-            <div class="card-body text-center">
-              <h5 class="card-title">Performance Oriented</h5>
-              <p class="card-text">Optimized for speed and responsiveness, ensuring smooth collaboration in real time.</p>
+          <div class="col-md-3 mb-3">
+            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+              <div class="card-body text-center">
+                <h5 class="card-title">Performance Oriented</h5>
+                <p class="card-text">Optimized for speed and responsiveness, ensuring smooth collaboration in real time.</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-3 mb-3">
-          <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
-            <div class="card-body text-center">
-              <h5 class="card-title">Intuitive Design</h5>
-              <p class="card-text">Easy-to-use tools and layout, making creativity accessible for everyone.</p>
+          <div class="col-md-3 mb-3">
+            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+              <div class="card-body text-center">
+                <h5 class="card-title">Intuitive Design</h5>
+                <p class="card-text">Easy-to-use tools and layout, making creativity accessible for everyone.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -54,9 +56,9 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
+  width: 100%; /* Changed from 100vw to 100% to prevent overflow */
+  margin-left: 0; /* Remove negative margins */
+  margin-right: 0;
   border: none;
   box-shadow: 0 4px 24px rgba(0,0,0,0.25);
   padding: 0 2rem;
