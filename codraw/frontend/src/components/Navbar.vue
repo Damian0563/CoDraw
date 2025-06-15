@@ -17,7 +17,7 @@
             <RouterLink class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
           </li> 
           <li class="nav-item mx-2">
-            <RouterLink class="btn btn-outline-light" to="/signin">Sign in</RouterLink>
+            <RouterLink class="btn btn-outline-light" id="sing" to="/signin">Sign in</RouterLink>
           </li>
         </ul>
       </div>
@@ -39,7 +39,14 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+  #sign,#sing{
+    transition: ease-in-out 0.5s;
+  }
+  #sing:hover{
+    transform: scale(1.1);
+  }
   #sign:hover{
+    transform: scale(1.1);
     color: black !important;
     background-color: yellow !important;
     border-color:white !important;

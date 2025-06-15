@@ -8,11 +8,11 @@
             CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life together!
         </p>
     </div>
-    <div style="background-color: black;overflow-x: hidden;">
+    <div style="background-color: black;overflow-x: hidden;margin-top: 2%;">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-md-3 mb-3">
-            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card h-100 bg-dark text-white shadow-lg" id="card" style="border-color: yellow;">
               <div class="card-body text-center">
                 <h5 class="card-title">Modern and Slick</h5>
                 <p class="card-text">A visually appealing interface designed for a seamless and enjoyable drawing experience.</p>
@@ -20,7 +20,7 @@
             </div>
           </div>
           <div class="col-md-3 mb-3">
-            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card h-100 bg-dark text-white shadow-lg" id="card" style="border-color: yellow;">
               <div class="card-body text-center">
                 <h5 class="card-title">Performance Oriented</h5>
                 <p class="card-text">Optimized for speed and responsiveness, ensuring smooth collaboration in real time.</p>
@@ -28,7 +28,7 @@
             </div>
           </div>
           <div class="col-md-3 mb-3">
-            <div class="card h-100 bg-dark text-white shadow-lg" style="border-color: yellow;">
+            <div class="card h-100 bg-dark text-white shadow-lg" id="card" style="border-color: yellow;">
               <div class="card-body text-center">
                 <h5 class="card-title">Intuitive Design</h5>
                 <p class="card-text">Easy-to-use tools and layout, making creativity accessible for everyone.</p>
@@ -101,5 +101,32 @@
   .hero-background p {
     font-size: 1rem;
   }
+}
+
+#card{
+  transition: ease-in 0.6s;
+}
+#card:hover{
+  transform: scale(1.1);
+}
+
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  will-change: transform;
+  /* Prevents the card from being clipped by parent */
+  z-index: 1;
+}
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 8px 32px rgba(255, 255, 0, 0.25), 0 4px 24px rgba(0,0,0,0.35);
+}
+/* Add padding to the row to prevent cards from being clipped at the top */
+.row.justify-content-center {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+/* Ensure parent containers allow overflow */
+.container, .row.justify-content-center {
+  overflow: visible !important;
 }
 </style>
