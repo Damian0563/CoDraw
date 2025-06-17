@@ -28,6 +28,19 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+from mongoengine import connect
+
+MONGO_DB_NAME = 'CoDraw'
+MONGO_HOST = 'localhost'
+MONGO_PORT = 27017
+
+connect(
+    db=MONGO_DB_NAME,
+    host=MONGO_HOST,
+    port=MONGO_PORT
+)
+
+
 # Application definition
 
 INSTALLED_APPS = [
