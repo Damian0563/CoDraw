@@ -14,14 +14,14 @@
   <div class="d-flex justify-content-center pt-5" style="background-color: black; min-height: 40vh;">
     <div class="card p-3 shadow-lg" style="max-width: 400px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign In</h2>
-      <form>
+      <form @submit="SignIn">
         <div class="mb-2">
-          <label for="email" class="form-label text-black text-start w-100">Email address or Username</label>
-          <input type="email" ref="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email/username">
+          <label for="email" class="form-label text-black text-start w-100">Email address</label>
+          <input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email">
         </div>
         <div class="mb-2">
           <label for="password" class="form-label text-black text-start w-100">Password</label>
-          <input type="password" ref="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password">
+          <input type="password" v-model="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password">
         </div>
         <div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap" style="padding: 0 !important;gap: 2rem;">
           <label class="form-check-label text-black fw-medium mb-0" for="rememberMe">
@@ -29,7 +29,7 @@
           </label>
           <input type="checkbox" id="rememberMe" style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
         </div>
-        <button id="sign" @click="SignIn()" class="btn btn-success w-100 mt-2" style="background-color: yellow;color: black;">Sign In</button>
+        <button id="sign" type="submit" class="btn btn-success w-100 mt-2" style="background-color: yellow;color: black;">Sign In</button>
       </form>
       <div class="text-center mt-2">
         <span class="text-secondary">Do not have an account?</span>
@@ -45,17 +45,19 @@ import { ref } from 'vue'
 
 let message = ref('')
 let invalid = ref(false)
-const name_or_mail=ref("")
+const name_or_mail = ref('')
 const password = ref('')
-async function SignIn(){
+async function SignIn(e){
+  e.preventDefault();
   try{
+    console.log(name_or_mail.value, password.value)
     const data = await fetch("http://localhost:8000/signin", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        "name_or_mail": name_or_mail.value,
+        "mail": name_or_mail.value,
         "password": password.value
       })
     });
@@ -72,9 +74,6 @@ async function SignIn(){
     message.value = 'An error occurred while signing in.'
   }
 }
-
-
-
 
 </script>
 <style scoped>

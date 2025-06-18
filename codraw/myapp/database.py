@@ -33,5 +33,21 @@ def check_code(username:str,mail:str,code:str)->bool:
     except models.User.DoesNotExist:
         return False
 
-def check_user(name_or_mail:str,password:str)->bool:
-    return True
+def check_user(mail:str,password:str)->bool:
+    try:
+        user = models.User.objects.get(mail=mail)
+        return check_password_hash(user.password, password)
+    except models.User.DoesNotExist:
+        return False
+    except Exception as e:
+        print(f"Error checking user: {e}")
+        return False
+
+def get_user(mail:str)-> models.User:
+    try:
+        return models.User.objects.get(mail=mail)
+    except models.User.DoesNotExist:
+        return None
+    except Exception as e:
+        print(f"Error retrieving user: {e}")
+        return None

@@ -126,9 +126,7 @@ async function verifyCode(){
   })
   const response=await data.json()
   if(response.status===200){
-    const jwt=response.jwt
-    console.log(jwt)
-    // window.location.href = '/signin'
+    window.location.href = '/codraw'
   } else {
     visible.value=false
     invalid.value=true
