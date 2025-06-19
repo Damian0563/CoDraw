@@ -41,6 +41,7 @@ def account_creation(mail: str, code: Union[str, int]) -> None:
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    server.login('codraw@gmail.com', os.getenv('GMAIL_PASS'))
+    server.login('codraw.io@gmail.com', os.getenv('GMAIL_PASS'))
     server.sendmail(msg["From"], msg["To"], msg.as_string())
     server.quit()
+    print(f"Email sent to {mail} with code {code}")

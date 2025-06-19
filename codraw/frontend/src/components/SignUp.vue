@@ -78,7 +78,8 @@ async function SignUp(e) {
         "username":username_input,
         "mail":mail_input,
         "password":password_input
-      })
+      }),
+      credentials: 'include'
     })
     const response=await data.json()
     if(response.status===200){

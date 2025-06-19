@@ -26,4 +26,5 @@ urlpatterns = [
     path('create', views.SignUp,name="SignUp"),
     path('verify',views.Verify,name="Verify"),
     path('signin',views.SignIn,name="SignIn"),
+    path('home',views.home,name="home")
 ]

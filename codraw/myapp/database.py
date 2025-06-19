@@ -6,7 +6,6 @@ def generate_code()->str:
     code=""
     for i in range(5):
         code+=str(random.randint(0,9))
-    print(code)
     return code
 
 def delete_user(mail:str)->None:
@@ -45,9 +44,20 @@ def check_user(mail:str,password:str)->bool:
 
 def get_user(mail:str)-> models.User:
     try:
-        return models.User.objects.get(mail=mail)
+        model = models.User.objects.get(mail=mail)
+        return model.id
     except models.User.DoesNotExist:
         return None
     except Exception as e:
         print(f"Error retrieving user: {e}")
         return None
+    
+def get_code(username:str,mail:str)->str:
+    try:
+        entry = models.User.objects.get(username=username, mail=mail)
+        return entry.code
+    except models.User.DoesNotExist:
+        return ""
+    except Exception as e:
+        print(f"Error retrieving code: {e}")
+        return ""

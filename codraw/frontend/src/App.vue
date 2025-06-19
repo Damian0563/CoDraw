@@ -1,17 +1,23 @@
 <template>
-  <NavBar msg="Welcome to Your Vue.js App"/>
+  <NavBar v-if="$route.path !== '/codraw'" />
   <HeRo v-if="$route.path === '/'" msg="test" />
   <router-view />
+  <SignIn v-if="$route.path === '/signin'" />
+  <SignUp v-if="$route.path === '/signup'" />
+  <MaIn v-if="$route.path === '/codraw'" />
 </template>
 
 <script>
 import NavBar from './components/Navbar.vue'
 import HeRo from './components/Hero.vue'
+import MaIn from './components/Main.vue'
+
 export default {
   name: 'App',
   components: {
     NavBar,
     HeRo,
+    MaIn,
   }
 }
 </script>

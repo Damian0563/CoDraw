@@ -43,12 +43,35 @@
 
 
 <script>
-    export default{
-        name:"HeRo",
-        props:{
-            msg:String
+  export default {
+      name: "HeRo",
+      props: {
+          msg: String
+      },
+      mounted() {
+        this.check();
+      },
+      methods: {
+        async check() {
+          try {
+            const data = await fetch("http://localhost:8000/home", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+            });
+            const response = await data.json();
+            console.log(response);
+            if (response.status === 200) {
+              window.location.href = '/codraw';
+            }
+          } catch (e) {
+            console.error(e);
+          }
         }
-    }
+      }
+  }
 </script>
 
 <style scoped>
