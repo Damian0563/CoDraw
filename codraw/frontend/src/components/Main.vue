@@ -1,5 +1,11 @@
 <template>
-<h1 class="text-center text-white mt-5">Welcome to CoDraw</h1>
+  <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:20vw;height: 100%;">
+    <ul>
+      <li class="nav-item">
+        <a href="#" class="nav-link active" aria-current="page">Home</a>
+      </li>
+    </ul>
+  </div>
 
 
 </template>
