@@ -64,7 +64,22 @@ const OneInput = ref(null)
 const TwoInput = ref(null)
 const ThreeInput = ref(null)
 const FourInput = ref(null)
-
+async function status(){
+  try {
+    const data = await fetch("http://localhost:8000/signup", {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const response = await data.json();
+    console.log(response)
+    if (response.status === 300) {
+      window.location.href = '/codraw';
+    } 
+  } catch (e) {
+    console.error(e);
+  }
+}
+status();
 async function SignUp(e) {
   e.preventDefault()
   const username_input=username.value

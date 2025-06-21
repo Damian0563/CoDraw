@@ -9,18 +9,21 @@ def generate_code()->str:
     return code
 
 
-def encode_user(mail:str)->models.User | None:
+def encode_user(mail:str)->str | None:
     try:
         user = models.User.objects.get(mail=mail)
-        return user.id
+        return str(user.id)
     except models.User.DoesNotExist:
         return None
     except Exception as e:
         print(f"Error encoding user: {e}")
         return None
     
-def decode_user(encoded:models.User)->str | None:
-    return ""
+def decode_user(encoded:models.User.id)->str | None:
+    try:
+        return models.User.objects.get(id=encoded).mail
+    except models.User.DoesNotExist:
+        return None
 
 
 
@@ -35,17 +38,23 @@ def add_user(username:str,mail:str,password:str)->bool:
     if models.User.objects.filter(mail=mail, valid=True).count() > 0:
         return False
     if models.User.objects.filter(mail=mail, valid=False).count() > 0:
+        existing_user = models.User.objects.get(mail=mail, valid=False)
+        existing_user.username = username
+        existing_user.password = generate_password_hash(password) 
+        existing_user.code = generate_code()
+        existing_user.save()  
         return True
     hashed_password = generate_password_hash(password)
     models.User.objects.create(username=username, mail=mail, password=hashed_password, code=generate_code(),valid=False)
     return True
 
 
-def check_code(username:str,mail:str,code:str)->bool:
+def check_code(mail:str,code:str)->bool:
     try:
-        entry = models.User.objects.get(username=username, mail=mail)
+        entry = models.User.objects.get(mail=mail)
         if code == entry.code:
             entry.valid = True
+            entry.save()
             return True
         return False
     except models.User.DoesNotExist:
@@ -71,9 +80,9 @@ def get_user(mail:str)-> models.User | None:
         print(f"Error retrieving user: {e}")
         return None
     
-def get_code(username:str,mail:str)->str:
+def get_code(mail:str)->str:
     try:
-        entry = models.User.objects.get(username=username, mail=mail)
+        entry = models.User.objects.get(mail=mail)
         return entry.code
     except models.User.DoesNotExist:
         return ""

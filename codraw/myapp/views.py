@@ -5,24 +5,35 @@ from . import mail as mailing
 from dotenv import load_dotenv
 load_dotenv()
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 def SignUp(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    mail = request.data.get('mail') 
-    if database.add_user(username,mail,password):
-        code = database.get_code(username,mail)
-        if code!="":
-            mailing.account_creation(mail,code)
-            return Response({"status":200})
-    return Response({"status":400})
+    if request.method == 'GET':
+        if request.session.get('user_id') is not None:
+            return Response({"status":300,"url":"/codraw"})
+        elif request.COOKIES.get('token') is not None:
+            encoded = request.COOKIES.get('token')
+            mail = database.decode_user(encoded)
+            if mail is not None:
+                request.session['user_id'] = encoded
+                return Response({"status":300,"url":"/codraw"})
+        return Response({"status":400,"message":"No session found"})
+    elif request.method == 'POST':
+        username = request.data.get('username')
+        password = request.data.get('password')
+        mail = request.data.get('mail') 
+        if database.add_user(username,mail,password):
+            code = database.get_code(mail)
+            if code!="":
+                mailing.account_creation(mail,code)
+                return Response({"status":200})
+        return Response({"status":400})
     
 @api_view(['POST'])
 def Verify(request):
     username = request.data.get('username')
     code=request.data.get('code')
     mail = request.data.get('mail')
-    if database.check_code(username,mail,code):
+    if database.check_code(mail,code):
         response = Response({"status":200})
         return response
     return Response({"status":400})
@@ -37,7 +48,7 @@ def SignIn(request):
             mail = database.decode_user(encoded)
             if mail is not None:
                 request.session['user_id'] = encoded
-                return Response({"status":200,"url":"/codraw"})
+                return Response({"status":300,"url":"/codraw"})
         return Response({"status":400,"message":"No session found"})
     elif request.method == 'POST':
         mail= request.data.get('mail')
@@ -58,13 +69,35 @@ def SignIn(request):
             return response
         return Response({"status":400})
 
-@api_view(['POST'])
+@api_view(['GET'])
 def home(request):
-    if request.user.is_authenticated:
-        return Response({"status":200,"message":"token is valid"})
-    return Response({"status":400,"message":"invalid token"})
+    if request.session.get('user_id') is not None:
+        return Response({"status":300,"url":"/codraw"})
+    elif request.COOKIES.get('token') is not None:
+        encoded = request.COOKIES.get('token')
+        mail = database.decode_user(encoded)
+        if mail is not None:
+            request.session['user_id'] = encoded
+            return Response({"status":300,"url":"/codraw"})
+    return Response({"status":400,"message":"No session found"})
 
 
 @api_view(['GET','POST'])
 def main(request):
-    return Response({"status":200,"message":"Welcome to CoDraw API"})
+    if request.method == 'GET':
+        if request.session.get('user_id') is not None:
+            return Response({"status":200,"message":"Session found"})
+        elif request.COOKIES.get('token') is not None:
+            print("Cookie found")
+            encoded = request.COOKIES.get('token')
+            mail = database.decode_user(encoded)
+            if mail is not None:
+                request.session['user_id'] = encoded
+                return Response({"status":200,"message":"Cookie found"})
+        return Response({"status":400,"message":"No session found"})
+
+@api_view(['GET'])
+def logout(request):
+    request.session.flush()
+    request.COOKIES.pop('token', None)
+    return Response({"status":200,"message":"Logged out successfully"})

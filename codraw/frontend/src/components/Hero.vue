@@ -55,7 +55,7 @@
         async check() {
           try {
             const data = await fetch("http://localhost:8000/home", {
-              method: 'POST',
+              method: 'GET',
               headers: {
                 'Content-Type': 'application/json'
               },
@@ -63,7 +63,7 @@
             });
             const response = await data.json();
             console.log(response);
-            if (response.status === 200) {
+            if (response.status === 300) {
               window.location.href = '/codraw';
             }
           } catch (e) {

@@ -77,7 +77,22 @@ async function SignIn(e){
     message.value = 'An error occurred while signing in.'
   }
 }
-
+async function status(){
+  try {
+    const data = await fetch("http://localhost:8000/signin", {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const response = await data.json();
+    console.log(response)
+    if (response.status === 300) {
+      window.location.href = '/codraw';
+    } 
+  } catch (e) {
+    console.error(e);
+  }
+}
+status();
 </script>
 <style scoped>
 .card {
