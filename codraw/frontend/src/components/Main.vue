@@ -1,28 +1,66 @@
 <template>
-  <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width:20vw;height: 100%;">
-    <div>
-      <img :src='url' alt="logo" class="img-fluid mb-3" style="width: 100%; height: auto; border-radius: 50%;">
-      
-      <button class="button button-danger">Log out</button>
-      
-    </div>
+  <div class="main-layout">
+    <aside
+      class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
+      :class="{ 'sidebar-collapsed': !sidebarOpen }"
+    >
+      <div class="sidebar-header d-flex flex-column align-items-center mb-4">
+        <img class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
+        <img :src="url" alt="logo" class="logo mb-3 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
+        <RouterLink to="/codraw/account" class="nav-link account-link mb-2 w-100 text-center">
+          My Account
+        </RouterLink>
+        <RouterLink to="/codraw/settings" class="nav-link settings-link mb-2 w-100 text-center">
+          Settings
+        </RouterLink>
+        <button class="btn btn-danger w-100">Log out</button>
+      </div>
+    </aside>
+    <main class="main-content flex-grow-1">
+      <RouterView />
+      <h1>Welcome to CoDraw!</h1>
+      <div class="mb-4">
+        <h2 class="mb-4">My Projects</h2>
+        <div id="projects" class="projects-list">
+          <div class="card create-project-card text-center bg-dark" style="width: 18rem; cursor: pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 10rem;" @click="create()">
+              <span style="font-size: 2.5rem; color: #ffc107;">+</span>
+              <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2>Browse public projects</h2>
+        <div id="searchbar">
+
+        </div>
+        <section id="results">
+
+        </section>
+      </div>
+
+    </main>
   </div>
-
-
 </template>
+
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { get_cookie } from '@/common';
 import url from '@/assets/logo.webp'
+import toggle from '@/assets/sidebar.webp'
+const csrf=get_cookie('csrftoken')
+const sidebarOpen = ref(true)
 
 async function status(){
   try {
     const data = await fetch("http://localhost:8000/codraw", {
       method: 'GET',
+      headers:{'X-CSRFToken':csrf},
       credentials: 'include'
     });
     const response = await data.json();
-    console.log(response);
-    if(response.status !== 200){
+    if(response.status !== 200 &&  window.location.pathname !== '/'){
       window.location.href = '/';
     }
   } catch (e) {
@@ -30,10 +68,32 @@ async function status(){
   }
 }
 
+async function create(){
+  try{
+    const data=await fetch('/get_project_url',{
+        method:"GET",
+        headers:{
+          "Content-Type":'application/json',
+          "X-CSRFToken":csrf
+        }
+    })
+    const response= await data.json()
+    if(response.status=='200'){
+      window.location.href=`${response.url}`
+    }
+    else{
+      console.log('error')
+    }
+  }catch(e){
+    console.error(e)
+  }
+}
+
 onMounted(() => {
   status()
 })
 </script>
+
 <script>
 export default {
   name: 'MaIn',
@@ -41,5 +101,48 @@ export default {
 </script>
 
 <style scoped>
-
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  background: #181818;
+}
+.sidebar {
+  height: 100vh;
+  min-width: 240px;
+  max-width: 20vw;
+  background: linear-gradient(135deg, #181818 80%, #222 100%);
+  border-right: 2px solid #ffc107;
+  transition: width 0.3s, padding 0.3s, min-width 0.3s, max-width 0.3s;
+  z-index: 10;
+}
+.sidebar-collapsed {
+  min-width: 60px !important;
+  max-width: 60px !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+.logo {
+  transition: max-width 0.3s, opacity 0.3s;
+}
+.sidebar-collapsed .logo {
+  max-width: 40px;
+  opacity: 0.7;
+}
+.sidebar-collapsed .nav-link,
+.sidebar-collapsed .btn,
+.sidebar-collapsed .settings-link,
+.sidebar-collapsed .account-link {
+  display: none !important;
+}
+.main-content {
+  flex-grow: 1;
+  background: #fff;
+  min-height: 100vh;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
 </style>

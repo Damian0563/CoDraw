@@ -53,6 +53,7 @@
 <script setup>
 import { ref } from 'vue'
 import url from '@/assets/logo.webp'
+import { get_cookie } from '@/common'
 let visible=ref(false)
 let invalid=ref(false)
 let message=ref('')
@@ -66,13 +67,15 @@ const ThreeInput = ref(null)
 const FourInput = ref(null)
 async function status(){
   try {
+    const csrf=get_cookie('csrftoken')
     const data = await fetch("http://localhost:8000/signup", {
       method: 'GET',
+      headers:{'X-CSRFToken':csrf},
       credentials: 'include'
     });
     const response = await data.json();
     console.log(response)
-    if (response.status === 300) {
+    if (response.status === 300 && window.location.pathname !== '/codraw') {
       window.location.href = '/codraw';
     } 
   } catch (e) {
@@ -82,13 +85,14 @@ async function status(){
 status();
 async function SignUp(e) {
   e.preventDefault()
+  const csrf=get_cookie('csrftoken')
   const username_input=username.value
   const password_input= password.value
   const mail_input=mail.value
   try{
     const data = await fetch("http://localhost:8000/create",{
       method:"POST",
-      headers:{"Content-Type":'application/json'},
+      headers:{"Content-Type":'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "username":username_input,
         "mail":mail_input,
@@ -127,12 +131,14 @@ function getCode() {
 }
 
 async function verifyCode(){
+  const csrf=get_cookie('csrftoken')
   const username_input=username.value
   const mail_input=mail.value
   const data=await fetch('http://localhost:8000/verify',{
     method:"POST",
     headers:{
-      'Content-Type':'application/json'
+      'Content-Type':'application/json',
+      'X-CSRFToken':csrf
     },
     body:JSON.stringify({
       "username":username_input,

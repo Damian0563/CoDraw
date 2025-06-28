@@ -43,6 +43,7 @@
 
 
 <script>
+  import { get_cookie } from '@/common';
   export default {
       name: "HeRo",
       props: {
@@ -54,16 +55,18 @@
       methods: {
         async check() {
           try {
+            const csrf=get_cookie('csrftoken')
             const data = await fetch("http://localhost:8000/home", {
               method: 'GET',
               headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken':csrf
               },
               credentials: 'include',
             });
             const response = await data.json();
             console.log(response);
-            if (response.status === 300) {
+            if (response.status === 300 &&  window.location.pathname !== '/codraw') {
               window.location.href = '/codraw';
             }
           } catch (e) {

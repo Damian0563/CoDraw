@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.views.decorators.csrf import ensure_csrf_cookie
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
@@ -95,6 +96,18 @@ def main(request):
                 request.session['user_id'] = encoded
                 return Response({"status":200,"message":"Cookie found"})
         return Response({"status":400,"message":"No session found"})
+
+@api_view(['GET','POST'])
+def account(request):
+    pass
+
+@api_view(['GET'])
+def get_url(request):
+    pass
+
+@api_view(['GET','PUT'])
+def settings(request):
+    pass
 
 @api_view(['GET'])
 def logout(request):

@@ -42,6 +42,7 @@
 <script setup>
 import url from '@/assets/logo.webp'
 import { ref } from 'vue'
+import { get_cookie } from '@/common'
 
 let message = ref('')
 let invalid = ref(false)
@@ -51,11 +52,12 @@ const password = ref('')
 async function SignIn(e){
   e.preventDefault();
   try{
-    console.log(name_or_mail.value, password.value)
+    const csrf=get_cookie('csrftoken')
     const data = await fetch("http://localhost:8000/signin", {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken':csrf
       },
       credentials: 'include',
       body: JSON.stringify({
@@ -79,8 +81,10 @@ async function SignIn(e){
 }
 async function status(){
   try {
+    const csrf=get_cookie('csrftoken')
     const data = await fetch("http://localhost:8000/signin", {
       method: 'GET',
+      headers:{'X-CSRFToken':csrf},
       credentials: 'include'
     });
     const response = await data.json();

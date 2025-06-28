@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-
+import VueKonva from 'vue-konva';
 import { createWebHistory, createRouter } from 'vue-router'
 
 import SignIn from './components/SignIn.vue'
@@ -17,4 +17,4 @@ const router = createRouter({
 })
 
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).use(VueKonva).mount('#app')
