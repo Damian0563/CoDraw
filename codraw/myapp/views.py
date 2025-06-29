@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 @api_view(['GET','POST'])
+@ensure_csrf_cookie
 def SignUp(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
@@ -30,16 +31,21 @@ def SignUp(request):
         return Response({"status":400})
     
 @api_view(['POST'])
+@ensure_csrf_cookie
 def Verify(request):
     username = request.data.get('username')
     code=request.data.get('code')
     mail = request.data.get('mail')
     if database.check_code(mail,code):
         response = Response({"status":200})
+        response=Response({"status":200})
+        encoded=database.encode_user(mail)
+        request.session['user_id'] = encoded
         return response
     return Response({"status":400})
 
 @api_view(['GET','POST'])
+@ensure_csrf_cookie
 def SignIn(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
@@ -71,6 +77,7 @@ def SignIn(request):
         return Response({"status":400})
 
 @api_view(['GET'])
+@ensure_csrf_cookie
 def home(request):
     if request.session.get('user_id') is not None:
         return Response({"status":300,"url":"/codraw"})
@@ -84,12 +91,12 @@ def home(request):
 
 
 @api_view(['GET','POST'])
+@ensure_csrf_cookie
 def main(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
             return Response({"status":200,"message":"Session found"})
         elif request.COOKIES.get('token') is not None:
-            print("Cookie found")
             encoded = request.COOKIES.get('token')
             mail = database.decode_user(encoded)
             if mail is not None:
@@ -109,8 +116,10 @@ def get_url(request):
 def settings(request):
     pass
 
-@api_view(['GET'])
+@api_view(['POST'])
+@ensure_csrf_cookie
 def logout(request):
     request.session.flush()
-    request.COOKIES.pop('token', None)
-    return Response({"status":200,"message":"Logged out successfully"})
+    response = Response({"status":200,"message":"Logged out successfully"})
+    response.delete_cookie('token')
+    return response

@@ -65,7 +65,6 @@
               credentials: 'include',
             });
             const response = await data.json();
-            console.log(response);
             if (response.status === 300 &&  window.location.pathname !== '/codraw') {
               window.location.href = '/codraw';
             }

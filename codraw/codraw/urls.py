@@ -28,6 +28,7 @@ urlpatterns = [
     path('signin',views.SignIn,name="SignIn"),
     path('home',views.home,name="home"),
     path('codraw/', views.main,name="main"),
+    path('log_out',views.logout,name='logout'),
     path('codraw/settings',views.settings,name='settings'),
     path('codraw/account',views.account,name='account'),
     path('get_project_url',views.get_url,name='get_url')

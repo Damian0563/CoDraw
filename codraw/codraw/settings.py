@@ -149,5 +149,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_CLOSE_ON_EXIT = False
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
+
+CSRF_COOKIE_PATH = '/'
+CSRF_COOKIE_DOMAIN = None  # This allows cookies to be accessible on all subdomains
+CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
+CSRF_COOKIE_SECURE = True

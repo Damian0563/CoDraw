@@ -13,7 +13,7 @@
         <RouterLink to="/codraw/settings" class="nav-link settings-link mb-2 w-100 text-center">
           Settings
         </RouterLink>
-        <button class="btn btn-danger w-100">Log out</button>
+        <button class="btn btn-danger w-100" @click="log_out()" id="out">Log out</button>
       </div>
     </aside>
     <main class="main-content flex-grow-1">
@@ -51,6 +51,22 @@ import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
+
+async function log_out(){
+  try{
+    const data=await fetch('http://localhost:8000/log_out',{
+      method:"POST",
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+      credentials:"include"
+    })
+    const response=await data.json()
+    if(response.status===200){
+      window.location.href='/'
+    }
+  }catch(e){
+    console.error(e)
+  }
+}
 
 async function status(){
   try {
@@ -101,6 +117,16 @@ export default {
 </script>
 
 <style scoped>
+#out{
+  transition: 0.6s ease-in-out;
+}
+
+#out:hover{
+  background-color: white;
+  color: red;
+}
+
+
 .main-layout {
   display: flex;
   min-height: 100vh;
