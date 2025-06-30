@@ -22,8 +22,8 @@
       <div class="mb-4">
         <h2 class="mb-4">My Projects</h2>
         <div id="projects" class="projects-list">
-          <div class="card create-project-card text-center bg-dark" style="width: 18rem; cursor: pointer;">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 10rem;" @click="create()">
+          <div class="card create-project-card text-center bg-dark"  @click="create()" style="width: 18rem; cursor: pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 10rem;">
               <span style="font-size: 2.5rem; color: #ffc107;">+</span>
               <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
             </div>
@@ -86,15 +86,16 @@ async function status(){
 
 async function create(){
   try{
-    const data=await fetch('/get_project_url',{
+    const data=await fetch('http://localhost:8000/get_project_url',{
         method:"GET",
         headers:{
           "Content-Type":'application/json',
           "X-CSRFToken":csrf
-        }
+        },
+        credentials:"include"
     })
     const response= await data.json()
-    if(response.status=='200'){
+    if(response.status===200){
       window.location.href=`${response.url}`
     }
     else{

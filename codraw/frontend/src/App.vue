@@ -1,29 +1,15 @@
 <template>
-  <NavBar v-if="$route.path.substring(0,7) !== '/codraw'" />
-  <HeRo v-if="$route.path === '/'" msg="test" />
-  <router-view />
-  <SignIn v-if="$route.path === '/signin'" />
-  <SignUp v-if="$route.path === '/signup'" />
-  <MaIn v-if="$route.path === '/codraw'"/>
-  <SeTtings v-if="$route.path==='/codraw/settings'" />
-  <AccOunt v-if="$route.path==='/codraw/account'" />
+  <NavBar v-if="$route.path.substring(0,7) !== '/codraw' && $route.path.substring(0,6)!=='/board'"/>
+  <router-view/>
 </template>
 
 <script>
 import NavBar from './components/Navbar.vue'
-import HeRo from './components/Hero.vue'
-import MaIn from './components/Main.vue'
-import SeTtings from './components/SeTtings.vue'
-import AccOunt from './components/AccOunt.vue'
 
 export default {
   name: 'App',
   components: {
     NavBar,
-    HeRo,
-    MaIn,
-    SeTtings,
-    AccOunt
   }
 }
 </script>

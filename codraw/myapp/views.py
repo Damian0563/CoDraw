@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import ensure_csrf_cookie
+from uuid import uuid4
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
@@ -109,8 +110,15 @@ def account(request):
     pass
 
 @api_view(['GET'])
+@ensure_csrf_cookie
 def get_url(request):
-    pass
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    if id is not None:
+        return Response({'status':200,'url':f"/board/{id}/{str(uuid4())}"})
+    return Response({'status':400})
 
 @api_view(['GET','PUT'])
 def settings(request):
@@ -123,3 +131,8 @@ def logout(request):
     response = Response({"status":200,"message":"Logged out successfully"})
     response.delete_cookie('token')
     return response
+
+@api_view(['GET','POST'])
+@ensure_csrf_cookie
+def board(request,id,room):
+    return Response({'status':200})
