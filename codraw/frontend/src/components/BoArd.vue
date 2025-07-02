@@ -55,7 +55,7 @@
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
-        @click="save_def()"
+        @click="check_save()"
         style="
           background: #4f8cff;
           color: #fff;
@@ -106,7 +106,6 @@
 <script setup>
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
-console.log(csrf);
 import { onMounted, ref} from 'vue';
 const stageRef = ref(null);
 const tool = ref('brush');
@@ -157,8 +156,52 @@ const load = () => {
     }
   }
 };
-const save_def = async () => {
-  console.log('temp')
+const save_definetely = async()=>{
+  try{
+    const parts = new URL(window.location.href).pathname.split('/');
+    const owner = parts[2]; // 'user_id'
+    const room = parts[3];  // 'room_id
+    const data=await fetch('http://localhost:8000/codraw/save_project',{
+      method:"POST",
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+      body:JSON.stringify({
+        "project":room,
+        "owner":owner,
+        "payload":canvas.toDataURL()
+      })
+    })
+    const response=await data.json()
+    console.log(response.status)
+  }catch(e){
+    console.error(e)
+  }
+}
+
+const check_save = async () => {
+  try{
+    // const first_slash=window.location.href.indexOf('board')
+    // const second_slash=window.location.href.lastIndexOf('/')
+    // const room=window.location.href.slice(second_slash,window.location.href.length)
+    // const owner=window.location.href.substring(first_slash,second_slash)
+    const parts = new URL(window.location.href).pathname.split('/');
+    const room = parts[3];  // 'room_id
+    const data=await fetch('http://localhost:8000/codraw/save_project',{
+      method:"POST",
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+      body:JSON.stringify({
+        "project":room,
+      })
+    })
+    const response=await data.json()
+    if(response.status===200){
+      console.log('saved successfuly')
+    }else{
+      //show up form with form and title that triggers save_def
+      save_definetely()
+    }
+  }catch(e){
+    console.error(e)
+  }
 }
 function leave(){
   localStorage.removeItem('storage')

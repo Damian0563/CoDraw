@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.views.decorators.csrf import ensure_csrf_cookie
 from uuid import uuid4
+import json
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
@@ -136,3 +137,12 @@ def logout(request):
 @ensure_csrf_cookie
 def board(request,id,room):
     return Response({'status':200})
+
+@api_view(['GET','POST'])
+@ensure_csrf_cookie
+def save(request):
+    data=json.loads(request.body)
+    room=data.get('project')
+    if(database.find_room(room)):
+        return Response({'status':200})
+    return Response({'status':400})

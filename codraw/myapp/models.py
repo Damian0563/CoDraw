@@ -7,5 +7,9 @@ class User(Document):
     code=fields.StringField(max_length=5)
     valid=fields.BooleanField(default=False)
 
-class Visitior(Document):
-    pass
+class Board(Document):
+    owner=fields.EmailField(max_length=100)
+    board=fields.StringField(required=True)
+    room=fields.StringField(required=True)
+    description=fields.StringField(max_length=512)
+    title=fields.StringField(required=True,max_length=100)

@@ -89,3 +89,7 @@ def get_code(mail:str)->str:
     except Exception as e:
         print(f"Error retrieving code: {e}")
         return ""
+    
+
+def find_room(room:str)->bool:
+    return models.Board.objects.filter(room=room)==0
