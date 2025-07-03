@@ -146,3 +146,8 @@ def save(request):
     if(database.find_room(room)):
         return Response({'status':200})
     return Response({'status':400})
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+def save_new(request):
+    return Response({'status':200})

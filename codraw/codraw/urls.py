@@ -33,5 +33,6 @@ urlpatterns = [
     path('codraw/account',views.account,name='account'),
     path('get_project_url',views.get_url,name='get_url'),
     path('board/<str:id>/<str:room>',views.board,name='board'),
-    path('codraw/save_project',views.save,name='save')
+    path('codraw/save_project',views.save,name='save'),
+    path('codraw/save_new',views.save_new,name='save_new')
 ]

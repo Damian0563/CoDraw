@@ -81,6 +81,68 @@
       "
       >Exit</button>
     </div>
+    <div
+      style="
+      position: absolute;
+      top: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(30, 30, 30, 0.92);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      padding: 24px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 20;
+      min-width: 30vw;
+      max-width: 90vw;
+      "
+      class="d-none" id="form"
+    >
+      <button alt="close" @click="document.getElementById('form').classList.add('d-none')"></button>
+      <label style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Title</label>
+      <input
+      v-model="title"
+      type="text"
+      placeholder="Enter title"
+      style="padding: 8px 12px; border-radius: 8px; border: none; font-size: 1rem; outline: none;"
+      />
+
+      <label style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Description</label>
+      <textarea
+      v-model="description"
+      placeholder="Enter description"
+      rows="3"
+      style="padding: 8px 12px; border-radius: 8px; border: none; font-size: 1rem; outline: none; resize: vertical;"
+      ></textarea>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+      <label style="color: #fff; font-size: 1rem;">Private</label>
+      <input
+        v-model="type"
+        type="checkbox"
+        true-value="private"
+        false-value="public"
+        style="width: 20px; height: 20px;"
+      />
+      <span style="color: #fff; font-size: 1rem;">{{ type === 'private' ? 'Private' : 'Public' }}</span>
+      </div>
+
+      <button
+      @click="save_definetely()"
+      style="
+        background: #4f8cff;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 0;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 8px;
+      "
+      >Save Details</button>
+    </div>
     <v-stage
         ref="stageRef"
         :config="stageConfig"
@@ -108,6 +170,9 @@ import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
 const stageRef = ref(null);
+const title=ref(null)
+const description=ref(null)
+const type=ref(null)
 const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider=ref(5);
@@ -161,13 +226,16 @@ const save_definetely = async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
-    const data=await fetch('http://localhost:8000/codraw/save_project',{
+    const data=await fetch('http://localhost:8000/codraw/save_new',{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
         "owner":owner,
-        "payload":canvas.toDataURL()
+        "payload":canvas.toDataURL(),
+        "title":title.value,
+        "description":description.value,
+        "type":type.value,
       })
     })
     const response=await data.json()
@@ -179,10 +247,6 @@ const save_definetely = async()=>{
 
 const check_save = async () => {
   try{
-    // const first_slash=window.location.href.indexOf('board')
-    // const second_slash=window.location.href.lastIndexOf('/')
-    // const room=window.location.href.slice(second_slash,window.location.href.length)
-    // const owner=window.location.href.substring(first_slash,second_slash)
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];  // 'room_id
     const data=await fetch('http://localhost:8000/codraw/save_project',{
@@ -196,8 +260,7 @@ const check_save = async () => {
     if(response.status===200){
       console.log('saved successfuly')
     }else{
-      //show up form with form and title that triggers save_def
-      save_definetely()
+      document.getElementById('form').classList.remove('d-none')
     }
   }catch(e){
     console.error(e)
@@ -209,17 +272,29 @@ function leave(){
 }
 
 window.addEventListener('resize', () => {
-  const stage=stageRef.value.getNode()
+  const stage = stageRef.value?.getNode();
+  const image = imageRef.value?.getNode();
+
+  if (!stage || !image) return;
+
+  // New viewport dimensions
   const newWidth = window.innerWidth;
   const newHeight = window.innerHeight;
 
-  canvas.width = newWidth;
-  canvas.height = newHeight;
+  // Resize canvas element (backing image)
+  canvas.width = newWidth * 4; // Keep your 4x scaling if needed
+  canvas.height = newHeight * 4;
 
-  stage.width(newWidth);
-  stage.height(newHeight);
-  
-  stage.draw();
+  // Resize Konva Stage
+  stage.width(canvas.width);
+  stage.height(canvas.height);
+
+  // Resize Konva Image config
+  image.width(canvas.width);
+  image.height(canvas.height);
+
+  // Redraw the image (to avoid flickering)
+  image.getLayer().batchDraw();
 });
 const getRelativePointerPosition = (stage) => {
   const transform = stage.getAbsoluteTransform().copy();
