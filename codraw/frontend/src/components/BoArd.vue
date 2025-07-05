@@ -82,67 +82,125 @@
       >Exit</button>
     </div>
     <div
+      v-if="isVisible"
       style="
-      position: absolute;
-      top: 120px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(30, 30, 30, 0.92);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-      padding: 24px 36px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      z-index: 20;
-      min-width: 30vw;
-      max-width: 90vw;
+        position: absolute;
+        top: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        backdrop-filter: blur(16px);
+        background: rgba(30, 30, 30, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 20;
+        min-width: 30vw;
+        max-width: 90vw;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        color: #fff;
       "
-      class="d-none" id="form"
     >
-      <button alt="close" @click="document.getElementById('form').classList.add('d-none')"></button>
-      <label style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Title</label>
-      <input
-      v-model="title"
-      type="text"
-      placeholder="Enter title"
-      style="padding: 8px 12px; border-radius: 8px; border: none; font-size: 1rem; outline: none;"
-      />
+      <button
+        @click="isVisible = false"
+        style="
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: transparent;
+          border: none;
+          color: #ccc;
+          font-size: 20px;
+          cursor: pointer;
+          transition: color 0.2s;
+        "
+      >
+        ✕
+      </button>
 
-      <label style="color: #fff; font-size: 1rem; margin-bottom: 4px;">Description</label>
-      <textarea
-      v-model="description"
-      placeholder="Enter description"
-      rows="3"
-      style="padding: 8px 12px; border-radius: 8px; border: none; font-size: 1rem; outline: none; resize: vertical;"
-      ></textarea>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label class="align-self-start">Title</label>
+        <input
+          v-model="title"
+          type="text"
+          placeholder="Enter title"
+          style="
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.2s;
+          "
+          @focus="event.target.style.border='1px solid #4f8cff'"
+          @blur="event.target.style.border='1px solid rgba(255,255,255,0.1)'"
+        />
+      </div>
 
-      <div style="display: flex; align-items: center; gap: 12px;">
-      <label style="color: #fff; font-size: 1rem;">Private</label>
-      <input
-        v-model="type"
-        type="checkbox"
-        true-value="private"
-        false-value="public"
-        style="width: 20px; height: 20px;"
-      />
-      <span style="color: #fff; font-size: 1rem;">{{ type === 'private' ? 'Private' : 'Public' }}</span>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label class="align-self-start">Description</label>
+        <textarea
+          v-model="description"
+          rows="3"
+          placeholder="Enter description"
+          style="
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+            resize: none;
+          "
+          @focus="event.target.style.border='1px solid #4f8cff'"
+          @blur="event.target.style.border='1px solid rgba(255,255,255,0.1)'"
+        ></textarea>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label style="flex-shrink: 0;">Private</label>
+        <input
+          v-model="type"
+          type="checkbox"
+          true-value="private"
+          false-value="public"
+          style="
+            width: 20px;
+            height: 20px;
+            accent-color: #4f8cff;
+          "
+        />
+        <span>{{ type === 'private' ? 'Private' : 'Public' }}</span>
       </div>
 
       <button
-      @click="save_definetely()"
-      style="
-        background: #4f8cff;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 0;
-        font-size: 1rem;
-        cursor: pointer;
-        margin-top: 8px;
-      "
-      >Save Details</button>
+        @click="save_definetely()"
+        style="
+          background: #4f8cff;
+          color: #fff;
+          border: none;
+          border-radius: 12px;
+          padding: 12px;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s;
+          transition: 0.5s ease-out;
+        "
+        class="save"
+      >
+        Save Details
+      </button>
     </div>
+
     <v-stage
         ref="stageRef"
         :config="stageConfig"
@@ -170,6 +228,7 @@ import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
 const stageRef = ref(null);
+const isVisible=ref(false)
 const title=ref(null)
 const description=ref(null)
 const type=ref(null)
@@ -260,7 +319,7 @@ const check_save = async () => {
     if(response.status===200){
       console.log('saved successfuly')
     }else{
-      document.getElementById('form').classList.remove('d-none')
+      isVisible.value=true
     }
   }catch(e){
     console.error(e)
@@ -399,3 +458,10 @@ onMounted(()=>{
 })
 setInterval(()=>autosave(),60000)
 </script>
+
+<style scoped>
+.save:hover{
+  background:#fff ;
+  color: #4f8cff;
+}
+</style>
