@@ -23,6 +23,7 @@
       z-index: 10;
       "
     >
+      <input type="color" v-model="color">
       <select
       v-model="tool"
       style="
@@ -36,8 +37,8 @@
         cursor: pointer;
       "
       >
-      <option value="brush">Brush</option>
-      <option value="eraser">Eraser</option>
+        <option value="brush">Brush</option>
+        <option value="eraser">Eraser</option>
       </select>
       <label style="color: #fff; font-size: 1rem; margin-right: 8px;">
       Line Width
@@ -211,7 +212,7 @@
         @touchmove="handleMouseMove"
         @touchend="handleMouseUp"
         @contextmenu="handleContextMenu"
-        style="overflow-x: hidden;overflow-y: hidden;"
+        style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
         >
         <v-layer ref="layerRef">
             <v-image
@@ -227,8 +228,11 @@
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
+import { watch } from 'vue';
 const stageRef = ref(null);
 const isVisible=ref(false)
+//const color=ref("#fff")
+const color = ref("#ffffff")
 const title=ref(null)
 const description=ref(null)
 const type=ref(null)
@@ -255,15 +259,15 @@ canvas.height = stageConfig.height;
 
 // get context
 const context = canvas.getContext('2d');
-context.save();
-context.strokeStyle = 'red';
-context.lineWidth = 2;
-context.strokeRect(0, 0, canvas.width, canvas.height);
-context.restore();
-context.strokeStyle = '#fcfcfc';
+context.strokeStyle = color.value;
 context.lineJoin = 'round';
 context.lineWidth = width_slider.value;
+context.lineCap = 'round';
+context.lineJoin = 'round';
 
+watch(color, (newColor) => {
+  context.strokeStyle = newColor;
+});
 const load = () => {
   const data = localStorage.getItem('storage');
   if (data) {
@@ -408,16 +412,18 @@ const handleMouseMove = (e) => {
     return;
   }
   const ctx = context;
-  const image = imageRef.value.getNode();
   const stage = e.target.getStage();
   ctx.lineWidth=width_slider.value
+  ctx.strokeStyle = color.value
   ctx.globalCompositeOperation = tool.value === 'eraser' ? 'destination-out' : 'source-over';
   ctx.beginPath();
   const prevPos = lastPos.value;
   const newPos = getRelativePointerPosition(stage);
-
-  ctx.moveTo(prevPos.x - image.x(), prevPos.y - image.y());
-  ctx.lineTo(newPos.x - image.x(), newPos.y - image.y());
+  // const image = imageRef.value.getNode();
+  // ctx.moveTo(prevPos.x - image.x(), prevPos.y - image.y());
+  // ctx.lineTo(newPos.x - image.x(), newPos.y - image.y());
+  ctx.moveTo(prevPos.x, prevPos.y);
+  ctx.lineTo(newPos.x, newPos.y);
   ctx.stroke();
   ctx.closePath();
 
