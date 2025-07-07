@@ -93,3 +93,16 @@ def get_code(mail:str)->str:
 
 def find_room(room:str)->bool:
     return models.Board.objects.filter(room=room)==0
+
+def save_project(room:str,payload:str)->bool:
+    try:
+        entry=models.Board.objects.get(room=room)
+        entry.board=payload
+        entry.save()
+        return True
+    except models.Board.DoesNotExist:
+        print('quick save object does not exist')
+    except Exception as e:
+        print(e)
+    finally:
+        return False

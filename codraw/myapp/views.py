@@ -143,11 +143,20 @@ def board(request,id,room):
 def save(request):
     data=json.loads(request.body)
     room=data.get('project')
+    payload=data.get('payload')
     if(database.find_room(room)):
+        database.save_project(room,payload)
         return Response({'status':200})
     return Response({'status':400})
 
 @api_view(['POST'])
 @ensure_csrf_cookie
 def save_new(request):
+    data=json.loads(request.body)
+    project=data.get('room')
+    owner=data.get('owner')
+    payload=data.get('payload')
+    title=data.get('title')
+    description=data.get('description')
+    type=data.get('type')
     return Response({'status':200})

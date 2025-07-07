@@ -22,37 +22,37 @@
       gap: 20px;
       z-index: 10;
       "
-    >
+    > 
       <input type="color" v-model="color">
       <select
-      v-model="tool"
-      style="
-        background: #23272f;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-size: 1rem;
-        outline: none;
-        cursor: pointer;
-      "
+        v-model="tool"
+        style="
+          background: #23272f;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 16px;
+          font-size: 1rem;
+          outline: none;
+          cursor: pointer;
+        "
       >
         <option value="brush">Brush</option>
         <option value="eraser">Eraser</option>
       </select>
       <label style="color: #fff; font-size: 1rem; margin-right: 8px;">
-      Line Width
+        Line Width
       </label>
       <input
-      type="range"
-      v-model="width_slider"
-      min="1"
-      max="50"
-      style="
-        accent-color: #4f8cff;
-        width: 120px;
-        margin-right: 8px;
-      "
+        type="range"
+        v-model="width_slider"
+        min="1"
+        max="50"
+        style="
+          accent-color: #4f8cff;
+          width: 120px;
+          margin-right: 8px;
+        "
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
@@ -81,6 +81,21 @@
         transition: background 0.2s;
       "
       >Exit</button>
+      <button
+        style="
+          background: #f68608;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 20px;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: background 0.2s;
+        "
+        @click="clear_all()"
+        >
+        Clear all
+      </button>
     </div>
     <div
       v-if="isVisible"
@@ -317,6 +332,7 @@ const check_save = async () => {
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
+        "payload":canvas.toDataURL()
       })
     })
     const response=await data.json()
@@ -332,6 +348,13 @@ const check_save = async () => {
 function leave(){
   localStorage.removeItem('storage')
   window.location.href='http://localhost:8081/codraw'
+}
+
+function clear_all(){
+  localStorage.removeItem('storage')
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  layerRef.value.getNode().clear();
+  layerRef.value.getNode().batchDraw();
 }
 
 window.addEventListener('resize', () => {
