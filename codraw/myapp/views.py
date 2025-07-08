@@ -153,10 +153,12 @@ def save(request):
 @ensure_csrf_cookie
 def save_new(request):
     data=json.loads(request.body)
-    project=data.get('room')
+    project=data.get('project')
     owner=data.get('owner')
     payload=data.get('payload')
     title=data.get('title')
     description=data.get('description')
     type=data.get('type')
-    return Response({'status':200})
+    if database.save_new_project(project,payload,owner,title,description,type):
+        return Response({'status':200})
+    return Response({'status':500})

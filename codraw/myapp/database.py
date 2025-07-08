@@ -106,3 +106,11 @@ def save_project(room:str,payload:str)->bool:
         print(e)
     finally:
         return False
+    
+def save_new_project(room:str,payload:str,owner:str,title:str,description:str,type:str)->bool:
+    try:
+        models.Board.objects.create(owner=decode_user(owner),room=room,board=payload,title=title,description=description,visibility=type)
+    except Exception as e:
+        print(e)
+    finally:    
+        return False

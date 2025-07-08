@@ -7,6 +7,20 @@
       overflow: hidden;
     "
   >
+    <div v-if="showPopup" 
+       style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+      <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
+      <button @click="showPopup = false" 
+          style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+        ✕
+      </button>
+      <p>{{message}}</p>
+      <button @click="showPopup = false"
+          style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+        Close
+      </button>
+      </div>
+    </div>
     <div
       style="
       position: absolute;
@@ -153,8 +167,6 @@
             outline: none;
             transition: border 0.2s;
           "
-          @focus="event.target.style.border='1px solid #4f8cff'"
-          @blur="event.target.style.border='1px solid rgba(255,255,255,0.1)'"
         />
       </div>
 
@@ -176,8 +188,6 @@
             transition: border 0.2s;
             resize: none;
           "
-          @focus="event.target.style.border='1px solid #4f8cff'"
-          @blur="event.target.style.border='1px solid rgba(255,255,255,0.1)'"
         ></textarea>
       </div>
 
@@ -194,7 +204,7 @@
             accent-color: #4f8cff;
           "
         />
-        <span>{{ type === 'private' ? 'Private' : 'Public' }}</span>
+        <span>{{ type === 'Private' ? 'Private' : 'Public' }}</span>
       </div>
 
       <button
@@ -246,11 +256,12 @@ import { onMounted, ref} from 'vue';
 import { watch } from 'vue';
 const stageRef = ref(null);
 const isVisible=ref(false)
-//const color=ref("#fff")
+const showPopup=ref(false)
 const color = ref("#ffffff")
 const title=ref(null)
+const message=ref(null)
 const description=ref(null)
-const type=ref(null)
+const type=ref('Public')
 const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider=ref(5);
@@ -317,7 +328,13 @@ const save_definetely = async()=>{
       })
     })
     const response=await data.json()
-    console.log(response.status)
+    if(response.status===200){
+      showPopup.value=true
+      message.value="Board saved successfully."
+    }else{
+      showPopup.value=true
+      message.value="There was an error saving your board."
+    }
   }catch(e){
     console.error(e)
   }

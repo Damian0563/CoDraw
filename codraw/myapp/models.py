@@ -13,3 +13,4 @@ class Board(Document):
     room=fields.StringField(required=True)
     description=fields.StringField(max_length=512)
     title=fields.StringField(required=True,max_length=100)
+    visibility=fields.StringField(required=True,max_length=10)
