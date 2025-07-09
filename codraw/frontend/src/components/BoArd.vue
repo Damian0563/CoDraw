@@ -193,18 +193,17 @@
 
       <div style="display: flex; align-items: center; gap: 10px;">
         <label style="flex-shrink: 0;">Private</label>
-        <input
-          v-model="type"
-          type="checkbox"
-          true-value="private"
-          false-value="public"
-          style="
-            width: 20px;
-            height: 20px;
-            accent-color: #4f8cff;
-          "
-        />
-        <span>{{ type === 'Private' ? 'Private' : 'Public' }}</span>
+        <label class="switch">
+          <input 
+            v-model="type" 
+            type="checkbox" 
+            :true-value="'private'" 
+            :false-value="'public'" 
+          />
+          <span class="slider"></span>
+        </label>
+
+        <!-- <span>{{ type === 'Private' ? 'Private' : 'Public' }}</span> -->
       </div>
 
       <button
@@ -328,6 +327,7 @@ const save_definetely = async()=>{
       })
     })
     const response=await data.json()
+    isVisible.value=false
     if(response.status===200){
       showPopup.value=true
       message.value="Board saved successfully."
@@ -354,7 +354,8 @@ const check_save = async () => {
     })
     const response=await data.json()
     if(response.status===200){
-      console.log('saved successfuly')
+      showPopup.value=true
+      message.value="Board was successfully quick saved."
     }else{
       isVisible.value=true
     }
@@ -509,5 +510,47 @@ setInterval(()=>autosave(),60000)
 .save:hover{
   background:#fff ;
   color: #4f8cff;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4f8cff;
+}
+
+input:checked + .slider::before {
+  transform: translateX(18px);
 }
 </style>

@@ -144,7 +144,7 @@ def save(request):
     data=json.loads(request.body)
     room=data.get('project')
     payload=data.get('payload')
-    if(database.find_room(room)):
+    if database.find_room(room):
         database.save_project(room,payload)
         return Response({'status':200})
     return Response({'status':400})

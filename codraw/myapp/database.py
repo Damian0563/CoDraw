@@ -92,7 +92,7 @@ def get_code(mail:str)->str:
     
 
 def find_room(room:str)->bool:
-    return models.Board.objects.filter(room=room)==0
+    return models.Board.objects.filter(room=room)
 
 def save_project(room:str,payload:str)->bool:
     try:
@@ -110,7 +110,8 @@ def save_project(room:str,payload:str)->bool:
 def save_new_project(room:str,payload:str,owner:str,title:str,description:str,type:str)->bool:
     try:
         models.Board.objects.create(owner=decode_user(owner),room=room,board=payload,title=title,description=description,visibility=type)
+        return True
     except Exception as e:
         print(e)
-    finally:    
         return False
+        
