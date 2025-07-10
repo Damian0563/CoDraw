@@ -102,10 +102,11 @@ def save_project(room:str,payload:str)->bool:
         return True
     except models.Board.DoesNotExist:
         print('quick save object does not exist')
+        return False
     except Exception as e:
         print(e)
-    finally:
         return False
+    
     
 def save_new_project(room:str,payload:str,owner:str,title:str,description:str,type:str)->bool:
     try:
@@ -114,4 +115,12 @@ def save_new_project(room:str,payload:str,owner:str,title:str,description:str,ty
     except Exception as e:
         print(e)
         return False
+    
+def get_boards(id:models.User.id)->list[models.Board.objects]:
+    try:
+        res=[board for board in models.Board.objects.all(owner=id)]
+        return res
+    except Exception as e:
+        print(e)
+        return []
         

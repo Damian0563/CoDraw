@@ -92,7 +92,7 @@ def home(request):
     return Response({"status":400,"message":"No session found"})
 
 
-@api_view(['GET','POST'])
+@api_view(['GET'])
 @ensure_csrf_cookie
 def main(request):
     if request.method == 'GET':
@@ -120,6 +120,16 @@ def get_url(request):
     if id is not None:
         return Response({'status':200,'url':f"/board/{id}/{str(uuid4())}"})
     return Response({'status':400})
+
+@ensure_csrf_cookie
+@api_view(['GET'])
+def my_projects(request):
+    try:
+        id=request.session['user_id']
+        boards=database.get_boards(id)
+        return Response({'status':200,"boards":boards})
+    except KeyError:
+        return Response({'status':500})
 
 @api_view(['GET','PUT'])
 def settings(request):
@@ -161,4 +171,4 @@ def save_new(request):
     type=data.get('type')
     if database.save_new_project(project,payload,owner,title,description,type):
         return Response({'status':200})
-    return Response({'status':500})
+    return Response({'status':400})

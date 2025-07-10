@@ -84,6 +84,23 @@ async function status(){
   }
 }
 
+const get_boards = async()=>{
+  try{
+    const data=await fetch('http://localhost:8000/codraw/get_boards',{
+      method:"GET",
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRFToken':csrf
+      },
+      credentials:true
+    })
+    const response=await data.json()
+    console.log(response)
+  }catch(e){
+    console.error(e)
+  }
+}
+
 async function create(){
   try{
     const data=await fetch('http://localhost:8000/get_project_url',{
@@ -107,7 +124,8 @@ async function create(){
 }
 
 onMounted(() => {
-  status()
+  status(),
+  get_boards()
 })
 </script>
 
