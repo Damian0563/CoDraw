@@ -1,5 +1,6 @@
 from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
+from typing import List, Dict
 import random
 
 def generate_code()->str:
@@ -116,10 +117,22 @@ def save_new_project(room:str,payload:str,owner:str,title:str,description:str,ty
         print(e)
         return False
     
-def get_boards(id:models.User.id)->list[models.Board.objects]:
+def get_boards(id: str) -> List[Dict[str, str]]:
     try:
-        res=[board for board in models.Board.objects.all(owner=id)]
+        entries = models.Board.objects.filter(owner=decode_user(id))
+        res = [
+            {
+                "room": entry.room,
+                "title": entry.title,
+                "description": entry.description,
+                "visibility": entry.visibility,
+                # "board": entry.board,
+            }
+            for entry in entries
+        ]
         return res
+    except models.Board.DoesNotExist:
+        return []
     except Exception as e:
         print(e)
         return []

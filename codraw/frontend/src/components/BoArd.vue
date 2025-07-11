@@ -70,7 +70,7 @@
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
-        @click="check_save()"
+        @click="check_save('save')"
         style="
           background: #4f8cff;
           color: #fff;
@@ -340,7 +340,7 @@ const save_definetely = async()=>{
   }
 }
 
-const check_save = async () => {
+const check_save = async (mode) => {
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];  // 'room_id
@@ -353,12 +353,20 @@ const check_save = async () => {
       })
     })
     const response=await data.json()
-    if(response.status===200){
-      showPopup.value=true
-      message.value="Board was successfully quick saved."
-    }else{
+    if(mode === 'save'){
+      if(response.status===200){
+        showPopup.value=true
+        message.value="Board was successfully quick saved."
+      }else{
       isVisible.value=true
+      }
+    }else if(mode=='load'){
+      if(response.status===200){
+        return true
+      }
+      return false
     }
+    
   }catch(e){
     console.error(e)
   }
@@ -473,35 +481,68 @@ const handleMouseMove = (e) => {
   layerRef.value.getNode().batchDraw();
 };
 
+const get_details_and_load = async()=>{
+  try{
+    const parts = new URL(window.location.href).pathname.split('/');
+    console.log(parts)
+    const room = parts[3];
+    const data=await fetch('http://localhost:8000/codraw/get_details',{
+      method:"POST",
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRFToken':csrf
+      },
+      credentials:"include",
+      body:JSON.stringify({
+        "project":room
+      })
+    })
+    const response=await data.json()
+    const lastImage = new window.Image();
+      lastImage.src = response.canva;
+      lastImage.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(lastImage, 0, 0);
+        layerRef.value.getNode().batchDraw();
+      };
+  }catch(e){
+    console.error(e)
+  }
+}
+
 onMounted(()=>{
-  load();
-  const stage = stageRef.value.getNode(); // get Konva Stage
-  const scaleBy = 1.05;
-  stage.on('wheel', (e) => {
-    e.evt.preventDefault();
+  if(check_save('load')){
+    get_details_and_load()
+  }else{
+    load();
+    const stage = stageRef.value.getNode(); // get Konva Stage
+    const scaleBy = 1.05;
+    stage.on('wheel', (e) => {
+      e.evt.preventDefault();
 
-    const oldScale = stage.scaleX();
-    const pointer = stage.getPointerPosition();
+      const oldScale = stage.scaleX();
+      const pointer = stage.getPointerPosition();
 
-    const mousePointTo = {
-      x: (pointer.x - stage.x()) / oldScale,
-      y: (pointer.y - stage.y()) / oldScale,
-    };
+      const mousePointTo = {
+        x: (pointer.x - stage.x()) / oldScale,
+        y: (pointer.y - stage.y()) / oldScale,
+      };
 
-    const direction = e.evt.deltaY > 0 ? 1 : -1;
-    if(oldScale===1 && direction===-1) return;
-    const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    
-    stage.scale({ x: newScale, y: newScale });
+      const direction = e.evt.deltaY > 0 ? 1 : -1;
+      if(oldScale===1 && direction===-1) return;
+      const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+      
+      stage.scale({ x: newScale, y: newScale });
 
-    const newPos = {
-      x: pointer.x - mousePointTo.x * newScale,
-      y: pointer.y - mousePointTo.y * newScale,
-    };
+      const newPos = {
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale,
+      };
 
-    stage.position(newPos);
-    stage.batchDraw();
-  });
+      stage.position(newPos);
+      stage.batchDraw();
+    });
+  }
 })
 setInterval(()=>autosave(),60000)
 </script>

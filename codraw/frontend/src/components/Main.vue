@@ -20,13 +20,24 @@
       <RouterView />
       <h1>Welcome to CoDraw!</h1>
       <div class="mb-4">
-        <h2 class="mb-4">My Projects</h2>
-        <div id="projects" class="projects-list">
-          <div class="card create-project-card text-center bg-dark"  @click="create()" style="width: 18rem; cursor: pointer;">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 10rem;">
+        <h2 class="mb-4 text-start">My Projects</h2>
+        <div id="projects" class="projects-list d-flex flex-wrap gap-3">
+          <div class="card create-project-card text-center bg-dark"  @click="create()" style="width: 25rem;min-height: 10rem; cursor: pointer;">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="max-height: 10rem;">
               <span style="font-size: 2.5rem; color: #ffc107;">+</span>
               <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
             </div>
+          </div>
+          <div v-for="(board, index) in boards"
+              :key="index"
+              style="width: 25rem;min-height: 10rem;"
+              class="card create-project-card text-center bg-dark">
+              <RouterLink :to="`/board/${get_id()}/${board.room}`">
+                <div class="card-body">
+                  <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
+                  <p class="card-text" style="color: white;">{{ board.description }}</p>
+                </div>
+              </RouterLink>
           </div>
         </div>
       </div>
@@ -51,7 +62,7 @@ import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
-
+const boards = ref([{}])
 async function log_out(){
   try{
     const data=await fetch('http://localhost:8000/log_out',{
@@ -84,6 +95,13 @@ async function status(){
   }
 }
 
+const get_id=()=>{
+  const path = window.location.pathname;
+  const parts = path.split('/');
+  const id = parts[parts.length - 1];
+  return id;
+}
+
 const get_boards = async()=>{
   try{
     const data=await fetch('http://localhost:8000/codraw/get_boards',{
@@ -92,10 +110,11 @@ const get_boards = async()=>{
         'Content-Type':'application/json',
         'X-CSRFToken':csrf
       },
-      credentials:true
+      credentials:"include"
     })
     const response=await data.json()
-    console.log(response)
+    boards.value=response.boards
+    console.log(boards.value)
   }catch(e){
     console.error(e)
   }
@@ -183,7 +202,7 @@ export default {
 .main-content {
   flex-grow: 1;
   background: #fff;
-  min-height: 100vh;
+  min-height: 0;
   padding: 2.5rem 2rem;
   display: flex;
   flex-direction: column;

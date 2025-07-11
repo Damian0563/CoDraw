@@ -121,6 +121,12 @@ def get_url(request):
         return Response({'status':200,'url':f"/board/{id}/{str(uuid4())}"})
     return Response({'status':400})
 
+@api_view(['POST'])
+@ensure_csrf_cookie
+def load(request):
+    pass
+
+
 @ensure_csrf_cookie
 @api_view(['GET'])
 def my_projects(request):
