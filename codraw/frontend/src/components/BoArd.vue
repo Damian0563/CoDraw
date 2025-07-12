@@ -314,13 +314,15 @@ const save_definetely = async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const imageData = canvas.toDataURL("image/png");
     const data=await fetch('http://localhost:8000/codraw/save_new',{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
         "owner":owner,
-        "payload":canvas.toDataURL(),
+        "payload":imageData,
         "title":title.value,
         "description":description.value,
         "type":type.value,
@@ -381,6 +383,8 @@ function clear_all(){
   context.clearRect(0, 0, canvas.width, canvas.height);
   layerRef.value.getNode().clear();
   layerRef.value.getNode().batchDraw();
+  // context.clearRect(0, 0, canvas.width, canvas.height);
+  // layerRef.value.getNode().batchDraw();
 }
 
 window.addEventListener('resize', () => {
@@ -484,7 +488,6 @@ const handleMouseMove = (e) => {
 const get_details_and_load = async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
-    console.log(parts)
     const room = parts[3];
     const data=await fetch('http://localhost:8000/codraw/get_details',{
       method:"POST",
@@ -498,20 +501,25 @@ const get_details_and_load = async()=>{
       })
     })
     const response=await data.json()
-    const lastImage = new window.Image();
-      lastImage.src = response.canva;
-      lastImage.onload = () => {
+    const imageUrl = response.canva;
+    console.log(imageUrl)
+    if (imageUrl) {
+      const img = new Image();
+      img.onload = () => {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(lastImage, 0, 0);
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
         layerRef.value.getNode().batchDraw();
       };
+      img.onerror = (e) => console.error("Image failed to load", e);
+      img.src = imageUrl;
+    }
   }catch(e){
     console.error(e)
   }
 }
 
-onMounted(()=>{
-  if(check_save('load')){
+onMounted(async()=>{
+  if(await check_save('load')){
     get_details_and_load()
   }else{
     load();

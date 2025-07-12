@@ -136,4 +136,11 @@ def get_boards(id: str) -> List[Dict[str, str]]:
     except Exception as e:
         print(e)
         return []
+    
+def get_board_img(room: str) -> str:
+    try:
+        entry=models.Board.objects.get(room=room)
+        return entry.board
+    except models.Board.DoesNotExist:
+        return ""
         

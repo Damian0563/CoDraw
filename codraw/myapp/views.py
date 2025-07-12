@@ -124,7 +124,19 @@ def get_url(request):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def load(request):
-    pass
+    if request.method=="POST":
+        id=None
+        try:
+            id=request.session['user_id']
+        except KeyError:
+            id=request.COOKIES.get('token')
+        finally:
+            if id is not None:
+                data=json.loads(request.body)
+                room=data['project']
+                canva=database.get_board_img(room=room)
+                return Response({'status':200,"canva":canva})
+            return Response({'status':404,"canva":""})
 
 
 @ensure_csrf_cookie
