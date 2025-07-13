@@ -31,13 +31,14 @@
           <div v-for="(board, index) in boards"
               :key="index"
               style="width: 25rem;min-height: 10rem;"
-              class="card create-project-card text-center bg-dark">
-              <RouterLink :to="`/board/${get_id()}/${board.room}`">
-                <div class="card-body">
-                  <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
-                  <p class="card-text" style="color: white;">{{ board.description }}</p>
-                </div>
-              </RouterLink>
+              class="card create-project-card text-center bg-dark"
+              @click="join(board.room)"
+              >
+              <div class="card-body">
+                <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
+                <p class="card-text" style="color: white;">{{ board.description }}</p>
+              </div>
+              
           </div>
         </div>
       </div>
@@ -95,13 +96,6 @@ async function status(){
   }
 }
 
-const get_id=()=>{
-  const path = window.location.pathname;
-  const parts = path.split('/');
-  const id = parts[parts.length - 1];
-  return id;
-}
-
 const get_boards = async()=>{
   try{
     const data=await fetch('http://localhost:8000/codraw/get_boards',{
@@ -114,7 +108,29 @@ const get_boards = async()=>{
     })
     const response=await data.json()
     boards.value=response.boards
-    console.log(boards.value)
+  }catch(e){
+    console.error(e)
+  }
+}
+
+async function join(room){
+  try{
+    const data=await fetch("http://localhost:8000/load",{
+      "method":"POST",
+      "headers":{
+        'Content-Type':'application/json',
+        'X-CSRFToken':csrf
+      },
+      credentials:"include",
+      body:JSON.stringify({
+        "room":room
+      })
+    })
+    const response=await data.json()
+    console.log(response.status)
+    if(response.status===200){
+      window.location.href=`${response.url}`
+    }
   }catch(e){
     console.error(e)
   }

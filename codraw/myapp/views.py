@@ -138,6 +138,22 @@ def load(request):
                 return Response({'status':200,"canva":canva})
             return Response({'status':404,"canva":""})
 
+@api_view(["POST"])
+@ensure_csrf_cookie
+def load_board(request):
+    if request.method=='POST':
+        id=None
+        try:
+            id=request.session['user_id']
+        except KeyError:
+            id=request.COOKIES.get('token')
+        finally:
+            if id is not None:
+                data=json.loads(request.body)
+                url=f"/board/{id}/{data['room']}"
+                return Response({'status':200,"url":url})
+            else:
+                return Response({'status':400})
 
 @ensure_csrf_cookie
 @api_view(['GET'])
@@ -187,6 +203,7 @@ def save_new(request):
     title=data.get('title')
     description=data.get('description')
     type=data.get('type')
+    # print(len(payload))
     if database.save_new_project(project,payload,owner,title,description,type):
         return Response({'status':200})
     return Response({'status':400})

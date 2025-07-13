@@ -2,6 +2,9 @@ from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
 import random
+import base64
+from io import BytesIO
+from bson import Binary
 
 def generate_code()->str:
     code=""
@@ -97,21 +100,37 @@ def find_room(room:str)->bool:
 
 def save_project(room:str,payload:str)->bool:
     try:
-        entry=models.Board.objects.get(room=room)
-        entry.board=payload
+        entry = models.Board.objects.get(room=room)
+        if payload.startswith("data:"):
+            payload = payload.split(",", 1)[1]
+        image_data = base64.b64decode(payload)
+        file_obj = BytesIO(image_data)
+        if entry.board:
+            entry.board.replace(file_obj, content_type="image/png")
+        else:
+            entry.board.put(file_obj, content_type="image/png")
         entry.save()
         return True
     except models.Board.DoesNotExist:
-        print('quick save object does not exist')
+        print(f'[Quick Save] Room "{room}" not found.')
         return False
     except Exception as e:
-        print(e)
+        print(f'[Quick Save] Error: {e}')
         return False
-    
     
 def save_new_project(room:str,payload:str,owner:str,title:str,description:str,type:str)->bool:
     try:
-        models.Board.objects.create(owner=decode_user(owner),room=room,board=payload,title=title,description=description,visibility=type)
+        image_data = base64.b64decode(payload.split(',')[1])
+        file_obj = BytesIO(image_data)
+        board = models.Board(
+            owner=decode_user(owner),
+            room=room,
+            title=title,
+            description=description,
+            visibility=type,
+        )
+        board.board.put(file_obj, content_type='image/png')
+        board.save()
         return True
     except Exception as e:
         print(e)
@@ -126,7 +145,6 @@ def get_boards(id: str) -> List[Dict[str, str]]:
                 "title": entry.title,
                 "description": entry.description,
                 "visibility": entry.visibility,
-                # "board": entry.board,
             }
             for entry in entries
         ]
@@ -138,9 +156,31 @@ def get_boards(id: str) -> List[Dict[str, str]]:
         return []
     
 def get_board_img(room: str) -> str:
+    # try:
+    #     entry = models.Board.objects.get(room=room)
+    #     if entry.board and entry.board.grid_id:
+    #         img_data = entry.board.read()
+    #         base64_str = base64.b64encode(img_data).decode('utf-8')
+    #         return f'data:image/png;base64,{base64_str}'
+    #     else:
+    #         return ""
+    # except models.Board.DoesNotExist:
+    #     return ""
+    # except Exception as e:
+    #     print(f'[get_board_img] Error: {e}')
+    #     return ""
     try:
-        entry=models.Board.objects.get(room=room)
-        return entry.board
+        entry = models.Board.objects.get(room=room)
+        if entry.board and entry.board.name:  # or .path
+            with entry.board.open("rb") as f:
+                img_data = f.read()
+            base64_str = base64.b64encode(img_data).decode("utf-8")
+            return f"data:image/png;base64,{base64_str}"
+        else:
+            return ""
     except models.Board.DoesNotExist:
+        return ""
+    except Exception as e:
+        print(f"[get_board_img] Error: {e}")
         return ""
         

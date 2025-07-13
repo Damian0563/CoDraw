@@ -253,6 +253,7 @@ import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
 import { watch } from 'vue';
+import { nextTick } from 'vue';
 const stageRef = ref(null);
 const isVisible=ref(false)
 const showPopup=ref(false)
@@ -314,25 +315,27 @@ const save_definetely = async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    const imageData = canvas.toDataURL("image/png");
+    // console.log(stageRef.value.getStage().toDataURL())
+    // console.log(stageRef.value.getStage().toDataURL().length)
     const data=await fetch('http://localhost:8000/codraw/save_new',{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
         "owner":owner,
-        "payload":imageData,
+        "payload":stageRef.value.getStage().toDataURL(),
         "title":title.value,
         "description":description.value,
         "type":type.value,
       })
     })
+    console.log(stageRef.value.getStage().toDataURL())
     const response=await data.json()
     isVisible.value=false
     if(response.status===200){
       showPopup.value=true
       message.value="Board saved successfully."
+      autosave()
     }else{
       showPopup.value=true
       message.value="There was an error saving your board."
@@ -351,16 +354,17 @@ const check_save = async (mode) => {
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
-        "payload":canvas.toDataURL()
+        "payload":stageRef.value.getStage().toDataURL()
       })
     })
     const response=await data.json()
     if(mode === 'save'){
       if(response.status===200){
+        autosave()
         showPopup.value=true
         message.value="Board was successfully quick saved."
       }else{
-      isVisible.value=true
+        isVisible.value=true
       }
     }else if(mode=='load'){
       if(response.status===200){
@@ -420,7 +424,8 @@ const getRelativePointerPosition = (stage) => {
 };
 const autosave = () => {
   // Save the canvas as a data URL (image)
-  const dataUrl = canvas.toDataURL();
+  const dataUrl = stageRef.value.getStage().toDataURL();
+  console.log('autosaved')
   // Store the image data and a timestamp/id in the list
   list.value = [{
     id: Date.now(),
@@ -502,12 +507,12 @@ const get_details_and_load = async()=>{
     })
     const response=await data.json()
     const imageUrl = response.canva;
-    console.log(imageUrl)
     if (imageUrl) {
       const img = new Image();
       img.onload = () => {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        imageRef.value.getNode().image(canvas);
         layerRef.value.getNode().batchDraw();
       };
       img.onerror = (e) => console.error("Image failed to load", e);
@@ -519,38 +524,38 @@ const get_details_and_load = async()=>{
 }
 
 onMounted(async()=>{
+  await nextTick(); 
   if(await check_save('load')){
-    get_details_and_load()
+    setTimeout(()=> get_details_and_load(),100)
   }else{
     load();
-    const stage = stageRef.value.getNode(); // get Konva Stage
-    const scaleBy = 1.05;
-    stage.on('wheel', (e) => {
-      e.evt.preventDefault();
-
-      const oldScale = stage.scaleX();
-      const pointer = stage.getPointerPosition();
-
-      const mousePointTo = {
-        x: (pointer.x - stage.x()) / oldScale,
-        y: (pointer.y - stage.y()) / oldScale,
-      };
-
-      const direction = e.evt.deltaY > 0 ? 1 : -1;
-      if(oldScale===1 && direction===-1) return;
-      const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-      
-      stage.scale({ x: newScale, y: newScale });
-
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
-
-      stage.position(newPos);
-      stage.batchDraw();
-    });
   }
+  const stage = stageRef.value.getNode(); // get Konva Stage
+  const scaleBy = 1.05;
+  stage.on('wheel', (e) => {
+    e.evt.preventDefault();
+    const oldScale = stage.scaleX();
+    const pointer = stage.getPointerPosition();
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    const direction = e.evt.deltaY > 0 ? 1 : -1;
+    if(oldScale===1 && direction===-1) return;
+    const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    
+    stage.scale({ x: newScale, y: newScale });
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
+    stage.position(newPos);
+    stage.batchDraw();
+  });
 })
 setInterval(()=>autosave(),60000)
 </script>
