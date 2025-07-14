@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+import os
 from mongoengine import connect
 
 MONGO_DB_NAME = 'CoDraw'
@@ -156,3 +156,6 @@ CSRF_COOKIE_PATH = '/'
 CSRF_COOKIE_DOMAIN = None  # This allows cookies to be accessible on all subdomains
 CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
 CSRF_COOKIE_SECURE = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

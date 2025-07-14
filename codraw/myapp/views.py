@@ -135,7 +135,7 @@ def load(request):
                 data=json.loads(request.body)
                 room=data['project']
                 canva=database.get_board_img(room=room)
-                return Response({'status':200,"canva":canva})
+                return Response({'status':200,"canva":json.loads(canva)})
             return Response({'status':404,"canva":""})
 
 @api_view(["POST"])
@@ -189,7 +189,8 @@ def save(request):
     room=data.get('project')
     payload=data.get('payload')
     if database.find_room(room):
-        database.save_project(room,payload)
+        if payload is not None:
+            database.save_project(room,payload)
         return Response({'status':200})
     return Response({'status':400})
 
@@ -202,8 +203,7 @@ def save_new(request):
     payload=data.get('payload')
     title=data.get('title')
     description=data.get('description')
-    type=data.get('type')
-    # print(len(payload))
+    type=data.get('type') 
     if database.save_new_project(project,payload,owner,title,description,type):
         return Response({'status':200})
     return Response({'status':400})

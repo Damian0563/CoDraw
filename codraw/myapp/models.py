@@ -9,7 +9,7 @@ class User(Document):
 
 class Board(Document):
     owner=fields.EmailField(max_length=100)
-    board=fields.FileField(required=True)
+    board=fields.StringField(required=True)
     room=fields.StringField(required=True)
     description=fields.StringField(max_length=512)
     title=fields.StringField(required=True,max_length=100)

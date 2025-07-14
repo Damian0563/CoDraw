@@ -252,6 +252,8 @@
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
+const currentLine = ref(null)
+import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
 const stageRef = ref(null);
@@ -315,21 +317,18 @@ const save_definetely = async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
-    // console.log(stageRef.value.getStage().toDataURL())
-    // console.log(stageRef.value.getStage().toDataURL().length)
     const data=await fetch('http://localhost:8000/codraw/save_new',{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
         "owner":owner,
-        "payload":stageRef.value.getStage().toDataURL(),
+        "payload":JSON.stringify(stageRef.value.getStage().toJSON()),
         "title":title.value,
         "description":description.value,
         "type":type.value,
       })
     })
-    console.log(stageRef.value.getStage().toDataURL())
     const response=await data.json()
     isVisible.value=false
     if(response.status===200){
@@ -349,16 +348,16 @@ const check_save = async (mode) => {
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];  // 'room_id
-    const data=await fetch('http://localhost:8000/codraw/save_project',{
-      method:"POST",
-      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
-      body:JSON.stringify({
-        "project":room,
-        "payload":stageRef.value.getStage().toDataURL()
+    if(mode==='save'){
+      const data=await fetch('http://localhost:8000/codraw/save_project',{
+        method:"POST",
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify({
+          "project":room,
+          "payload": JSON.stringify(stageRef.value.getStage().toJSON())
+        })
       })
-    })
-    const response=await data.json()
-    if(mode === 'save'){
+      const response=await data.json()
       if(response.status===200){
         autosave()
         showPopup.value=true
@@ -366,13 +365,20 @@ const check_save = async (mode) => {
       }else{
         isVisible.value=true
       }
-    }else if(mode=='load'){
+    }else if(mode==='load'){
+      const data=await fetch('http://localhost:8000/codraw/save_project',{
+        method:"POST",
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify({
+          "project":room,
+        })
+      })
+      const response=await data.json()
       if(response.status===200){
         return true
       }
       return false
     }
-    
   }catch(e){
     console.error(e)
   }
@@ -390,32 +396,6 @@ function clear_all(){
   // context.clearRect(0, 0, canvas.width, canvas.height);
   // layerRef.value.getNode().batchDraw();
 }
-
-window.addEventListener('resize', () => {
-  const stage = stageRef.value?.getNode();
-  const image = imageRef.value?.getNode();
-
-  if (!stage || !image) return;
-
-  // New viewport dimensions
-  const newWidth = window.innerWidth;
-  const newHeight = window.innerHeight;
-
-  // Resize canvas element (backing image)
-  canvas.width = newWidth * 4; // Keep your 4x scaling if needed
-  canvas.height = newHeight * 4;
-
-  // Resize Konva Stage
-  stage.width(canvas.width);
-  stage.height(canvas.height);
-
-  // Resize Konva Image config
-  image.width(canvas.width);
-  image.height(canvas.height);
-
-  // Redraw the image (to avoid flickering)
-  image.getLayer().batchDraw();
-});
 const getRelativePointerPosition = (stage) => {
   const transform = stage.getAbsoluteTransform().copy();
   transform.invert();
@@ -425,7 +405,6 @@ const getRelativePointerPosition = (stage) => {
 const autosave = () => {
   // Save the canvas as a data URL (image)
   const dataUrl = stageRef.value.getStage().toDataURL();
-  console.log('autosaved')
   // Store the image data and a timestamp/id in the list
   list.value = [{
     id: Date.now(),
@@ -442,22 +421,47 @@ const imageConfig = {
   height: canvas.height
 };
 const handleMouseDown = (e) => {
+  // const stage = e.target.getStage();
+  // if (e.evt.button === 2) { // Right click
+  //   isPanning.value = true;
+  //   stage.draggable(true);
+  //   stage.startDrag();
+  //   lastPos.value = stage.getPointerPosition();
+  //   return;
+  // }
+  // isDrawing.value = true;
+  // lastPos.value = getRelativePointerPosition(stage)
   const stage = e.target.getStage();
-
-  if (e.evt.button === 2) { // Right click
+  if (e.evt.button === 2) {
     isPanning.value = true;
     stage.draggable(true);
     stage.startDrag();
     lastPos.value = stage.getPointerPosition();
     return;
   }
-
   isDrawing.value = true;
-  lastPos.value = getRelativePointerPosition(stage)
+  const pos = getRelativePointerPosition(stage);
+  const newLine = new Konva.Line({
+    stroke: color.value,
+    strokeWidth: width_slider.value,
+    globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+    points: [pos.x, pos.y],
+    lineCap: 'round',
+    lineJoin: 'round'
+  });
+  layerRef.value.getNode().add(newLine);
+  currentLine.value = newLine;
 };
 
 const handleMouseUp = (e) => {
+  // isDrawing.value = false;
+  // if (isPanning.value) {
+  //   const stage = e.target.getStage();
+  //   stage.draggable(false);
+  //   isPanning.value = false;
+  // }
   isDrawing.value = false;
+  currentLine.value = null;
   if (isPanning.value) {
     const stage = e.target.getStage();
     stage.draggable(false);
@@ -466,27 +470,28 @@ const handleMouseUp = (e) => {
 };
 
 const handleMouseMove = (e) => {
-  if (!isDrawing.value) {
-    return;
-  }
-  const ctx = context;
+  // if (!isDrawing.value) {
+  //   return;
+  // }
+  // const ctx = context;
+  // const stage = e.target.getStage();
+  // ctx.lineWidth=width_slider.value
+  // ctx.strokeStyle = color.value
+  // ctx.globalCompositeOperation = tool.value === 'eraser' ? 'destination-out' : 'source-over';
+  // ctx.beginPath();
+  // const prevPos = lastPos.value;
+  // const newPos = getRelativePointerPosition(stage);
+  // ctx.moveTo(prevPos.x, prevPos.y);
+  // ctx.lineTo(newPos.x, newPos.y);
+  // ctx.stroke();
+  // ctx.closePath();
+  // lastPos.value = newPos;
+  // layerRef.value.getNode().batchDraw();
+  if (!isDrawing.value || !currentLine.value) return;
   const stage = e.target.getStage();
-  ctx.lineWidth=width_slider.value
-  ctx.strokeStyle = color.value
-  ctx.globalCompositeOperation = tool.value === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.beginPath();
-  const prevPos = lastPos.value;
-  const newPos = getRelativePointerPosition(stage);
-  // const image = imageRef.value.getNode();
-  // ctx.moveTo(prevPos.x - image.x(), prevPos.y - image.y());
-  // ctx.lineTo(newPos.x - image.x(), newPos.y - image.y());
-  ctx.moveTo(prevPos.x, prevPos.y);
-  ctx.lineTo(newPos.x, newPos.y);
-  ctx.stroke();
-  ctx.closePath();
-
-  lastPos.value = newPos;
-
+  const point = getRelativePointerPosition(stage);
+  const newPoints = currentLine.value.points().concat([point.x, point.y]);
+  currentLine.value.points(newPoints);
   layerRef.value.getNode().batchDraw();
 };
 
@@ -506,17 +511,16 @@ const get_details_and_load = async()=>{
       })
     })
     const response=await data.json()
-    const imageUrl = response.canva;
-    if (imageUrl) {
-      const img = new Image();
-      img.onload = () => {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        imageRef.value.getNode().image(canvas);
-        layerRef.value.getNode().batchDraw();
-      };
-      img.onerror = (e) => console.error("Image failed to load", e);
-      img.src = imageUrl;
+    const saved_json = response.canva;
+    if (saved_json) {
+      const parsed = JSON.parse(saved_json);
+      const stage = stageRef.value.getStage();
+      stage.destroyChildren();  // remove all layers
+      console.log(parsed, typeof parsed)
+      parsed.children.forEach(layerJson => {
+        const layer = Konva.Node.create(layerJson); // safe: only layers
+        stage.add(layer);
+      });
     }
   }catch(e){
     console.error(e)
@@ -525,10 +529,9 @@ const get_details_and_load = async()=>{
 
 onMounted(async()=>{
   await nextTick(); 
+  load()
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
-  }else{
-    load();
   }
   const stage = stageRef.value.getNode(); // get Konva Stage
   const scaleBy = 1.05;
@@ -556,6 +559,30 @@ onMounted(async()=>{
     stage.position(newPos);
     stage.batchDraw();
   });
+  let resizeTimeout = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const stage = stageRef.value?.getNode();
+      const image = imageRef.value?.getNode();
+      if (!stage || !image) return;
+
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+
+      canvas.width = newWidth * 4;
+      canvas.height = newHeight * 4;
+
+      stage.width(canvas.width);
+      stage.height(canvas.height);
+
+      image.width(canvas.width);
+      image.height(canvas.height);
+
+      const layer = image.getLayer();
+      if (layer) layer.batchDraw();
+    }, 100);
+  }); 
 })
 setInterval(()=>autosave(),60000)
 </script>

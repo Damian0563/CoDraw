@@ -4,6 +4,7 @@ from typing import List, Dict
 import random
 import base64
 from io import BytesIO
+import traceback
 from bson import Binary
 
 def generate_code()->str:
@@ -98,44 +99,6 @@ def get_code(mail:str)->str:
 def find_room(room:str)->bool:
     return models.Board.objects.filter(room=room)
 
-def save_project(room:str,payload:str)->bool:
-    try:
-        entry = models.Board.objects.get(room=room)
-        if payload.startswith("data:"):
-            payload = payload.split(",", 1)[1]
-        image_data = base64.b64decode(payload)
-        file_obj = BytesIO(image_data)
-        if entry.board:
-            entry.board.replace(file_obj, content_type="image/png")
-        else:
-            entry.board.put(file_obj, content_type="image/png")
-        entry.save()
-        return True
-    except models.Board.DoesNotExist:
-        print(f'[Quick Save] Room "{room}" not found.')
-        return False
-    except Exception as e:
-        print(f'[Quick Save] Error: {e}')
-        return False
-    
-def save_new_project(room:str,payload:str,owner:str,title:str,description:str,type:str)->bool:
-    try:
-        image_data = base64.b64decode(payload.split(',')[1])
-        file_obj = BytesIO(image_data)
-        board = models.Board(
-            owner=decode_user(owner),
-            room=room,
-            title=title,
-            description=description,
-            visibility=type,
-        )
-        board.board.put(file_obj, content_type='image/png')
-        board.save()
-        return True
-    except Exception as e:
-        print(e)
-        return False
-    
 def get_boards(id: str) -> List[Dict[str, str]]:
     try:
         entries = models.Board.objects.filter(owner=decode_user(id))
@@ -154,33 +117,112 @@ def get_boards(id: str) -> List[Dict[str, str]]:
     except Exception as e:
         print(e)
         return []
-    
-def get_board_img(room: str) -> str:
-    # try:
-    #     entry = models.Board.objects.get(room=room)
-    #     if entry.board and entry.board.grid_id:
-    #         img_data = entry.board.read()
-    #         base64_str = base64.b64encode(img_data).decode('utf-8')
-    #         return f'data:image/png;base64,{base64_str}'
-    #     else:
-    #         return ""
-    # except models.Board.DoesNotExist:
-    #     return ""
-    # except Exception as e:
-    #     print(f'[get_board_img] Error: {e}')
-    #     return ""
+
+def save_project(room:str,payload:str)->bool:
     try:
-        entry = models.Board.objects.get(room=room)
-        if entry.board and entry.board.name:  # or .path
-            with entry.board.open("rb") as f:
-                img_data = f.read()
-            base64_str = base64.b64encode(img_data).decode("utf-8")
-            return f"data:image/png;base64,{base64_str}"
-        else:
-            return ""
-    except models.Board.DoesNotExist:
-        return ""
+        entry=models.Board.objects.get(room=room)
+        entry.board=payload
+        entry.save()
+        return True
     except Exception as e:
-        print(f"[get_board_img] Error: {e}")
+        print(payload)
+        print('quick save error: ',e)
+        return False
+    
+def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str) -> bool:
+    try:
+        entry=models.Board.objects.create(
+            owner=decode_user(owner),
+            board=payload,
+            room=room,
+            description=description,
+            visibility=type,
+            title=title
+        )
+        entry.save()
+        return True
+    except Exception as e:
+        print('save new project error: ',e)
+        return False
+
+def get_board_img(room: str) -> str:
+    try:
+        entry=models.Board.objects.get(room=room)
+        return entry.board
+    except Exception as e:
+        print("Error in fetchinh image: ",e)
         return ""
+# def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str) -> bool:
+#     try:
+#         if payload.startswith("data:"):
+#             payload = payload.split(",", 1)[1]
+
+#         image_data = base64.b64decode(payload)
+#         file_obj = BytesIO(image_data)
+#         file_obj.seek(0)
+#         decoded_owner = decode_user(owner)
+#         if not decoded_owner:
+#             raise ValueError("Owner could not be decoded")
+
+#         board = models.Board(
+#             owner=decoded_owner,
+#             room=room,
+#             title=title,
+#             description=description,
+#             visibility=type,
+#         )
+
+#         board.board.put(file_obj, filename="canvas.png", content_type='image/png')
+#         board.save()
+
+#         return True
+
+#     except Exception as e:
+#         print(f"[save_new_project] Error: {e}")
+#         traceback.print_exc()
+#         return False
+
+# def get_board_img(room: str) -> str:
+#     try:
+#         entry = models.Board.objects.get(room=room)
+#         if entry.board.grid_id:  # Check that the file exists in GridFS
+#             img_data = entry.board.read()  # Read binary image data
+#             base64_str = base64.b64encode(img_data).decode("utf-8")
+#             return f"data:image/png;base64,{base64_str}"
+#         else:
+#             print("[DEBUG] board.grid_id is None (no image)")
+#             return ""
+#     except models.Board.DoesNotExist:
+#         print(f"[get_board_img] Room '{room}' not found.")
+#         return ""
+#     except Exception as e:
+#         print(f"[get_board_img] Error: {e}")
+#         return ""
+# def save_project(room: str, payload: str) -> bool:
+#     try:
+#         entry = models.Board.objects.get(room=room)
+#         if payload.startswith("data:"):
+#             payload = payload.split(",", 1)[1]
+#         image_data = base64.b64decode(payload)
+#         file_obj = BytesIO(image_data)
+#         file_obj.seek(0)
+#         if entry.board:
+#             entry.board.replace(file_obj, filename="canvas.png", content_type="image/png")
+#         else:
+#             entry.board.put(file_obj, filename="canvas.png", content_type="image/png")
+#         entry.save()
+#         return True
+#     except models.Board.DoesNotExist:
+#         print(f'[Quick Save] Room "{room}" not found.')
+#         return False
+#     except Exception as e:
+#         print(f'[Quick Save] Error: {e}')
+#         traceback.print_exc()
+#         return False
+
+
+
+    
+
+
         
