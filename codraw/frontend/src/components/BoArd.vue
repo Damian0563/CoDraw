@@ -25,8 +25,8 @@
       style="
       position: absolute;
       top: 32px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 40%;
+      transform: translateX(-30%);
       background: rgba(30, 30, 30, 0.85);
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.18);
@@ -37,7 +37,10 @@
       z-index: 10;
       "
     > 
+      <text style="color: white;">Brush Color</text>
       <input type="color" v-model="color">
+      <text style="color: white;">Background Color</text>
+      <input type="color" v-model="background">
       <select
         v-model="tool"
         style="
@@ -61,10 +64,10 @@
         type="range"
         v-model="width_slider"
         min="1"
-        max="50"
+        max="20"
         style="
           accent-color: #4f8cff;
-          width: 120px;
+          width: 60px;
           margin-right: 8px;
         "
       >
@@ -202,8 +205,6 @@
           />
           <span class="slider"></span>
         </label>
-
-        <!-- <span>{{ type === 'Private' ? 'Private' : 'Public' }}</span> -->
       </div>
 
       <button
@@ -260,6 +261,7 @@ const stageRef = ref(null);
 const isVisible=ref(false)
 const showPopup=ref(false)
 const color = ref("#ffffff")
+const background=ref("000000")
 const title=ref(null)
 const message=ref(null)
 const description=ref(null)
@@ -288,6 +290,7 @@ canvas.height = stageConfig.height;
 // get context
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
+context.fillStyle=background.value
 context.lineJoin = 'round';
 context.lineWidth = width_slider.value;
 context.lineCap = 'round';
@@ -404,7 +407,9 @@ const getRelativePointerPosition = (stage) => {
 };
 const autosave = () => {
   // Save the canvas as a data URL (image)
-  const dataUrl = stageRef.value.getStage().toDataURL();
+  const stage = stageRef.value?.getNode?.();
+  if (!stage) return;
+  const dataUrl = stage.toDataURL();
   // Store the image data and a timestamp/id in the list
   list.value = [{
     id: Date.now(),
@@ -421,16 +426,6 @@ const imageConfig = {
   height: canvas.height
 };
 const handleMouseDown = (e) => {
-  // const stage = e.target.getStage();
-  // if (e.evt.button === 2) { // Right click
-  //   isPanning.value = true;
-  //   stage.draggable(true);
-  //   stage.startDrag();
-  //   lastPos.value = stage.getPointerPosition();
-  //   return;
-  // }
-  // isDrawing.value = true;
-  // lastPos.value = getRelativePointerPosition(stage)
   const stage = e.target.getStage();
   if (e.evt.button === 2) {
     isPanning.value = true;
@@ -454,12 +449,6 @@ const handleMouseDown = (e) => {
 };
 
 const handleMouseUp = (e) => {
-  // isDrawing.value = false;
-  // if (isPanning.value) {
-  //   const stage = e.target.getStage();
-  //   stage.draggable(false);
-  //   isPanning.value = false;
-  // }
   isDrawing.value = false;
   currentLine.value = null;
   if (isPanning.value) {
@@ -470,23 +459,6 @@ const handleMouseUp = (e) => {
 };
 
 const handleMouseMove = (e) => {
-  // if (!isDrawing.value) {
-  //   return;
-  // }
-  // const ctx = context;
-  // const stage = e.target.getStage();
-  // ctx.lineWidth=width_slider.value
-  // ctx.strokeStyle = color.value
-  // ctx.globalCompositeOperation = tool.value === 'eraser' ? 'destination-out' : 'source-over';
-  // ctx.beginPath();
-  // const prevPos = lastPos.value;
-  // const newPos = getRelativePointerPosition(stage);
-  // ctx.moveTo(prevPos.x, prevPos.y);
-  // ctx.lineTo(newPos.x, newPos.y);
-  // ctx.stroke();
-  // ctx.closePath();
-  // lastPos.value = newPos;
-  // layerRef.value.getNode().batchDraw();
   if (!isDrawing.value || !currentLine.value) return;
   const stage = e.target.getStage();
   const point = getRelativePointerPosition(stage);
@@ -514,13 +486,13 @@ const get_details_and_load = async()=>{
     const saved_json = response.canva;
     if (saved_json) {
       const parsed = JSON.parse(saved_json);
-      const stage = stageRef.value.getStage();
-      stage.destroyChildren();  // remove all layers
-      console.log(parsed, typeof parsed)
-      parsed.children.forEach(layerJson => {
-        const layer = Konva.Node.create(layerJson); // safe: only layers
-        stage.add(layer);
+      const layer = layerRef.value.getNode();
+      layer.destroyChildren();
+      parsed.children[0].children.forEach(shapeJson => {
+        const shape = Konva.Node.create(shapeJson);
+        layer.add(shape);
       });
+      layer.draw();
     }
   }catch(e){
     console.error(e)
