@@ -258,6 +258,7 @@ import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
 const stageRef = ref(null);
+const admin=ref(false)
 const isVisible=ref(false)
 const showPopup=ref(false)
 const color = ref("#ffffff")
@@ -299,6 +300,32 @@ context.lineJoin = 'round';
 watch(color, (newColor) => {
   context.strokeStyle = newColor;
 });
+
+const check_owner=async()=>{
+  try{
+    const parts = new URL(window.location.href).pathname.split('/');
+    const owner = parts[2]; // 'user_id'
+    const room = parts[3];  // 'room_id
+    const data=await fetch("http://localhost:8000/codraw/check_owner",{
+      method:"POST",
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRFToken':csrf
+      },
+      body:JSON.stringify({
+        "room":room,
+        "owner":owner
+      })
+    })
+    const response=await data.json()
+    if(response.status===200){
+      admin.value=true
+    }
+  }catch(e){
+    console.error(e)
+  }
+}
+
 const load = () => {
   const data = localStorage.getItem('storage');
   if (data) {
@@ -505,6 +532,7 @@ onMounted(async()=>{
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
   }
+  check_owner()
   const stage = stageRef.value.getNode(); // get Konva Stage
   const scaleBy = 1.05;
   stage.on('wheel', (e) => {

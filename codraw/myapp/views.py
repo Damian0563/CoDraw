@@ -207,3 +207,8 @@ def save_new(request):
     if database.save_new_project(project,payload,owner,title,description,type):
         return Response({'status':200})
     return Response({'status':400})
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+def check_onwer(request):
+    return Response({'status':200})
