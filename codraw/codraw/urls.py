@@ -17,8 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
 from myapp import views
 
 urlpatterns = [
@@ -40,5 +38,5 @@ urlpatterns = [
     path('codraw/get_details',views.load,name="load"),
     path('load',views.load_board,name="load_board"),
     path('codraw/save_new',views.save_new,name='save_new'),
-    path('codraw/check_owner',views.check_onwer,name='check_owner')
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('codraw/check_owner',views.check_owner,name='check_owner')
+]

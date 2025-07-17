@@ -114,6 +114,34 @@
         Clear all
       </button>
     </div>
+    <!-- <div style="position: absolute;top:32px;right:5rem">
+      <button class="btn btn-primary">
+        Copy Invitation Link
+        <img :src="url" class="img-fluid" style="width:2%;height: 2%;">
+      </button>
+    </div> -->
+    <div style="position: absolute; top: 32px; right: 3rem; z-index: 10;">
+      <button
+        @click="copyInvitationLink"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #4f8cff;
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          padding: 10px 18px;
+          font-size: 0.95rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.3s;
+        "
+      >
+        <img :src="url" alt="Copy" style="width: 18px; height: 18px;" />
+        Copy Invitation Link
+      </button>
+    </div>
     <div
       v-if="isVisible"
       style="
@@ -250,6 +278,7 @@
 </template>
 
 <script setup>
+import url from '@/assets/email.webp'
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref} from 'vue';
@@ -257,6 +286,11 @@ const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
+
+import {state} from '@/socket'
+import { socket } from '@/socket';
+console.log(socket,state)
+
 const stageRef = ref(null);
 const admin=ref(false)
 const isVisible=ref(false)
@@ -305,15 +339,15 @@ const check_owner=async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
-    const room = parts[3];  // 'room_id
+    // const room = parts[3];  // 'room_id
     const data=await fetch("http://localhost:8000/codraw/check_owner",{
       method:"POST",
       headers:{
         'Content-Type':'application/json',
         'X-CSRFToken':csrf
       },
+      credentials:"include",
       body:JSON.stringify({
-        "room":room,
         "owner":owner
       })
     })
@@ -325,6 +359,19 @@ const check_owner=async()=>{
     console.error(e)
   }
 }
+
+const copyInvitationLink = async () => {
+  try {
+    const link = window.location.href;
+    await navigator.clipboard.writeText(link);
+    showPopup.value = true;
+    message.value = "Invitation link copied to clipboard!";
+  } catch (err) {
+    console.error("Failed to copy: ", err);
+    showPopup.value = true;
+    message.value = "Failed to copy the link.";
+  }
+};
 
 const load = () => {
   const data = localStorage.getItem('storage');
@@ -532,7 +579,7 @@ onMounted(async()=>{
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
   }
-  check_owner()
+  await check_owner()
   const stage = stageRef.value.getNode(); // get Konva Stage
   const scaleBy = 1.05;
   stage.on('wheel', (e) => {

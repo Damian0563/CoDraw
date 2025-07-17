@@ -210,5 +210,16 @@ def save_new(request):
 
 @api_view(['POST'])
 @ensure_csrf_cookie
-def check_onwer(request):
-    return Response({'status':200})
+def check_owner(request):
+    data=json.loads(request.body)
+    # room=data['room']
+    owner=data['owner']
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id==owner:
+            return Response({'status':200})
+        return Response({'status':400})
