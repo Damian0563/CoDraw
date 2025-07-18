@@ -286,11 +286,6 @@ const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
-
-import {state} from '@/socket'
-import { socket } from '@/socket';
-console.log(socket,state)
-
 const stageRef = ref(null);
 const admin=ref(false)
 const isVisible=ref(false)
