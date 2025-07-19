@@ -281,7 +281,7 @@
 import url from '@/assets/email.webp'
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
-import { onMounted, ref} from 'vue';
+import { onMounted, ref, onBeforeUnmount} from 'vue';
 const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
@@ -309,6 +309,14 @@ const stageConfig = {
   height: 4*document.documentElement.clientHeight,
   draggable: false
 };
+
+const ws=ref(null)
+const room=ref(new URL(window.location.href).pathname.split('/')[3])
+ws.value = new WebSocket(`ws://localhost:8000/ws/socket/${room.value}/`)
+ws.value.onmessage = (event)=>{
+  console.log(event.data)
+}
+
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
 };
@@ -627,6 +635,11 @@ onMounted(async()=>{
   }); 
 })
 setInterval(()=>autosave(),60000)
+onBeforeUnmount(()=>{
+  if(ws.value){
+    ws.value.close()
+  }
+})
 </script>
 
 <style scoped>
