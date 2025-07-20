@@ -114,13 +114,7 @@
         Clear all
       </button>
     </div>
-    <!-- <div style="position: absolute;top:32px;right:5rem">
-      <button class="btn btn-primary">
-        Copy Invitation Link
-        <img :src="url" class="img-fluid" style="width:2%;height: 2%;">
-      </button>
-    </div> -->
-    <div style="position: absolute; top: 32px; right: 3rem; z-index: 10;">
+    <div style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
       <button
         @click="copyInvitationLink"
         style="
@@ -313,9 +307,32 @@ const stageConfig = {
 const ws=ref(null)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
 ws.value = new WebSocket(`ws://localhost:8000/ws/socket/${room.value}/`)
-ws.value.onmessage = (event)=>{
-  console.log(event.data)
-}
+ws.value.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (!data || !data.type) return;
+
+  const layer = layerRef.value.getNode();
+
+  if (data.type === "start") {
+    const newLine = new Konva.Line({
+      stroke: data.stroke,
+      strokeWidth: data.width,
+      globalCompositeOperation: data.operation,
+      points: data.points,
+      lineCap: "round",
+      lineJoin: "round"
+    });
+    newLine._remote = true;
+    layer.add(newLine);
+    currentLine.value = newLine;
+  } else if (data.type === "draw" && currentLine.value?._remote) {
+    const newPoints = currentLine.value.points().concat(data.points);
+    currentLine.value.points(newPoints);
+    layer.batchDraw();
+  }
+};
+
 
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
@@ -521,6 +538,13 @@ const handleMouseDown = (e) => {
     lineCap: 'round',
     lineJoin: 'round'
   });
+  ws.value.send(JSON.stringify({
+    type: "start",
+    stroke: color.value,
+    width: width_slider.value,
+    operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+    points: [pos.x, pos.y]
+  }))
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
 };
@@ -542,6 +566,10 @@ const handleMouseMove = (e) => {
   const newPoints = currentLine.value.points().concat([point.x, point.y]);
   currentLine.value.points(newPoints);
   layerRef.value.getNode().batchDraw();
+  ws.value.send(JSON.stringify({
+    type: "draw",
+    points: [point.x, point.y]
+  }));
 };
 
 const get_details_and_load = async()=>{
