@@ -22,11 +22,11 @@
       </div>
     </div>
     <div
+      id="toolbar"
       style="
       position: absolute;
       top: 32px;
-      left: 40%;
-      transform: translateX(-30%);
+      left: 5%;
       background: rgba(30, 30, 30, 0.85);
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.18);
@@ -73,6 +73,7 @@
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
+        id="save_btn"
         @click="check_save('save')"
         style="
           background: #4f8cff;
@@ -82,11 +83,12 @@
           padding: 8px 20px;
           font-size: 1rem;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: ease-in-out 0.6s;
         "
       >Save</button>
       <button
       @click="leave()"
+      id="exit"
       style="
         background: #ff4f4f;
         color: #fff;
@@ -95,10 +97,11 @@
         padding: 8px 20px;
         font-size: 1rem;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: ease-in-out 0.6s;
       "
       >Exit</button>
       <button
+        id="clearall"
         style="
           background: #f68608;
           color: #fff;
@@ -107,15 +110,16 @@
           padding: 8px 20px;
           font-size: 1rem;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: ease-in-out 0.6s;
         "
         @click="clear_all()"
         >
         Clear all
       </button>
     </div>
-    <div style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
+    <div id="inv_div" style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
       <button
+        id="inv"
         @click="copyInvitationLink"
         style="
           display: flex;
@@ -129,11 +133,11 @@
           font-size: 0.95rem;
           font-weight: 500;
           cursor: pointer;
-          transition: background 0.3s;
+          transition: ease-in-out 0.6s;
         "
       >
         <img :src="url" alt="Copy" style="width: 18px; height: 18px;" />
-        Copy Invitation Link
+        <span v-if="show_text">Copy invitation link</span>
       </button>
     </div>
     <div
@@ -141,7 +145,7 @@
       style="
         position: absolute;
         top: 120px;
-        left: 50%;
+        left: 20%;
         transform: translateX(-50%);
         backdrop-filter: blur(16px);
         background: rgba(30, 30, 30, 0.75);
@@ -156,6 +160,7 @@
         min-width: 30vw;
         max-width: 90vw;
         font-family: 'Segoe UI', Roboto, sans-serif;
+        transition: ease-in-out 0.6s;
         color: #fff;
       "
     >
@@ -275,17 +280,18 @@
 import url from '@/assets/email.webp'
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
-import { onMounted, ref, onBeforeUnmount} from 'vue';
+import { onMounted, ref, onBeforeUnmount, computed} from 'vue';
 const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
 const stageRef = ref(null);
+const windowWidth = ref(window.innerWidth);
 const admin=ref(false)
 const isVisible=ref(false)
 const showPopup=ref(false)
 const color = ref("#ffffff")
-const background=ref("000000")
+const background=ref("#000000")
 const title=ref(null)
 const message=ref(null)
 const description=ref(null)
@@ -298,6 +304,8 @@ const lastPos = ref(null);
 const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
+
+const show_text = computed(() => windowWidth.value > 1330);
 const stageConfig = {
   width: 4*document.documentElement.clientWidth,
   height: 4*document.documentElement.clientHeight,
@@ -591,7 +599,7 @@ const get_details_and_load = async()=>{
     const saved_json = response.canva;
     if (saved_json) {
       const parsed = JSON.parse(saved_json);
-      const layer = layerRef.value.getNode();
+      const layer = layerRef.value.getNode(); //
       layer.destroyChildren();
       parsed.children[0].children.forEach(shapeJson => {
         const shape = Konva.Node.create(shapeJson);
@@ -660,7 +668,12 @@ onMounted(async()=>{
       const layer = image.getLayer();
       if (layer) layer.batchDraw();
     }, 100);
-  }); 
+  });
+  const onResize = () => {
+    windowWidth.value = window.innerWidth;
+  };
+  window.addEventListener('resize', onResize); 
+  //onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 })
 setInterval(()=>autosave(),60000)
 onBeforeUnmount(()=>{
@@ -668,6 +681,7 @@ onBeforeUnmount(()=>{
     ws.value.close()
   }
 })
+
 </script>
 
 <style scoped>
@@ -716,5 +730,46 @@ input:checked + .slider {
 
 input:checked + .slider::before {
   transform: translateX(18px);
+}
+
+@media(max-width:1500px) {
+  #toolbar{
+    font-size: 0.8rem;
+    gap:10px;
+  }
+}
+@media(max-width:1330px){
+  #toolbar{
+    left:2% !important;
+  }
+  #inv{
+    right:0.5rem;
+    font-size: 0.5rem;
+  }
+}
+@media(max-width:1150px){
+  #toolbar{
+    gap: 5px !important;
+  }
+}
+
+@media(max-width:1000px){
+  #inv_div{
+    top:140px !important;
+    position: fixed !important;
+  }
+}
+
+#inv:hover,#save_btn:hover{
+  background: #fff !important;
+  color:#4f8cff !important;
+}
+#exit:hover{
+  background:#fff!important;
+  color:#ff4f4f !important;
+}
+#clearall:hover{
+  background:#fff !important;
+  color:#f68608 !important;
 }
 </style>
