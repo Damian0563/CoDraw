@@ -7,8 +7,8 @@
       overflow: hidden;
     "
   >
-    <div v-if="showPopup" 
-       style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+    <div v-if="showPopup"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
       <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
       <button @click="showPopup = false" 
           style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
@@ -140,119 +140,116 @@
         <span v-if="show_text">Copy invitation link</span>
       </button>
     </div>
-    <div
-      v-if="isVisible"
-      style="
-        position: absolute;
-        top: 120px;
-        left: 20%;
-        transform: translateX(-50%);
-        backdrop-filter: blur(16px);
-        background: rgba(30, 30, 30, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        z-index: 20;
-        min-width: 30vw;
-        max-width: 90vw;
-        font-family: 'Segoe UI', Roboto, sans-serif;
-        transition: ease-in-out 0.6s;
-        color: #fff;
-      "
-    >
-      <button
-        @click="isVisible = false"
+    <Transition name="fade-slide">
+      <div
+        v-if="isVisible"
         style="
           position: absolute;
-          top: 12px;
-          right: 12px;
-          background: transparent;
-          border: none;
-          color: #ccc;
-          font-size: 20px;
-          cursor: pointer;
-          transition: color 0.2s;
-        "
-      >
-        ✕
-      </button>
-
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <label class="align-self-start">Title</label>
-        <input
-          v-model="title"
-          type="text"
-          placeholder="Enter title"
-          style="
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.2s;
-          "
-        />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <label class="align-self-start">Description</label>
-        <textarea
-          v-model="description"
-          rows="3"
-          placeholder="Enter description"
-          style="
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 1rem;
-            resize: vertical;
-            outline: none;
-            transition: border 0.2s;
-            resize: none;
-          "
-        ></textarea>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <label style="flex-shrink: 0;">Private</label>
-        <label class="switch">
-          <input 
-            v-model="type" 
-            type="checkbox" 
-            :true-value="'private'" 
-            :false-value="'public'" 
-          />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <button
-        @click="save_definetely()"
-        style="
-          background: #4f8cff;
+          top: 150px;
+          left: 35%;
+          backdrop-filter: blur(16px);
+          background: rgba(30, 30, 30, 0.75);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+          padding: 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          z-index: 20;
+          min-width: 30vw;
+          max-width: 90vw;
+          font-family: 'Segoe UI', Roboto, sans-serif;
+          transition: ease-in-out 0.6s;
           color: #fff;
-          border: none;
-          border-radius: 12px;
-          padding: 12px;
-          font-size: 1rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background 0.2s;
-          transition: 0.5s ease-out;
         "
-        class="save"
       >
-        Save Details
-      </button>
-    </div>
+        <button
+          @click="isVisible = false"
+          style="
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: #ccc;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+          "
+        >
+          ✕
+        </button>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="align-self-start">Title</label>
+          <input
+            v-model="title"
+            type="text"
+            placeholder="Enter title"
+            style="
+              padding: 10px 14px;
+              border-radius: 12px;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.05);
+              color: #fff;
+              font-size: 1rem;
+              outline: none;
+              transition: border 0.2s;
+            "
+          />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="align-self-start">Description</label>
+          <textarea
+            v-model="description"
+            rows="3"
+            placeholder="Enter description"
+            style="
+              padding: 10px 14px;
+              border-radius: 12px;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.05);
+              color: #fff;
+              font-size: 1rem;
+              resize: vertical;
+              outline: none;
+              transition: border 0.2s;
+              resize: none;
+            "
+          ></textarea>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label style="flex-shrink: 0;">Private</label>
+          <label class="switch">
+            <input 
+              v-model="type" 
+              type="checkbox" 
+              :true-value="'private'" 
+              :false-value="'public'" 
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <button
+          @click="save_definetely()"
+          style="
+            background: #4f8cff;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            transition: 0.5s ease-out;
+          "
+          class="save"
+        >
+          Save Details
+        </button>
+      </div>
+    </Transition>
 
     <v-stage
         ref="stageRef"
@@ -685,6 +682,25 @@ onBeforeUnmount(()=>{
 </script>
 
 <style scoped>
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform:translateY(-20px);
+}
+
+/* The "leave" state, when the modal is about to disappear */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+/* The "active" state, when the modal is fully visible and in its final position */
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform:translateY(0);
+}
+
 .save:hover{
   background:#fff ;
   color: #4f8cff;

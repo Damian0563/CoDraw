@@ -21,24 +21,32 @@
       <h1>Welcome to CoDraw!</h1>
       <div class="mb-4">
         <h2 class="mb-4 text-start">My Projects</h2>
-        <div id="projects" class="projects-list d-flex flex-wrap gap-3">
-          <div class="card create-project-card text-center bg-dark"  @click="create()" style="width: 25rem;min-height: 10rem; cursor: pointer;">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="max-height: 10rem;">
-              <span style="font-size: 2.5rem; color: #ffc107;">+</span>
-              <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
-            </div>
-          </div>
-          <div v-for="(board, index) in boards"
-              :key="index"
-              style="width: 25rem;min-height: 10rem;"
-              class="card create-project-card text-center bg-dark"
-              @click="join(board.room)"
-              >
-              <div class="card-body">
-                <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
-                <p class="card-text" style="color: white;">{{ board.description }}</p>
+        <div id="projects" class="container">
+          <div class="row g-4 w-100 mx-0">
+            <div class="col-12 col-sm-6">
+              <div class="card create-project-card text-center bg-dark" @click="create()" style="min-height: 15rem;min-width:15rem;cursor: pointer;">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
+                  <span style="font-size: 3rem; color: #ffc107;">+</span>
+                  <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
+                </div>
               </div>
-              
+            </div>
+            <div
+              v-for="(board, index) in boards"
+              :key="index"
+              class="col-12 col-sm-6"
+            >
+              <div
+                class="card create-project-card text-center bg-dark"
+                @click="join(board.room)"
+                style="min-height: 15rem;min-width:15rem ;cursor: pointer;"
+              >
+                <div class="card-body d-flex flex-column justify-content-center" style="height: 100%;">
+                  <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
+                  <p class="card-text" style="color: white;">{{ board.description }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
