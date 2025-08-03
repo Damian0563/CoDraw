@@ -23,8 +23,8 @@
         <h2 class="mb-4 text-start">My Projects</h2>
         <div id="projects" class="container">
           <div class="row g-4 w-100 mx-0">
-            <div class="col-12 col-sm-6">
-              <div class="card create-project-card text-center bg-dark" @click="create()" style="min-height: 15rem;min-width:15rem;cursor: pointer;">
+            <div class="col-12 col-lg-4 col-xl-3">
+              <div class="card create-project-card text-center bg-dark" @click="create()" style="min-height: 14rem;min-width:14rem;cursor: pointer;">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
                   <span style="font-size: 3rem; color: #ffc107;">+</span>
                   <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
@@ -34,17 +34,17 @@
             <div
               v-for="(board, index) in boards"
               :key="index"
-              class="col-12 col-sm-6"
+              class="col-12 col-lg-4 col-xl-3"
             >
               <div
                 class="card create-project-card text-center bg-dark"
                 @click="join(board.room)"
-                style="min-height: 15rem;min-width:15rem ;cursor: pointer;"
+                style="min-height: 14rem;min-width:14rem ;cursor: pointer;"
               >
-                <div class="card-body d-flex flex-column justify-content-center" style="height: 100%;">
-                  <h5 class="card-title" style="color: white;">{{ board.title }}</h5>
-                  <p class="card-text" style="color: white;">{{ board.description }}</p>
-                </div>
+                <div class="card-body d-flex flex-column text-white" id="created" style="height: 100%;">
+                  <h5 class="card-title" style="font-weight:800;">{{ board.title }}</h5>
+                  <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
+                </div>  
               </div>
             </div>
           </div>
@@ -181,6 +181,15 @@ export default {
 <style scoped>
 #out{
   transition: 0.6s ease-in-out;
+}
+
+#created{
+  transition: 0.5s ease-in-out;
+}
+
+#created:hover{
+ background-color:#ffc107;
+ color:black !important;
 }
 
 #out:hover{

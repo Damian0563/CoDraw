@@ -28,18 +28,27 @@
   <div class="d-flex justify-content-center pt-5" style="background-color: black; min-height: 40vh;">
     <div class="card p-3 shadow-lg" style="max-width: 400px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign Up</h2>
-      <form @submit="SignUp">
+      <form ref="formRef" @submit="SignUp" class="needs-validation" novalidate>
         <div class="mb-2">
           <label for="username" class="form-label text-black text-start w-100">Username</label>
-          <input v-model="username" type="text" class="form-control bg-dark text-white border-secondary" id="username" placeholder="Enter username" style="color: white;">
+          <input v-model="username" type="text" class="form-control bg-dark text-white border-secondary" id="username" placeholder="Enter username" style="color: white;" required>
+          <div class="invalid-feedback">
+            Please specify username.
+          </div>
         </div>
         <div class="mb-2">
           <label for="email" class="form-label text-black text-start w-100">Email address</label>
-          <input v-model="mail" type="email" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email">
+          <input v-model="mail" type="email" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email" required>
+          <div class="invalid-feedback">
+            Please specify email.
+          </div>
         </div>
         <div class="mb-2">
           <label for="password" class="form-label text-black text-start w-100">Password</label>
-          <input v-model="password" type="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password">
+          <input v-model="password" type="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password" required>
+          <div class="invalid-feedback">
+            Please specify password.
+          </div>
         </div>
         <button id="sign" class="btn btn-success w-100 mt-2" type="submit" style="background-color: yellow;color: black;">Sign Up</button>
       </form>
@@ -55,6 +64,7 @@ import { ref } from 'vue'
 import url from '@/assets/logo.webp'
 import { get_cookie } from '@/common'
 let visible=ref(false)
+let formRef=ref(null)
 let invalid=ref(false)
 let message=ref('')
 const username = ref('')
@@ -85,12 +95,18 @@ async function status(){
 status();
 async function SignUp(e) {
   e.preventDefault()
+  const form = formRef.value;
+  form.classList.add('was-validated')
+  if (!form.checkValidity()) {
+    e.stopPropagation()
+    return;
+  }
   const csrf=get_cookie('csrftoken')
   const username_input=username.value
   const password_input= password.value
   const mail_input=mail.value
   try{
-    const data = await fetch("http://localhost:8000/create",{
+    const data = await fetch("http://localhost:8000/signup",{
       method:"POST",
       headers:{"Content-Type":'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({

@@ -23,7 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),    
-    path('create', views.SignUp,name="SignUp"),
+    path('signup', views.SignUp,name="SignUp"),
     path('verify',views.Verify,name="Verify"),
     path('signin',views.SignIn,name="SignIn"),
     path('home',views.home,name="home"),

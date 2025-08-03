@@ -14,14 +14,20 @@
   <div class="d-flex justify-content-center pt-5" style="background-color: black; min-height: 40vh;">
     <div class="card p-3 shadow-lg" style="max-width: 400px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign In</h2>
-      <form @submit="SignIn">
+      <form ref="formRef" @submit="SignIn" class="needs-validation" novalidate>
         <div class="mb-2">
           <label for="email" class="form-label text-black text-start w-100">Email address</label>
-          <input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email">
+          <input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email" required>
+          <div class="invalid-feedback">
+            Please specify email.
+          </div>
         </div>
         <div class="mb-2">
           <label for="password" class="form-label text-black text-start w-100">Password</label>
-          <input type="password" v-model="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password">
+          <input type="password" v-model="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password" required>
+          <div class="invalid-feedback">
+            Please specify password.
+          </div>
         </div>
         <div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap" style="padding: 0 !important;gap: 2rem;">
           <label class="form-check-label text-black fw-medium mb-0" for="rememberMe">
@@ -49,8 +55,15 @@ let invalid = ref(false)
 let ticked= ref(false)
 const name_or_mail = ref('')
 const password = ref('')
+const formRef = ref(null);
 async function SignIn(e){
-  e.preventDefault();
+  e.preventDefault()
+  const form = formRef.value;
+  form.classList.add('was-validated')
+  if (!form.checkValidity()) {
+    e.stopPropagation()
+    return;
+  }
   try{
     const csrf=get_cookie('csrftoken')
     const data = await fetch("http://localhost:8000/signin", {

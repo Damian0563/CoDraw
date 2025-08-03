@@ -7,20 +7,22 @@
       overflow: hidden;
     "
   >
-    <div v-if="showPopup"
-      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
-      <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-      <button @click="showPopup = false" 
-          style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
-        ✕
-      </button>
-      <p>{{message}}</p>
-      <button @click="showPopup = false"
-          style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
-        Close
-      </button>
+    <Transition name="fade-slide">
+      <div v-if="showPopup"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
+        <button @click="showPopup = false" 
+            style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+          ✕
+        </button>
+        <p>{{message}}</p>
+        <button @click="showPopup = false" id="close_form"
+            style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+          Close
+        </button>
+        </div>
       </div>
-    </div>
+    </Transition>
     <div
       id="toolbar"
       style="
@@ -231,6 +233,7 @@
           </label>
         </div>
         <button
+          id="save_def"
           @click="save_definetely()"
           style="
             background: #4f8cff;
@@ -241,7 +244,6 @@
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
             transition: 0.5s ease-out;
           "
           class="save"
@@ -314,11 +316,8 @@ const room=ref(new URL(window.location.href).pathname.split('/')[3])
 ws.value = new WebSocket(`ws://localhost:8000/ws/socket/${room.value}/`)
 ws.value.onmessage = (event) => {
   const data = JSON.parse(event.data);
-
   if (!data || !data.type) return;
-
   const layer = layerRef.value.getNode();
-
   if (data.type === "start") {
     const newLine = new Konva.Line({
       stroke: data.stroke,
@@ -337,7 +336,6 @@ ws.value.onmessage = (event) => {
     layer.batchDraw();
   }
 };
-
 
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
@@ -419,6 +417,14 @@ const save_definetely = async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
+    if(title.value.length>66){
+      showPopup.value=true
+      message.value="The title length is to large, must be at most 60 characters."
+    }
+    if(description.value.length>170){
+      showPopup.value=true
+      message.value="The description length is to large, must be at most 100 characters."
+    }
     const data=await fetch('http://localhost:8000/codraw/save_new',{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
@@ -776,9 +782,9 @@ input:checked + .slider::before {
   }
 }
 
-#inv:hover,#save_btn:hover{
+#inv:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
   background: #fff !important;
-  color:#4f8cff !important;
+  color:#4f8cff !important; 
 }
 #exit:hover{
   background:#fff!important;

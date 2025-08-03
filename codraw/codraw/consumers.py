@@ -24,9 +24,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'broadcast_draw',
-                'text': text_data
+                'text': text_data,
+                'sender_channel_name': self.channel_name
             }
         )
 
     async def broadcast_draw(self, event):
-        await self.send(text_data=event['text'])
+        if event['sender_channel_name'] != self.channel_name:
+            await self.send(text_data=event['text'])
