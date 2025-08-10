@@ -22,8 +22,8 @@
       <div class="mb-4">
         <h2 class="mb-4 text-start">My Projects</h2>
         <div id="projects" class="container">
-          <div class="row g-4 w-100 mx-0">
-            <div class="col-12 col-lg-4 col-xl-3">
+          <div class="row g-4 w-100 mx-0 justify-content-center">
+            <div :class="boards.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'">
               <div class="card create-project-card text-center bg-dark" @click="create()" style="min-height: 14rem;min-width:14rem;cursor: pointer;">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
                   <span style="font-size: 3rem; color: #ffc107;">+</span>
@@ -34,7 +34,7 @@
             <div
               v-for="(board, index) in boards"
               :key="index"
-              class="col-12 col-lg-4 col-xl-3"
+              :class="boards.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
             >
               <div
                 class="card create-project-card text-center bg-dark"
@@ -135,7 +135,6 @@ async function join(room){
       })
     })
     const response=await data.json()
-    console.log(response.status)
     if(response.status===200){
       window.location.href=`${response.url}`
     }

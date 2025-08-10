@@ -2,15 +2,17 @@
   <div style="background-color: black;">
     <img :src='url' class="img-fluid border rounded-circle border-danger-subtle" style="width:10vw;height: auto;margin-top:2% ;">
   </div>
-  <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
-       role="alert"
-       style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
-    <button @click="invalid=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
-    <div class="alert-content" style="padding-top: 0.2rem;">
-      <strong style="color: #ffc107; font-size: 1rem;">{{ message }}</strong>
-      <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">Please try again.</div>
+  <Transition name="fade-slide">
+    <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
+        role="alert"
+        style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
+      <button @click="invalid=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
+      <div class="alert-content" style="padding-top: 0.2rem;">
+        <strong style="color: #ffc107; font-size: 1rem;">{{ message }}</strong>
+        <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">Please try again.</div>
+      </div>
     </div>
-  </div>
+  </Transition>
   <div v-if="visible" class="overlay">
     <div class="popup-card">
       <button @click="visible=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: red;color: white;">&times;</button><br><br>
@@ -84,7 +86,6 @@ async function status(){
       credentials: 'include'
     });
     const response = await data.json();
-    console.log(response)
     if (response.status === 300 && window.location.pathname !== '/codraw') {
       window.location.href = '/codraw';
     } 
@@ -179,6 +180,25 @@ async function verifyCode(){
 </script>
 
 <style scoped>
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform:translateY(-20px);
+}
+
+/* The "leave" state, when the modal is about to disappear */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+/* The "active" state, when the modal is fully visible and in its final position */
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform:translateY(0);
+}
+
 .card {
   background: linear-gradient(135deg, #181818 80%, #222 100%);
   color: #fff;

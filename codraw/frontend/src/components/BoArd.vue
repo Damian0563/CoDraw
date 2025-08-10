@@ -103,20 +103,21 @@
       "
       >Exit</button>
       <button
-        id="clearall"
-        style="
-          background: #f68608;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          padding: 8px 20px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: ease-in-out 0.6s;
-        "
-        @click="clear_all()"
-        >
-        Clear all
+      id="clearall"
+      v-if="admin"
+      style="
+        background: #f68608;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: ease-in-out 0.6s;
+      "
+      @click="clear_all()"
+      >
+      Clear all
       </button>
     </div>
     <div id="inv_div" style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
@@ -252,7 +253,11 @@
         </button>
       </div>
     </Transition>
-
+    <div id="zoom">
+        <label>+</label>
+        <input value={{ stageRef.value.getNode().scaleX() }}>
+        <label>-</label>
+    </div>
     <v-stage
         ref="stageRef"
         :config="stageConfig"
@@ -415,7 +420,7 @@ const load = () => {
 const save_definetely = async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
-    const owner = parts[2]; // 'user_id'
+    //const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
     if(title.value.length>66){
       showPopup.value=true
@@ -430,12 +435,12 @@ const save_definetely = async()=>{
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room,
-        "owner":owner,
         "payload":JSON.stringify(stageRef.value.getStage().toJSON()),
         "title":title.value,
         "description":description.value,
         "type":type.value,
-      })
+      }),
+      credentials:"include"
     })
     const response=await data.json()
     isVisible.value=false
@@ -463,7 +468,8 @@ const check_save = async (mode) => {
         body:JSON.stringify({
           "project":room,
           "payload": JSON.stringify(stageRef.value.getStage().toJSON())
-        })
+        }),
+        credentials:"include"
       })
       const response=await data.json()
       if(response.status===200){
@@ -479,7 +485,8 @@ const check_save = async (mode) => {
         headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({
           "project":room,
-        })
+        }),
+        credentials:"include"
       })
       const response=await data.json()
       if(response.status===200){
@@ -493,7 +500,11 @@ const check_save = async (mode) => {
 }
 function leave(){
   localStorage.removeItem('storage')
-  window.location.href='http://localhost:8081/codraw'
+  if(admin.value){
+    window.location.href='http://localhost:8081/codraw'
+  }else{
+    window.location.href='http://localhost:8081/'
+  }
 }
 
 function clear_all(){

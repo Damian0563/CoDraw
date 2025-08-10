@@ -96,8 +96,8 @@ def get_code(mail:str)->str:
         return ""
     
 
-def find_room(room:str)->bool:
-    return models.Board.objects.filter(room=room)
+def find_room(room:str,owner:str)->bool:
+    return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
 def get_boards(id: str) -> List[Dict[str, str]]:
     try:

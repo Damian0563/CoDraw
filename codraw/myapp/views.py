@@ -186,9 +186,14 @@ def board(request,id,room):
 @ensure_csrf_cookie
 def save(request):
     data=json.loads(request.body)
+    owner=None
+    try:
+        owner=request.session['user_id']
+    except KeyError:
+        owner=request.COOKIES.get('token')
     room=data.get('project')
     payload=data.get('payload')
-    if database.find_room(room):
+    if database.find_room(room,owner):
         if payload is not None:
             database.save_project(room,payload)
         return Response({'status':200})
@@ -199,20 +204,24 @@ def save(request):
 def save_new(request):
     data=json.loads(request.body)
     project=data.get('project')
-    owner=data.get('owner')
     payload=data.get('payload')
     title=data.get('title')
     description=data.get('description')
     type=data.get('type') 
-    if database.save_new_project(project,payload,owner,title,description,type):
-        return Response({'status':200})
-    return Response({'status':400})
+    owner=None
+    try:
+        owner=request.session['user_id']
+    except KeyError:
+        owner=request.COOKIES.get('token')
+    finally:
+        if owner is not None and database.save_new_project(project,payload,owner,title,description,type):
+            return Response({'status':200})
+        return Response({'status':400})
 
 @api_view(['POST'])
 @ensure_csrf_cookie
 def check_owner(request):
     data=json.loads(request.body)
-    # room=data['room']
     owner=data['owner']
     id=None
     try:
