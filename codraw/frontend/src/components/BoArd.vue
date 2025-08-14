@@ -254,9 +254,9 @@
       </div>
     </Transition>
     <div id="zoom">
-        <label>+</label>
-        <input value={{ stageRef.value.getNode().scaleX() }}>
-        <label>-</label>
+      <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('up')" >+</label>
+      <input v-model="zoom" style="width: 60px; text-align: center;border-style: none;">
+      <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('down')">-</label>
     </div>
     <v-stage
         ref="stageRef"
@@ -304,6 +304,8 @@ const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider=ref(5);
 const list=ref([])
+const zoom=computed(()=>{return `${(zooming.value*100).toFixed(0)}%`})
+const zooming= ref(1)
 const lastPos = ref(null);
 const imageRef = ref(null);
 const layerRef = ref(null);
@@ -362,6 +364,18 @@ context.lineJoin = 'round';
 watch(color, (newColor) => {
   context.strokeStyle = newColor;
 });
+
+function changeZoom(mode){
+  const stage = stageRef.value.getNode(); // get Konva Stage
+  const scaleBy = 1.25;
+  const oldScale = stage.scaleX();
+  const direction = mode==="up"? 1 : -1;
+  if(oldScale===1 && direction===-1) return;
+  const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+  zooming.value=newScale
+  stage.scale({ x: newScale, y: newScale });
+  stage.batchDraw();
+}
 
 const check_owner=async()=>{
   try{
@@ -634,7 +648,7 @@ onMounted(async()=>{
   }
   await check_owner()
   const stage = stageRef.value.getNode(); // get Konva Stage
-  const scaleBy = 1.05;
+  const scaleBy = 1.1;
   stage.on('wheel', (e) => {
     e.evt.preventDefault();
     const oldScale = stage.scaleX();
@@ -648,7 +662,7 @@ onMounted(async()=>{
     const direction = e.evt.deltaY > 0 ? 1 : -1;
     if(oldScale===1 && direction===-1) return;
     const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    
+    zooming.value=newScale
     stage.scale({ x: newScale, y: newScale });
 
     const newPos = {
@@ -792,6 +806,14 @@ input:checked + .slider::before {
     position: fixed !important;
   }
 }
+#zoom{
+  position: fixed;
+  right:40px;
+  bottom:10px;
+  background-color: white;
+  z-index: 10;
+}
+
 
 #inv:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
   background: #fff !important;
