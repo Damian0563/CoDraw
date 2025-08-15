@@ -255,7 +255,8 @@
     </Transition>
     <div id="zoom">
       <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('up')" >+</label>
-      <input v-model="zoom" style="width: 60px; text-align: center;border-style: none;">
+      <img :src="zoom_ico" class="img-fluid" style="width:1.2rem;height: 1.2rem;">
+      <input v-model="zoom" style="width: 60px; text-align: center;border-style: none;" disabled>
       <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('down')">-</label>
     </div>
     <v-stage
@@ -282,6 +283,7 @@
 
 <script setup>
 import url from '@/assets/email.webp'
+import zoom_ico from '@/assets/zoom.webp'
 import { get_cookie } from '@/common';
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed} from 'vue';
@@ -355,6 +357,7 @@ canvas.height = stageConfig.height;
 // get context
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
+context.fillStyle = background.value
 context.fillStyle=background.value
 context.lineJoin = 'round';
 context.lineWidth = width_slider.value;
@@ -512,6 +515,7 @@ const check_save = async (mode) => {
     console.error(e)
   }
 }
+
 function leave(){
   localStorage.removeItem('storage')
   if(admin.value){
@@ -522,12 +526,17 @@ function leave(){
 }
 
 function clear_all(){
-  localStorage.removeItem('storage')
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  layerRef.value.getNode().clear();
-  layerRef.value.getNode().batchDraw();
-  // context.clearRect(0, 0, canvas.width, canvas.height);
-  // layerRef.value.getNode().batchDraw();
+  if(admin.value){
+    localStorage.removeItem('storage')
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    layerRef.value.getNode().clear();
+    layerRef.value.getNode().batchDraw();
+    // context.clearRect(0, 0, canvas.width, canvas.height);
+    // layerRef.value.getNode().batchDraw();
+  }else{
+    showPopup.value=true;
+    message.value="You don't have neccessary permissions to clear the board."
+  }
 }
 const getRelativePointerPosition = (stage) => {
   const transform = stage.getAbsoluteTransform().copy();
@@ -647,12 +656,12 @@ onMounted(async()=>{
     setTimeout(()=> get_details_and_load(),100)
   }
   await check_owner()
-  const stage = stageRef.value.getNode(); // get Konva Stage
-  const scaleBy = 1.1;
+  const stage=stageRef.value.getNode(); // get Konva Stage
+  const scaleBy=1.1;
   stage.on('wheel', (e) => {
     e.evt.preventDefault();
-    const oldScale = stage.scaleX();
-    const pointer = stage.getPointerPosition();
+    const oldScale=stage.scaleX();
+    const pointer=stage.getPointerPosition();
 
     const mousePointTo = {
       x: (pointer.x - stage.x()) / oldScale,
@@ -673,6 +682,19 @@ onMounted(async()=>{
     stage.position(newPos);
     stage.batchDraw();
   });
+  watch(background,(newBackground)=>{
+    const layer = layerRef.value?.getNode?.();
+    const imageNode = imageRef.value?.getNode?.();
+    if(!layer || !imageNode) return;
+    context.save();
+    context.globalCompositeOperation='destination-over';
+    context.fillStyle=newBackground;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+    imageNode.image(canvas);
+    imageNode.clearCache();
+    layer.draw();
+  })
   let resizeTimeout = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
