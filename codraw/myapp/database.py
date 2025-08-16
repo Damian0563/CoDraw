@@ -2,10 +2,11 @@ from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
 import random
-import base64
-from io import BytesIO
-import traceback
-from bson import Binary
+import nltk
+from nltk.stem import WordNetLemmatizer
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
 
 def generate_code()->str:
     code=""
@@ -131,6 +132,17 @@ def save_project(room:str,payload:str)->bool:
     
 def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str) -> bool:
     try:
+        summary=str(str(title)+". "+str(description))
+        tokenized=nltk.word_tokenize(summary)
+        tags=nltk.pos_tag(tokenized)
+        lemmatizer=WordNetLemmatizer()
+        result=[]
+        for entry in tags:
+            word,word_type=entry[0],entry[1]
+            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
+            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
+            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
+        print(result)
         entry=models.Board.objects.create(
             owner=decode_user(owner),
             board=payload,

@@ -50,13 +50,28 @@
           </div>
         </div>
       </div>
-      <div>
-        <h2>Browse public projects</h2>
-        <div id="searchbar">
-
+      <div class="my-5 border rounded" style="background-color: #ffc107;width:100%;height: 100%;">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold mt-4">Browse Public Projects</h2>
+          <p class="text-muted">Find boards and ideas shared by the community</p>
         </div>
-        <section id="results">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="input-group shadow-sm rounded">
+              <input 
+                type="text" 
+                class="form-control border-0 p-3"
+                placeholder="Search public boards..." 
+                aria-label="Search public boards" 
+              >
+              <button class="btn btn-primary" type="button">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
 
+        <section id="results" class="mt-5">
         </section>
       </div>
 
