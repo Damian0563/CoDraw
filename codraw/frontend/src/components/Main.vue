@@ -39,11 +39,12 @@
               <div
                 class="card create-project-card text-center bg-dark"
                 @click="join(board.room)"
-                style="min-height: 14rem;min-width:14rem ;cursor: pointer;"
+                style="min-height: 14rem;min-width:14rem ;cursor: pointer;position: relative;"
               >
                 <div class="card-body d-flex flex-column text-white" id="created" style="height: 100%;">
                   <h5 class="card-title" style="font-weight:800;">{{ board.title }}</h5>
                   <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
+                  <footer style="font-size: 0.7rem;position: absolute; bottom: 0; left: 0; right: 0;">Visibility: {{ board.visibility }}</footer>
                 </div>  
               </div>
             </div>
@@ -65,7 +66,13 @@
                 aria-label="Search public boards" 
               >
               <button class="btn btn-primary" type="button">
-                <i class="bi bi-search"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
+                    class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 
+                          1 0 0 0 1.415-1.415l-3.85-3.85zm-5.242 
+                          1.656a5.5 5.5 0 1 1 0-11 5.5 
+                          5.5 0 0 1 0 11z"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -84,6 +91,7 @@ import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common';
 import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
+//import {BASE_URL} from '../common.js'
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
 const boards = ref([{}])
@@ -180,9 +188,27 @@ async function create(){
   }
 }
 
+async function load_popular(){
+  try{
+    const data=await fetch('http://localhost:8000/get_popular',{
+      method:"GET",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken":csrf
+      },
+      credentials:"include"
+    })
+    const response=await data.json()
+    console.log(response)
+  }catch(e){
+    console.error(e)
+  }
+}
+
 onMounted(() => {
   status(),
   get_boards()
+  load_popular()
 })
 </script>
 

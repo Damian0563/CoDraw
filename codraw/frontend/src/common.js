@@ -1,4 +1,4 @@
-
+export const BASE_URL = process.env.VUE_APP_BASE_URL;
 function get_cookie(name){
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

@@ -14,4 +14,6 @@ class Board(Document):
     description=fields.StringField(max_length=512)
     title=fields.StringField(required=True,max_length=100)
     visibility=fields.StringField(required=True,max_length=10)
+    views=fields.IntField(required=True)
+    summary=fields.StringField(required=True,max_length=120)
     # background=fields.StringField(required=True)

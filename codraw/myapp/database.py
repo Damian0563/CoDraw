@@ -1,10 +1,12 @@
 from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
-import random
+import random, json
 import nltk
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('averaged_perceptron_tagger_eng')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 
@@ -30,7 +32,6 @@ def decode_user(encoded:models.User.id)->str | None:
         return models.User.objects.get(id=encoded).mail
     except models.User.DoesNotExist:
         return None
-
 
 
 def delete_user(mail:str)->None:
@@ -139,17 +140,20 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
         result=[]
         for entry in tags:
             word,word_type=entry[0],entry[1]
+            word=word.lower()
             if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
             elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
             elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
-        print(result)
+        result=json.dumps(list(set(result)))
         entry=models.Board.objects.create(
             owner=decode_user(owner),
             board=payload,
             room=room,
             description=description,
             visibility=type,
-            title=title
+            title=title,
+            summary=result,
+            views=0
         )
         entry.save()
         return True
