@@ -285,6 +285,7 @@
 import url from '@/assets/email.webp'
 import zoom_ico from '@/assets/zoom.webp'
 import { get_cookie } from '@/common';
+import {BASE_URL} from '../common.js'
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed} from 'vue';
 const currentLine = ref(null)
@@ -385,7 +386,7 @@ const check_owner=async()=>{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
     // const room = parts[3];  // 'room_id
-    const data=await fetch("http://localhost:8000/codraw/check_owner",{
+    const data=await fetch(`${BASE_URL}/codraw/check_owner`,{
       method:"POST",
       headers:{
         'Content-Type':'application/json',
@@ -447,7 +448,7 @@ const save_definetely = async()=>{
       showPopup.value=true
       message.value="The description length is to large, must be at most 100 characters."
     }
-    const data=await fetch('http://localhost:8000/codraw/save_new',{
+    const data=await fetch(`${BASE_URL}/codraw/save_new`,{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
@@ -479,7 +480,7 @@ const check_save = async (mode) => {
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];  // 'room_id
     if(mode==='save'){
-      const data=await fetch('http://localhost:8000/codraw/save_project',{
+      const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
         headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({
@@ -497,7 +498,7 @@ const check_save = async (mode) => {
         isVisible.value=true
       }
     }else if(mode==='load'){
-      const data=await fetch('http://localhost:8000/codraw/save_project',{
+      const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
         headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({
@@ -621,7 +622,7 @@ const get_details_and_load = async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];
-    const data=await fetch('http://localhost:8000/codraw/get_details',{
+    const data=await fetch(`${BASE_URL}/codraw/get_details`,{
       method:"POST",
       headers:{
         'Content-Type':'application/json',

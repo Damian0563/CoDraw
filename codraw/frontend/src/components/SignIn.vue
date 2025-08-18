@@ -51,7 +51,7 @@
 import url from '@/assets/logo.webp'
 import { ref } from 'vue'
 import { get_cookie } from '@/common'
-
+import {BASE_URL} from '../common.js'
 let message = ref('')
 let invalid = ref(false)
 let ticked= ref(false)
@@ -68,7 +68,7 @@ async function SignIn(e){
   }
   try{
     const csrf=get_cookie('csrftoken')
-    const data = await fetch("http://localhost:8000/signin", {
+    const data = await fetch(`${BASE_URL}/signin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ async function SignIn(e){
 async function status(){
   try {
     const csrf=get_cookie('csrftoken')
-    const data = await fetch("http://localhost:8000/signin", {
+    const data = await fetch(`${BASE_URL}/signin`, {
       method: 'GET',
       headers:{'X-CSRFToken':csrf},
       credentials: 'include'

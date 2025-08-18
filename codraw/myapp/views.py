@@ -232,3 +232,17 @@ def check_owner(request):
         if id==owner:
             return Response({'status':200})
         return Response({'status':400})
+    
+@api_view(['GET'])
+@ensure_csrf_cookie
+def trending(request):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            boards=database.get_trending(id)
+            return Response({'status':200,'boards':boards})
+        return Response({'status':400,'boards':''})

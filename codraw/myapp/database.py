@@ -120,6 +120,24 @@ def get_boards(id: str) -> List[Dict[str, str]]:
         print(e)
         return []
 
+def get_trending(id:str)->list[Dict[str,str]]:
+    try:
+        entries = models.Board.objects.exclude(owner=decode_user(id)).order_by('-views')
+        res = [
+            {
+                "room": entry.room,
+                "title": entry.title,
+                "description": entry.description,
+            }
+            for entry in entries
+        ]
+        return res
+    except models.Board.DoesNotExist:
+        return []
+    except Exception as e:
+        print(e)
+        return []
+
 def save_project(room:str,payload:str)->bool:
     try:
         entry=models.Board.objects.get(room=room)
@@ -166,75 +184,10 @@ def get_board_img(room: str) -> str:
         entry=models.Board.objects.get(room=room)
         return entry.board
     except Exception as e:
-        print("Error in fetchinh image: ",e)
+        print("Error in fetching image: ",e)
         return ""
-# def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str) -> bool:
-#     try:
-#         if payload.startswith("data:"):
-#             payload = payload.split(",", 1)[1]
+    
 
-#         image_data = base64.b64decode(payload)
-#         file_obj = BytesIO(image_data)
-#         file_obj.seek(0)
-#         decoded_owner = decode_user(owner)
-#         if not decoded_owner:
-#             raise ValueError("Owner could not be decoded")
-
-#         board = models.Board(
-#             owner=decoded_owner,
-#             room=room,
-#             title=title,
-#             description=description,
-#             visibility=type,
-#         )
-
-#         board.board.put(file_obj, filename="canvas.png", content_type='image/png')
-#         board.save()
-
-#         return True
-
-#     except Exception as e:
-#         print(f"[save_new_project] Error: {e}")
-#         traceback.print_exc()
-#         return False
-
-# def get_board_img(room: str) -> str:
-#     try:
-#         entry = models.Board.objects.get(room=room)
-#         if entry.board.grid_id:  # Check that the file exists in GridFS
-#             img_data = entry.board.read()  # Read binary image data
-#             base64_str = base64.b64encode(img_data).decode("utf-8")
-#             return f"data:image/png;base64,{base64_str}"
-#         else:
-#             print("[DEBUG] board.grid_id is None (no image)")
-#             return ""
-#     except models.Board.DoesNotExist:
-#         print(f"[get_board_img] Room '{room}' not found.")
-#         return ""
-#     except Exception as e:
-#         print(f"[get_board_img] Error: {e}")
-#         return ""
-# def save_project(room: str, payload: str) -> bool:
-#     try:
-#         entry = models.Board.objects.get(room=room)
-#         if payload.startswith("data:"):
-#             payload = payload.split(",", 1)[1]
-#         image_data = base64.b64decode(payload)
-#         file_obj = BytesIO(image_data)
-#         file_obj.seek(0)
-#         if entry.board:
-#             entry.board.replace(file_obj, filename="canvas.png", content_type="image/png")
-#         else:
-#             entry.board.put(file_obj, filename="canvas.png", content_type="image/png")
-#         entry.save()
-#         return True
-#     except models.Board.DoesNotExist:
-#         print(f'[Quick Save] Room "{room}" not found.')
-#         return False
-#     except Exception as e:
-#         print(f'[Quick Save] Error: {e}')
-#         traceback.print_exc()
-#         return False
 
 
 

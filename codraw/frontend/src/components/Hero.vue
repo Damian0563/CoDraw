@@ -44,10 +44,11 @@
 
 <script>
   import { get_cookie } from '@/common';
+  import {BASE_URL} from '../common.js'
   export default {
       name: "HeRo",
       props: {
-          msg: String
+        msg: String
       },
       mounted() {
         this.check();
@@ -56,7 +57,7 @@
         async check() {
           try {
             const csrf=get_cookie('csrftoken')
-            const data = await fetch("http://localhost:8000/home", {
+            const data = await fetch(`${BASE_URL}/home`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',

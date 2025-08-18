@@ -65,6 +65,7 @@
 import { ref } from 'vue'
 import url from '@/assets/logo.webp'
 import { get_cookie } from '@/common'
+import {BASE_URL} from '../common.js'
 let visible=ref(false)
 let formRef=ref(null)
 let invalid=ref(false)
@@ -80,7 +81,7 @@ const FourInput = ref(null)
 async function status(){
   try {
     const csrf=get_cookie('csrftoken')
-    const data = await fetch("http://localhost:8000/signup", {
+    const data = await fetch(`${BASE_URL}/signup`, {
       method: 'GET',
       headers:{'X-CSRFToken':csrf},
       credentials: 'include'
@@ -107,7 +108,7 @@ async function SignUp(e) {
   const password_input= password.value
   const mail_input=mail.value
   try{
-    const data = await fetch("http://localhost:8000/signup",{
+    const data = await fetch(`${BASE_URL}/signup`,{
       method:"POST",
       headers:{"Content-Type":'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
@@ -151,7 +152,7 @@ async function verifyCode(){
   const csrf=get_cookie('csrftoken')
   const username_input=username.value
   const mail_input=mail.value
-  const data=await fetch('http://localhost:8000/verify',{
+  const data=await fetch(`${BASE_URL}/verify`,{
     method:"POST",
     headers:{
       'Content-Type':'application/json',

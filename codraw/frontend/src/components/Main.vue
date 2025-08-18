@@ -91,13 +91,14 @@ import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common';
 import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
-//import {BASE_URL} from '../common.js'
+import {BASE_URL} from '../common.js'
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
 const boards = ref([{}])
+const popular=ref([{}])
 async function log_out(){
   try{
-    const data=await fetch('http://localhost:8000/log_out',{
+    const data=await fetch(`${BASE_URL}/log_out`,{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       credentials:"include"
@@ -113,7 +114,7 @@ async function log_out(){
 
 async function status(){
   try {
-    const data = await fetch("http://localhost:8000/codraw", {
+    const data = await fetch(`${BASE_URL}/codraw`, {
       method: 'GET',
       headers:{'X-CSRFToken':csrf},
       credentials: 'include'
@@ -129,7 +130,7 @@ async function status(){
 
 const get_boards = async()=>{
   try{
-    const data=await fetch('http://localhost:8000/codraw/get_boards',{
+    const data=await fetch(`${BASE_URL}/codraw/get_boards`,{
       method:"GET",
       headers:{
         'Content-Type':'application/json',
@@ -146,7 +147,7 @@ const get_boards = async()=>{
 
 async function join(room){
   try{
-    const data=await fetch("http://localhost:8000/load",{
+    const data=await fetch(`${BASE_URL}/load`,{
       "method":"POST",
       "headers":{
         'Content-Type':'application/json',
@@ -168,7 +169,7 @@ async function join(room){
 
 async function create(){
   try{
-    const data=await fetch('http://localhost:8000/get_project_url',{
+    const data=await fetch(`${BASE_URL}/get_project_url`,{
         method:"GET",
         headers:{
           "Content-Type":'application/json',
@@ -190,7 +191,7 @@ async function create(){
 
 async function load_popular(){
   try{
-    const data=await fetch('http://localhost:8000/get_popular',{
+    const data=await fetch(`${BASE_URL}/get_popular`,{
       method:"GET",
       headers:{
         "Content-Type":"application/json",
@@ -199,7 +200,7 @@ async function load_popular(){
       credentials:"include"
     })
     const response=await data.json()
-    console.log(response)
+    popular.value=response.boards
   }catch(e){
     console.error(e)
   }

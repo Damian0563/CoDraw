@@ -38,5 +38,6 @@ urlpatterns = [
     path('codraw/get_details',views.load,name="load"),
     path('load',views.load_board,name="load_board"),
     path('codraw/save_new',views.save_new,name='save_new'),
-    path('codraw/check_owner',views.check_owner,name='check_owner')
+    path('codraw/check_owner',views.check_owner,name='check_owner'),
+    path('get_popular',views.trending,name="trending")
 ]
