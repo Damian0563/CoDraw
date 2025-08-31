@@ -122,21 +122,14 @@ def get_url(request):
     return Response({'status':400})
 
 @api_view(['POST'])
-@ensure_csrf_cookie
 def load(request):
     if request.method=="POST":
-        id=None
-        try:
-            id=request.session['user_id']
-        except KeyError:
-            id=request.COOKIES.get('token')
-        finally:
-            if id is not None:
-                data=json.loads(request.body)
-                room=data['project']
-                canva=database.get_board_img(room=room)
-                return Response({'status':200,"canva":json.loads(canva)})
-            return Response({'status':404,"canva":""})
+        try:  
+            data=json.loads(request.body)
+            room=data['project']
+            canva=database.get_board_img(room=room)
+            return Response({'status':200,"canva":json.loads(canva)})
+        except Exception: return Response({'status':404,"canva":""})
 
 @api_view(["POST"])
 @ensure_csrf_cookie
@@ -183,7 +176,6 @@ def board(request,id,room):
     return Response({'status':200})
 
 @api_view(['GET','POST'])
-@ensure_csrf_cookie
 def save(request):
     data=json.loads(request.body)
     owner=None
@@ -246,3 +238,19 @@ def trending(request):
             boards=database.get_trending(id)
             return Response({'status':200,'boards':boards})
         return Response({'status':400,'boards':''})
+    
+@api_view(['POST'])
+@ensure_csrf_cookie
+def search(request):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            data=json.loads(request.body)
+            query=data['query']
+            result=database.get_matches(query)
+            return Response({"status":200,"boards":result})
+        return Response({"status":400})

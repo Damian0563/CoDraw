@@ -500,11 +500,12 @@ const check_save = async (mode) => {
     }else if(mode==='load'){
       const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
-        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        headers:{
+          'Content-Type':'application/json',
+        },
         body:JSON.stringify({
           "project":room,
         }),
-        credentials:"include"
       })
       const response=await data.json()
       if(response.status===200){
@@ -626,9 +627,7 @@ const get_details_and_load = async()=>{
       method:"POST",
       headers:{
         'Content-Type':'application/json',
-        'X-CSRFToken':csrf
       },
-      credentials:"include",
       body:JSON.stringify({
         "project":room
       })

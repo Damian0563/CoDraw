@@ -51,7 +51,7 @@
           </div>
         </div>
       </div>
-      <div class="my-5 border rounded" style="background-color: #ffc107;width:100%;height: 100%;">
+      <div class="my-5 border rounded justify-content-center" style="background-color: #ffc107;width:100%;height: auto;">
         <div class="text-center mb-4">
           <h2 class="fw-bold mt-4">Browse Public Projects</h2>
           <p class="text-muted">Find boards and ideas shared by the community</p>
@@ -63,9 +63,10 @@
                 type="text" 
                 class="form-control border-0 p-3"
                 placeholder="Search public boards..." 
-                aria-label="Search public boards" 
+                aria-label="Search public boards"
+                ref="input"
               >
-              <button class="btn btn-primary" type="button">
+              <button class="btn btn-primary" type="button" @click="search(input.value)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
                     class="bi bi-search" viewBox="0 0 16 16">
                   <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 
@@ -78,7 +79,30 @@
           </div>
         </div>
 
-        <section id="results" class="mt-5">
+        <section id="results" class="my-4 mx-3">
+          <div class="container">
+            <div class="row g-4">
+              <div
+                v-for="(board, index) in popular"
+                :key="index"
+                :class="boards.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
+              >
+                <div
+                  class="card create-project-card text-center bg-dark"
+                  @click="join(board.room)"
+                  style="min-height: 12rem;min-width:10rem ;cursor: pointer;position: relative;"
+                >
+                  <div class="card-body d-flex flex-column text-white" id="shown" style="height: 100%;">
+                    <h5 class="card-title" style="font-weight:800;">{{ board.title }}</h5>
+                    <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
+                  </div>  
+                </div>
+              </div>
+              <div v-if="popular.length===0" class="justify-content-center" style="min-height: 12rem;">
+                <text>No results found :(</text>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -96,6 +120,7 @@ const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
 const boards = ref([{}])
 const popular=ref([{}])
+const input=ref('')
 async function log_out(){
   try{
     const data=await fetch(`${BASE_URL}/log_out`,{
@@ -106,6 +131,25 @@ async function log_out(){
     const response=await data.json()
     if(response.status===200){
       window.location.href='/'
+    }
+  }catch(e){
+    console.error(e)
+  }
+}
+
+async function search(sentence){
+  try{
+    const data=await fetch(`${BASE_URL}/search`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","X-CSRFToken":csrf},
+      credentials:"include",
+      body:JSON.stringify({
+        "query":sentence
+      })
+    })
+    const response=await data.json()
+    if(response.status===200){
+      popular.value=response.boards
     }
   }catch(e){
     console.error(e)
@@ -224,8 +268,13 @@ export default {
   transition: 0.6s ease-in-out;
 }
 
-#created{
+#created,#shown{
   transition: 0.5s ease-in-out;
+}
+
+#shown:hover{
+  background-color:#0d6efd;
+  color:white !important;
 }
 
 #created:hover{
@@ -242,7 +291,7 @@ export default {
 .main-layout {
   display: flex;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background: #181818;
 }
 .sidebar {

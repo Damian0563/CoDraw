@@ -2,6 +2,7 @@ from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
 import random, json
+from django.db.models import Q
 import nltk
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
@@ -99,12 +100,13 @@ def get_code(mail:str)->str:
     
 
 def find_room(room:str,owner:str)->bool:
-    return models.Board.objects.filter(room=room,owner=decode_user(owner))
+    return models.Board.objects.filter(room=room)
+#return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
 def get_boards(id: str) -> List[Dict[str, str]]:
     try:
-        entries = models.Board.objects.filter(owner=decode_user(id))
-        res = [
+        entries=models.Board.objects.filter(owner=decode_user(id))
+        res=[
             {
                 "room": entry.room,
                 "title": entry.title,
@@ -122,8 +124,8 @@ def get_boards(id: str) -> List[Dict[str, str]]:
 
 def get_trending(id:str)->list[Dict[str,str]]:
     try:
-        entries = models.Board.objects.exclude(owner=decode_user(id)).order_by('-views')
-        res = [
+        entries=models.Board.objects.filter(owner__ne=decode_user(id), visibility='Public').order_by('-views')
+        res=[
             {
                 "room": entry.room,
                 "title": entry.title,
@@ -135,7 +137,33 @@ def get_trending(id:str)->list[Dict[str,str]]:
     except models.Board.DoesNotExist:
         return []
     except Exception as e:
-        print(e)
+        #print(e)
+        return []
+
+def get_matches(sentence:str)->list:
+    try:
+        tokenized=nltk.word_tokenize(sentence)
+        tags=nltk.pos_tag(tokenized)
+        lemmatizer=WordNetLemmatizer()
+        result=[]
+        for entry in tags:
+            word,word_type=entry[0],entry[1]
+            word=word.lower()
+            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
+            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
+            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
+        keywords=list(set(result))
+        if len(keywords)==0: return []
+        matches=models.Board.objects.filter(summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
+        def match_count(board):
+            try:
+                board_keywords = set(json.loads(board.summary))
+            except (TypeError, json.JSONDecodeError):
+                board_keywords = set()
+            return len(set(keywords) & board_keywords)
+        sorted_boards=sorted(matches, key=match_count, reverse=True)
+        return json.dumps(sorted_boards)
+    except Exception:
         return []
 
 def save_project(room:str,payload:str)->bool:

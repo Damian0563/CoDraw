@@ -1,6 +1,0 @@
--csrf server side
--sockets
--konva js integration
--search engine
--account, settings
--frontend for the above
