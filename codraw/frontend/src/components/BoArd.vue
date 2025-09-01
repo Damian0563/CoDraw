@@ -7,6 +7,9 @@
       overflow: hidden;
     "
   >
+    <div v-if="loading" class="spinner-overlay">
+      <VueSpinnerTail size="60" color="orange" />
+    </div>
     <Transition name="fade-slide">
       <div v-if="showPopup"
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
@@ -185,41 +188,68 @@
         </button>
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <label class="align-self-start">Title</label>
-          <input
-            v-model="title"
-            type="text"
-            placeholder="Enter title"
-            style="
-              padding: 10px 14px;
-              border-radius: 12px;
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              background: rgba(255, 255, 255, 0.05);
-              color: #fff;
-              font-size: 1rem;
-              outline: none;
-              transition: border 0.2s;
-            "
-          />
+          <div style="position: relative;">
+            <input
+              v-model="title"
+              type="text"
+              placeholder="Enter title"
+              style="
+                padding: 10px 14px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.05);
+                color: #fff;
+                font-size: 1rem;
+                outline: none;
+                transition: border 0.2s;
+                width: 100%;
+                box-sizing: border-box;
+              "
+            />
+            <span
+              style="
+                position: absolute;
+                right: 10px;
+                bottom: 6px;
+                font-size: 0.75rem;
+                color: #aaa;
+                pointer-events: none;
+              "
+            >{{ (title && title.length) || 0 }}</span>
+          </div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <label class="align-self-start">Description</label>
-          <textarea
-            v-model="description"
-            rows="3"
-            placeholder="Enter description"
-            style="
+            <div style="position: relative;">
+            <textarea
+              v-model="description"
+              rows="3"
+              placeholder="Enter description"
+              style="
               padding: 10px 14px;
               border-radius: 12px;
               border: 1px solid rgba(255, 255, 255, 0.1);
               background: rgba(255, 255, 255, 0.05);
               color: #fff;
               font-size: 1rem;
-              resize: vertical;
+              resize: none;
               outline: none;
               transition: border 0.2s;
-              resize: none;
-            "
-          ></textarea>
+              width: 100%;
+              box-sizing: border-box;
+              "
+            ></textarea>
+            <span
+              style="
+              position: absolute;
+              right: 10px;
+              bottom: 6px;
+              font-size: 0.75rem;
+              color: #aaa;
+              pointer-events: none;
+              "
+            >{{ (description && description.length) || 0 }}</span>
+            </div>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <label style="flex-shrink: 0;">Private</label>
@@ -286,6 +316,8 @@ import url from '@/assets/email.webp'
 import zoom_ico from '@/assets/zoom.webp'
 import { get_cookie } from '@/common';
 import {BASE_URL} from '../common.js'
+import {VueSpinnerTail} from 'vue3-spinners'
+const loading=ref(false)
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed} from 'vue';
 const currentLine = ref(null)
@@ -437,14 +469,19 @@ const load = () => {
 };
 const save_definetely = async()=>{
   try{
+    loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
     //const owner = parts[2]; // 'user_id'
     const room = parts[3];  // 'room_id
+    if(!title.value){
+      showPopup.value=true
+      message.value="Please provide a title for your board."
+    }
     if(title.value.length>66){
       showPopup.value=true
       message.value="The title length is to large, must be at most 60 characters."
     }
-    if(description.value.length>170){
+    if(description.value && description.value.length>170){
       showPopup.value=true
       message.value="The description length is to large, must be at most 100 characters."
     }
@@ -461,8 +498,13 @@ const save_definetely = async()=>{
       credentials:"include"
     })
     const response=await data.json()
+    let flag=true
     isVisible.value=false
     if(response.status===200){
+      flag=false
+    }
+    await new Promise(resolve => setTimeout(() => { loading.value = false; resolve(); }, 2000));
+    if(!flag){
       showPopup.value=true
       message.value="Board saved successfully."
       autosave()
@@ -477,6 +519,7 @@ const save_definetely = async()=>{
 
 const check_save = async (mode) => {
   try{
+    loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
     const room = parts[3];  // 'room_id
     if(mode==='save'){
@@ -490,13 +533,17 @@ const check_save = async (mode) => {
         credentials:"include"
       })
       const response=await data.json()
+      let flag=true;
       if(response.status===200){
-        autosave()
+        flag=false
+      }
+      await new Promise(resolve => setTimeout(() => { loading.value = false; resolve(); }, 2000));
+      //console.log(flag)
+      if(!flag){
+        autosave()  
         showPopup.value=true
         message.value="Board was successfully quick saved."
-      }else{
-        isVisible.value=true
-      }
+      }else isVisible.value=true
     }else if(mode==='load'){
       const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
@@ -650,6 +697,7 @@ const get_details_and_load = async()=>{
 }
 
 onMounted(async()=>{
+  loading.value=true
   await nextTick(); 
   load()
   if(await check_save('load')){
@@ -724,12 +772,14 @@ onMounted(async()=>{
   };
   window.addEventListener('resize', onResize); 
   //onBeforeUnmount(() => window.removeEventListener('resize', onResize));
+  loading.value=false;
 })
 setInterval(()=>autosave(),60000)
 onBeforeUnmount(()=>{
   if(ws.value){
     ws.value.close()
   }
+  loading.value=true
 })
 
 </script>
@@ -739,6 +789,19 @@ onBeforeUnmount(()=>{
 .fade-slide-leave-to {
   opacity: 0;
   transform:translateY(-20px);
+}
+
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 /* The "leave" state, when the modal is about to disappear */

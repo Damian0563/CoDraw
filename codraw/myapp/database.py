@@ -2,7 +2,9 @@ from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
 import random, json
-from django.db.models import Q
+import time
+from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 import nltk
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
@@ -101,7 +103,7 @@ def get_code(mail:str)->str:
 
 def find_room(room:str,owner:str)->bool:
     return models.Board.objects.filter(room=room)
-#return models.Board.objects.filter(room=room,owner=decode_user(owner))
+    #return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
 def get_boards(id: str) -> List[Dict[str, str]]:
     try:
@@ -118,18 +120,29 @@ def get_boards(id: str) -> List[Dict[str, str]]:
         return res
     except models.Board.DoesNotExist:
         return []
-    except Exception as e:
-        print(e)
-        return []
+    # except Exception as e:
+    #     print(e)
+    #     return []
 
-def get_trending(id:str)->list[Dict[str,str]]:
+def get_username(email:str)->str:
     try:
-        entries=models.Board.objects.filter(owner__ne=decode_user(id), visibility='Public').order_by('-views')
+        entry=models.User.objects.get(mail=email)
+        return entry.username
+    except Exception: pass
+
+
+def get_trending(id:str,timezone:str)->list[Dict[str,str]]:
+    try:
+        client_tz = ZoneInfo(timezone)
+        entries=models.Board.objects.filter(owner__ne=decode_user(id), visibility='Public').order_by('-views')[:9]
         res=[
             {
                 "room": entry.room,
                 "title": entry.title,
                 "description": entry.description,
+                "views": entry.views,
+                "owner":get_username(entry.owner),
+                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M-%d/%m/%Y")
             }
             for entry in entries
         ]
@@ -137,8 +150,15 @@ def get_trending(id:str)->list[Dict[str,str]]:
     except models.Board.DoesNotExist:
         return []
     except Exception as e:
-        #print(e)
+        print(e)
         return []
+
+def increase_view_count(room:str)->None:
+    try:
+        entry=models.Board.objects.get(room=room)
+        entry.views+=1
+        entry.save()
+    except Exception: pass
 
 def get_matches(sentence:str)->list:
     try:
@@ -160,17 +180,31 @@ def get_matches(sentence:str)->list:
                 board_keywords = set(json.loads(board.summary))
             except (TypeError, json.JSONDecodeError):
                 board_keywords = set()
+            #print(len(set(keywords) & board_keywords))
             return len(set(keywords) & board_keywords)
-        sorted_boards=sorted(matches, key=match_count, reverse=True)
-        return json.dumps(sorted_boards)
-    except Exception:
+        sorted_boards = sorted(matches, key=match_count, reverse=True)
+        boards_list = [
+            {
+                "room": board.room,
+                "title": board.title,
+                "description": board.description,
+                "visibility": board.visibility,
+                "summary": board.summary,
+                "views": board.views,
+            }
+            for board in sorted_boards
+        ]
+        return json.dumps(boards_list)
+    except Exception as e:
+        #print(e)
         return []
 
 def save_project(room:str,payload:str)->bool:
     try:
         entry=models.Board.objects.get(room=room)
         entry.board=payload
-        entry.save()
+        entry.last_edit=str(time.time())
+        entry.save()    
         return True
     except Exception as e:
         print(payload)
@@ -199,7 +233,8 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
             visibility=type,
             title=title,
             summary=result,
-            views=0
+            views=1,
+            last_edit=str(time.time())
         )
         entry.save()
         return True

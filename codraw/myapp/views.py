@@ -144,6 +144,7 @@ def load_board(request):
             if id is not None:
                 data=json.loads(request.body)
                 url=f"/board/{id}/{data['room']}"
+                database.increase_view_count(data['room'])
                 return Response({'status':200,"url":url})
             else:
                 return Response({'status':400})
@@ -225,7 +226,7 @@ def check_owner(request):
             return Response({'status':200})
         return Response({'status':400})
     
-@api_view(['GET'])
+@api_view(['POST'])
 @ensure_csrf_cookie
 def trending(request):
     id=None
@@ -235,7 +236,9 @@ def trending(request):
         id=request.COOKIES.get('token')
     finally:
         if id is not None:
-            boards=database.get_trending(id)
+            data=json.loads(request.body)
+            timezone=data['timezone']  
+            boards=database.get_trending(id,timezone)  
             return Response({'status':200,'boards':boards})
         return Response({'status':400,'boards':''})
     
@@ -251,6 +254,9 @@ def search(request):
         if id is not None:
             data=json.loads(request.body)
             query=data['query']
+            timezone=data['timezone']
+            print(timezone)
             result=database.get_matches(query)
+            print(result,query)
             return Response({"status":200,"boards":result})
         return Response({"status":400})
