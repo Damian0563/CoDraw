@@ -255,8 +255,7 @@ def search(request):
             data=json.loads(request.body)
             query=data['query']
             timezone=data['timezone']
-            print(timezone)
-            result=database.get_matches(query)
-            print(result,query)
+            result=database.get_matches(query,timezone)
+            #print(result)
             return Response({"status":200,"boards":result})
         return Response({"status":400})

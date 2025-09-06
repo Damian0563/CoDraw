@@ -142,7 +142,7 @@ def get_trending(id:str,timezone:str)->list[Dict[str,str]]:
                 "description": entry.description,
                 "views": entry.views,
                 "owner":get_username(entry.owner),
-                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M-%d/%m/%Y")
+                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for entry in entries
         ]
@@ -160,7 +160,7 @@ def increase_view_count(room:str)->None:
         entry.save()
     except Exception: pass
 
-def get_matches(sentence:str)->list:
+def get_matches(sentence:str,timezone:str)->list:
     try:
         tokenized=nltk.word_tokenize(sentence)
         tags=nltk.pos_tag(tokenized)
@@ -182,6 +182,7 @@ def get_matches(sentence:str)->list:
                 board_keywords = set()
             #print(len(set(keywords) & board_keywords))
             return len(set(keywords) & board_keywords)
+        client_tz=ZoneInfo(timezone)
         sorted_boards = sorted(matches, key=match_count, reverse=True)
         boards_list = [
             {
@@ -191,12 +192,13 @@ def get_matches(sentence:str)->list:
                 "visibility": board.visibility,
                 "summary": board.summary,
                 "views": board.views,
+                "modified":(datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for board in sorted_boards
         ]
         return json.dumps(boards_list)
     except Exception as e:
-        #print(e)
+        print(e)
         return []
 
 def save_project(room:str,payload:str)->bool:

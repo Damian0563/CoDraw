@@ -21,38 +21,9 @@
       <h1>Welcome to CoDraw!</h1>
       <div class="mb-4">
         <h2 class="mb-4 text-start">My Projects</h2>
-        <!-- <div id="projects" class="container">
-          <div class="row g-4 w-100 mx-0 justify-content-center">
-            <div :class="boards.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'">
-              <div class="card create-project-card text-center bg-dark" @click="create()" style="min-height: 14rem;min-width:14rem;cursor: pointer;">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
-                  <span style="font-size: 3rem; color: #ffc107;">+</span>
-                  <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
-                </div>
-              </div>
-            </div>
-            <div
-              v-for="(board, index) in boards"
-              :key="index"
-              :class="boards.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-            >
-              <div
-                class="card create-project-card text-center bg-dark"
-                @click="join(board.room)"
-                style="min-height: 14rem;min-width:14rem ;cursor: pointer;position: relative;"
-              >
-                <div class="card-body d-flex flex-column text-white" id="created" style="height: 100%;">
-                  <h5 class="card-title fw-bold">{{ board.title }}</h5>
-                  <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
-                  <footer style="font-size: 0.7rem;position: absolute; bottom: 0; left: 0; right: 0;">Visibility: {{ board.visibility }}</footer>
-                </div>  
-              </div>
-            </div>
-          </div>
-        </div> -->
         <div id="projects" class="container">
           <div 
-            class="card create-project-card text-center bg-dark" 
+            class="card create-project-card my text-center bg-dark" 
             @click="create()" 
             style="min-height: 14rem; min-width: 14rem; cursor: pointer;"
           >
@@ -64,16 +35,26 @@
           <div
             v-for="(board, index) in boards"
             :key="index"
-            class="card create-project-card text-center bg-dark"
+            class="card create-project-card my text-center bg-dark"
             @click="join(board.room)"
             style="min-height: 14rem; min-width: 14rem; cursor: pointer; position: relative;"
           >
-            <div class="card-body d-flex flex-column text-white" id="created" style="height: 100%;">
-              <h5 class="card-title fw-bold">{{ board.title }}</h5>
-              <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
-              <footer style="font-size: 0.7rem; position: absolute; bottom: 0; left: 0; right: 0;">
-                Visibility: {{ board.visibility }}
-              </footer>
+            <!-- id="created" -->
+            <div class="card-body d-flex flex-column text-white" style="height: 100%;">  
+              <div class="w-100" @click.stop="hover = !hover">
+                <img :src="info" style="width:30px;height: 30px;position: absolute;right:0;top:0;" alt="info icon">
+              </div>
+              <div v-if="hover" class="w-100">
+                <div class="d-flex flex-column align-items-start gap-1" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05);padding: 0.5rem;">
+                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Views: <span class="text-white">{{ board.views }}</span></span>
+                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Last Modified: <span class="text-white">{{ board.modified }}</span></span>
+                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Visibility: <span class="text-white">{{ board.visibility }}</span></span>
+                </div>
+              </div>
+              <div v-else class="w-100">
+                <h5 class="card-title fw-bold mt-2">{{ board.title }}</h5>
+                <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -109,7 +90,6 @@
             </div>
           </div>
         </div>
-
         <section id="results" class="my-4 mx-3">
           <div class="container">
             <div class="row g-4">
@@ -157,9 +137,11 @@ import { get_cookie } from '@/common';
 import {DateTime} from 'luxon'
 import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
+import info from '@/assets/information.webp'
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 const loading = ref(false)
+const hover=ref(false)
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
 const boards = ref([])
@@ -319,6 +301,12 @@ export default {
 </script>
 
 <style scoped>
+
+.my {
+  width: 14rem; /* lock width */
+  max-width: 20rem; /* prevents expansion */
+}
+
 #out{
   transition: 0.6s ease-in-out;
 }
