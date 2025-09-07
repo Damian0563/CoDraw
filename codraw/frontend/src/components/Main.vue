@@ -41,10 +41,10 @@
           >
             <!-- id="created" -->
             <div class="card-body d-flex flex-column text-white" style="height: 100%;">  
-              <div class="w-100" @click.stop="hover = !hover">
+              <div class="w-100" @click.stop="hover[index] = !hover[index]">
                 <img :src="info" style="width:30px;height: 30px;position: absolute;right:0;top:0;" alt="info icon">
               </div>
-              <div v-if="hover" class="w-100">
+              <div v-if="hover[index]" class="w-100">
                 <div class="d-flex flex-column align-items-start gap-1" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05);padding: 0.5rem;">
                   <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Views: <span class="text-white">{{ board.views }}</span></span>
                   <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Last Modified: <span class="text-white">{{ board.modified }}</span></span>
@@ -141,7 +141,7 @@ import info from '@/assets/information.webp'
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 const loading = ref(false)
-const hover=ref(false)
+const hover=ref({})
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(true)
 const boards = ref([])
@@ -205,15 +205,19 @@ async function status(){
 const get_boards = async()=>{
   try{
     const data=await fetch(`${BASE_URL}/codraw/get_boards`,{
-      method:"GET",
+      method:"POST",
       headers:{
         'Content-Type':'application/json',
         'X-CSRFToken':csrf
       },
+      body:JSON.stringify({
+        "timezone":DateTime.local().zoneName
+      }),
       credentials:"include"
     })
     const response=await data.json()
     boards.value=response.boards
+    hover.value=response.boards.map(()=>false)
   }catch(e){
     console.error(e)
   }

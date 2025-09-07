@@ -44,8 +44,8 @@
     > 
       <text style="color: white;">Brush Color</text>
       <input type="color" v-model="color">
-      <text style="color: white;">Background Color</text>
-      <input type="color" v-model="background">
+      <!--<text style="color: white;">Background Color</text>
+      <input type="color" v-model="background">-->
       <select
         v-model="tool"
         style="
@@ -303,8 +303,13 @@
         >
         <v-layer ref="layerRef">
             <v-image
-            ref="imageRef"
-            :config="imageConfig"
+              ref="imageRef"
+              :config="imageConfig"
+            />
+            <v-image
+              v-for="img in images"
+              :key="img.id"
+              :config="img"
             />
         </v-layer>
     </v-stage>
@@ -314,6 +319,7 @@
 <script setup>
 import url from '@/assets/email.webp'
 import zoom_ico from '@/assets/zoom.webp'
+import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
@@ -345,6 +351,9 @@ const lastPos = ref(null);
 const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
+const images = ref([]); 
+
+
 
 const show_text = computed(() => windowWidth.value > 1330);
 const stageConfig = {
@@ -516,6 +525,45 @@ const save_definetely = async()=>{
     console.error(e)
   }
 }
+
+const handlePaste = (event) => {
+  event.preventDefault();
+  const stage = stageRef.value?.getNode?.();
+  if (!stage) return;
+  const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
+  const point = getRelativePointerPosition(stage, pointer);
+  const clipboardData = event.clipboardData;
+  if (!clipboardData || clipboardData.files.length === 0) {
+    return;
+  }
+  const file = clipboardData.files[0];
+  if (!file.type.startsWith('image/')) {
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new window.Image();
+    img.src = e.target.result;
+    img.onload = () => {
+      const newImage = {
+        id: uuidv4(),
+        image: img,
+        x: point.x,
+        y: point.y,
+        width: img.width,
+        height: img.height,
+        draggable: true,
+      };  
+      images.value.push(newImage);
+      console.log(images)
+    };
+  }
+  reader.onerror = function(event) {
+    console.error('FileReader error:', event.target.error);
+  };
+  reader.readAsDataURL(file)  
+}
+
 
 const check_save = async (mode) => {
   try{
@@ -771,8 +819,48 @@ onMounted(async()=>{
     windowWidth.value = window.innerWidth;
   };
   window.addEventListener('resize', onResize); 
-  //onBeforeUnmount(() => window.removeEventListener('resize', onResize));
+  window.addEventListener('paste', handlePaste)
+  const preview = document.createElement('div');
+  preview.id = 'preview';
+  preview.style.position = 'absolute';
+  preview.style.bottom = '15px';
+  preview.style.left = '15px';
+  preview.style.border = '5px solid #ffc107';
+  preview.style.borderRadius="5%"
+  preview.style.backgroundColor = 'lightgrey';
+  document.body.appendChild(preview);
+  const previewStage = new Konva.Stage({
+    container: 'preview',
+    width: window.innerWidth/8,
+    height: window.innerHeight/8,
+    scaleX: 1/32,
+    scaleY: 1/32,
+  });
+  let layer=layerRef.value.getNode()
+  let previewLayer = new Konva.Layer();
+  const previewBg = new Konva.Rect({
+    x: 0,
+    y: 0,
+    width: previewStage.width()*32,
+    height: previewStage.height()*32,
+    fill: background.value,
+    listening: false,
+  });
+  previewStage.add(previewLayer);
+  previewLayer.add(previewBg)
+  function syncPreview() {
+    const parsed = JSON.parse(stageRef.value.getStage().toJSON());
+    previewLayer.destroyChildren();
+    previewLayer.add(previewBg);
+    parsed.children[0].children.forEach(shapeJson => {
+      const shape = Konva.Node.create(shapeJson);
+      previewLayer.add(shape);
+    });
+    previewLayer.draw();
+  }
   loading.value=false;
+  layer.on('add destroy change',syncPreview)
+  syncPreview()
 })
 setInterval(()=>autosave(),60000)
 onBeforeUnmount(()=>{

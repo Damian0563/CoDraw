@@ -105,8 +105,9 @@ def find_room(room:str,owner:str)->bool:
     return models.Board.objects.filter(room=room)
     #return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
-def get_boards(id: str) -> List[Dict[str, str]]:
+def get_boards(id: str,timezone) -> List[Dict[str, str]]:
     try:
+        client_tz = ZoneInfo(timezone)
         entries=models.Board.objects.filter(owner=decode_user(id))
         res=[
             {
@@ -114,6 +115,8 @@ def get_boards(id: str) -> List[Dict[str, str]]:
                 "title": entry.title,
                 "description": entry.description,
                 "visibility": entry.visibility,
+                "views":entry.views,
+                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for entry in entries
         ]

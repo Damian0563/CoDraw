@@ -150,11 +150,13 @@ def load_board(request):
                 return Response({'status':400})
 
 @ensure_csrf_cookie
-@api_view(['GET'])
+@api_view(['POST'])
 def my_projects(request):
     try:
         id=request.session['user_id']
-        boards=database.get_boards(id)
+        data=json.loads(request.body)
+        timezone=data['timezone']
+        boards=database.get_boards(id,timezone)
         return Response({'status':200,"boards":boards})
     except KeyError:
         return Response({'status':500})
