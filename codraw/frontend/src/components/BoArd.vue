@@ -42,6 +42,9 @@
       z-index: 10;
       "
     > 
+      <button @click="motiv=!motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
+      :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"
+      ></button>
       <text style="color: white;">Brush Color</text>
       <input type="color" v-model="color">
       <!--<text style="color: white;">Background Color</text>
@@ -289,30 +292,30 @@
       <input v-model="zoom" style="width: 60px; text-align: center;border-style: none;" disabled>
       <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('down')">-</label>
     </div>
-    <v-stage
-        ref="stageRef"
-        :config="stageConfig"
-        @mousedown="handleMouseDown"
-        @mousemove="handleMouseMove"
-        @mouseup="handleMouseUp"
-        @touchstart="handleMouseDown"
-        @touchmove="handleMouseMove"
-        @touchend="handleMouseUp"
-        @contextmenu="handleContextMenu"
-        style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
-        >
-        <v-layer ref="layerRef">
-            <v-image
-              ref="imageRef"
-              :config="imageConfig"
-            />
-            <v-image
-              v-for="img in images"
-              :key="img.id"
-              :config="img"
-            />
-        </v-layer>
-    </v-stage>
+    <div
+      class="board-wrapper"
+      :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"
+    >
+      <v-stage
+          ref="stageRef"
+          :config="stageConfig"
+          @mousedown="handleMouseDown"
+          @mousemove="handleMouseMove"
+          @mouseup="handleMouseUp"
+          @touchstart="handleMouseDown"
+          @touchmove="handleMouseMove"
+          @touchend="handleMouseUp"
+          @contextmenu="handleContextMenu"
+          style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
+          >
+          <v-layer ref="layerRef">
+              <v-image  
+                ref="imageRef"
+                :config="imageConfig"
+              />
+          </v-layer>
+      </v-stage>
+    </div>
   </div>
 </template>
 
@@ -325,7 +328,7 @@ import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 const loading=ref(false)
 const csrf = get_cookie('csrftoken');
-import { onMounted, ref, onBeforeUnmount, computed} from 'vue';
+import { onMounted, ref, onBeforeUnmount, computed, onUnmounted} from 'vue';
 const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
@@ -351,7 +354,9 @@ const lastPos = ref(null);
 const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
-const images = ref([]); 
+const motiv=ref(false)
+//const images = ref([]); 
+
 
 
 
@@ -399,7 +404,6 @@ canvas.height = stageConfig.height;
 // get context
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
-context.fillStyle = background.value
 context.fillStyle=background.value
 context.lineJoin = 'round';
 context.lineWidth = width_slider.value;
@@ -526,6 +530,40 @@ const save_definetely = async()=>{
   }
 }
 
+function getCrop(image, size) {
+  const width = size.width;
+  const height = size.height;
+  const aspectRatio = width / height;
+  let newWidth;
+  let newHeight;
+  const imageRatio = image.width / image.height;
+  if (aspectRatio >= imageRatio) {
+    newWidth = image.width;
+    newHeight = image.width / aspectRatio;
+  } else {
+    newWidth = image.height * aspectRatio;
+    newHeight = image.height;
+  }
+  let x = 0;
+  let y = 0;
+  x = (image.width - newWidth) / 2;
+  y = (image.height - newHeight) / 2
+  return {
+    cropX: x,
+    cropY: y,
+    cropWidth: newWidth,
+    cropHeight: newHeight,
+  };
+}
+
+function applyCrop(imgNode) {
+  const crop = getCrop(
+    imgNode.image(), // HTMLImageElement
+    { width: imgNode.width(), height: imgNode.height() }
+  );
+  imgNode.setAttrs(crop);
+}
+
 const handlePaste = (event) => {
   event.preventDefault();
   const stage = stageRef.value?.getNode?.();
@@ -545,23 +583,40 @@ const handlePaste = (event) => {
     const img = new window.Image();
     img.src = e.target.result;
     img.onload = () => {
-      const newImage = {
+      const konvaImg = new Konva.Image({
         id: uuidv4(),
         image: img,
         x: point.x,
         y: point.y,
         width: img.width,
         height: img.height,
-        draggable: true,
-      };  
-      images.value.push(newImage);
-      console.log(images)
-    };
+        draggable: false,
+      });
+      applyCrop(konvaImg)
+      const layer = layerRef.value.getNode();
+      layer.add(konvaImg);
+      const tr = new Konva.Transformer({
+        nodes: [konvaImg],
+        keepRatio: false,
+        flipEnabled: false,
+        boundBoxFunc: (oldBox, newBox) => {
+          if (Math.abs(newBox.width) < 10 || Math.abs(newBox.height) < 10) {
+            return oldBox;
+          }
+          return newBox;
+        },
+      });
+      layer.add(tr)
+      layer.draw();
   }
+  reader.onloadstart= function() {
+    console.error('Starting');
+  };
   reader.onerror = function(event) {
     console.error('FileReader error:', event.target.error);
   };
-  reader.readAsDataURL(file)  
+  }
+  reader.readAsDataURL(file)
 }
 
 
@@ -777,19 +832,6 @@ onMounted(async()=>{
 
     stage.position(newPos);
     stage.batchDraw();
-  });
-  watch(background,(newBackground)=>{
-    const layer = layerRef.value?.getNode?.();
-    const imageNode = imageRef.value?.getNode?.();
-    if(!layer || !imageNode) return;
-    context.save();
-    context.globalCompositeOperation='destination-over';
-    context.fillStyle=newBackground;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.restore();
-    imageNode.image(canvas);
-    imageNode.clearCache();
-    layer.draw();
   })
   let resizeTimeout = null;
   window.addEventListener('resize', () => {
@@ -848,6 +890,12 @@ onMounted(async()=>{
   });
   previewStage.add(previewLayer);
   previewLayer.add(previewBg)
+  watch(motiv,()=>{
+    background.value = motiv.value ? "#ffffff" : "#000000"
+    color.value= motiv.value ? "#000000":"#ffffff"
+    previewBg.fill(background.value);
+    previewLayer.batchDraw();
+  },{immediate:true})
   function syncPreview() {
     const parsed = JSON.parse(stageRef.value.getStage().toJSON());
     previewLayer.destroyChildren();
@@ -869,7 +917,9 @@ onBeforeUnmount(()=>{
   }
   loading.value=true
 })
-
+onUnmounted(()=>{
+  window.removeEventListener('paste',handlePaste)
+})
 </script>
 
 <style scoped>
@@ -891,6 +941,12 @@ onBeforeUnmount(()=>{
   z-index: 1000;
   background-color: rgba(255, 255, 255, 0.8);
 }
+
+.board-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
 
 /* The "leave" state, when the modal is about to disappear */
 .fade-slide-enter-active,
