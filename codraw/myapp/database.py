@@ -204,19 +204,20 @@ def get_matches(sentence:str,timezone:str)->list:
         print(e)
         return []
 
-def save_project(room:str,payload:str)->bool:
+def save_project(room:str,payload:str,bg:str)->bool:
     try:
         entry=models.Board.objects.get(room=room)
         entry.board=payload
+        entry.background=bg
         entry.last_edit=str(time.time())
-        entry.save()    
+        entry.save()  
         return True
     except Exception as e:
         print(payload)
         print('quick save error: ',e)
         return False
     
-def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str) -> bool:
+def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str,bg:str) -> bool:
     try:
         summary=str(str(title)+". "+str(description))
         tokenized=nltk.word_tokenize(summary)
@@ -238,6 +239,7 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
             visibility=type,
             title=title,
             summary=result,
+            background=bg,
             views=1,
             last_edit=str(time.time())
         )
@@ -247,10 +249,10 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
         print('save new project error: ',e)
         return False
 
-def get_board_img(room: str) -> str:
+def get_board_img(room: str)->list|str:
     try:
         entry=models.Board.objects.get(room=room)
-        return entry.board
+        return [entry.board,entry.background]
     except Exception as e:
         print("Error in fetching image: ",e)
         return ""

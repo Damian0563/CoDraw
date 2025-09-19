@@ -127,8 +127,8 @@ def load(request):
         try:  
             data=json.loads(request.body)
             room=data['project']
-            canva=database.get_board_img(room=room)
-            return Response({'status':200,"canva":json.loads(canva)})
+            canva,bg=database.get_board_img(room=room)
+            return Response({'status':200,"canva":json.loads(canva),"bg":bg})
         except Exception: return Response({'status':404,"canva":""})
 
 @api_view(["POST"])
@@ -187,10 +187,11 @@ def save(request):
     except KeyError:
         owner=request.COOKIES.get('token')
     room=data.get('project')
-    payload=data.get('payload')
     if database.find_room(room,owner):
+        bg=data.get('bg')
+        payload=data.get('payload')
         if payload is not None:
-            database.save_project(room,payload)
+            database.save_project(room,payload,bg)
         return Response({'status':200})
     return Response({'status':400})
 
@@ -203,13 +204,14 @@ def save_new(request):
     title=data.get('title')
     description=data.get('description')
     type=data.get('type') 
+    background=data.get('bg')
     owner=None
     try:
         owner=request.session['user_id']
     except KeyError:
         owner=request.COOKIES.get('token')
     finally:
-        if owner is not None and database.save_new_project(project,payload,owner,title,description,type):
+        if owner is not None and database.save_new_project(project,payload,owner,title,description,type,background):
             return Response({'status':200})
         return Response({'status':400})
 

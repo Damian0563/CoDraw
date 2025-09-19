@@ -374,7 +374,7 @@ ws.value.onmessage = (event) => {
   const data = JSON.parse(event.data);
   if (!data || !data.type) return;
   const layer = layerRef.value.getNode();
-  if (data.type === "start") {
+  if(data.type === "start") {
     const newLine = new Konva.Line({
       stroke: data.stroke,
       strokeWidth: data.width,
@@ -390,6 +390,9 @@ ws.value.onmessage = (event) => {
     const newPoints = currentLine.value.points().concat(data.points);
     currentLine.value.points(newPoints);
     layer.batchDraw();
+  }else if(data.type==="bg" && data.bg){
+    background.value=data.bg
+    motiv.value = data.bg === "#ffffff"
   }
 };
 
@@ -507,6 +510,7 @@ const save_definetely = async()=>{
         "title":title.value,
         "description":description.value,
         "type":type.value,
+        "bg":background.value
       }),
       credentials:"include"
     })
@@ -594,6 +598,7 @@ const handlePaste = (event) => {
       });
       applyCrop(konvaImg)
       const layer = layerRef.value.getNode();
+      konvaImg.setAttr("src", e.target.result);
       layer.add(konvaImg);
       const tr = new Konva.Transformer({
         nodes: [konvaImg],
@@ -631,7 +636,8 @@ const check_save = async (mode) => {
         headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({
           "project":room,
-          "payload": JSON.stringify(stageRef.value.getStage().toJSON())
+          "payload": JSON.stringify(stageRef.value.getStage().toJSON()),
+          "bg":background.value
         }),
         credentials:"include"
       })
@@ -784,11 +790,21 @@ const get_details_and_load = async()=>{
     })
     const response=await data.json()
     const saved_json = response.canva;
-    if (saved_json) {
+    const bg = response.bg;
+    if(bg){
+      background.value=bg
+      motiv.value = bg === "#ffffff"
+    }
+    if(saved_json){
       const parsed = JSON.parse(saved_json);
       const layer = layerRef.value.getNode(); //
       layer.destroyChildren();
       parsed.children[0].children.forEach(shapeJson => {
+        if(shapeJson.className==="Image" && shapeJson.attrs.src){
+          const img = new window.Image();
+          img.src = shapeJson.attrs.src;
+          shapeJson.attrs.image = img;
+        }
         const shape = Konva.Node.create(shapeJson);
         layer.add(shape);
       });
@@ -895,6 +911,10 @@ onMounted(async()=>{
     color.value= motiv.value ? "#000000":"#ffffff"
     previewBg.fill(background.value);
     previewLayer.batchDraw();
+    ws.value.send(JSON.stringify({
+      type: "bg",
+      bg: background.value
+    }))
   },{immediate:true})
   function syncPreview() {
     const parsed = JSON.parse(stageRef.value.getStage().toJSON());

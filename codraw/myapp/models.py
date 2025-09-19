@@ -18,4 +18,4 @@ class Board(Document):
     views=fields.IntField(required=True)
     summary=fields.StringField(required=True,max_length=1000)
     last_edit=fields.StringField(required=True)
-    # background=fields.StringField(required=True)
+    background=fields.StringField(required=True)
