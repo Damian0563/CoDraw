@@ -165,6 +165,21 @@ def my_projects(request):
 def settings(request):
     pass
 
+
+@api_view(['GET'])
+@ensure_csrf_cookie
+def username(request):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            username=database.decode_user(id)
+            return Response({'status':200,'username':username})
+        return Response({'status':404})
+
 @api_view(['POST'])
 @ensure_csrf_cookie
 def logout(request):

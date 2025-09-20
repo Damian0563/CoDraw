@@ -911,10 +911,12 @@ onMounted(async()=>{
     color.value= motiv.value ? "#000000":"#ffffff"
     previewBg.fill(background.value);
     previewLayer.batchDraw();
-    ws.value.send(JSON.stringify({
-      type: "bg",
-      bg: background.value
-    }))
+    if(ws.value.readyState===WebSocket.OPEN){
+      ws.value.send(JSON.stringify({
+        type: "bg",
+        bg: background.value
+      }))
+    }
   },{immediate:true})
   function syncPreview() {
     const parsed = JSON.parse(stageRef.value.getStage().toJSON());

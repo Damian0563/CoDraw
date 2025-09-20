@@ -17,7 +17,7 @@ const routes = [
   { path: '/signin', component: SignIn },
   { path: '/codraw', component: MaIn },
   { path: '/codraw/settings', component: SeTtings },
-  { path: '/codraw/account', component: AccOunt },
+  { path: '/codraw/account/:username', component: AccOunt },
   { path: '/board/:id/:room', component: BoArd },
 ]
 

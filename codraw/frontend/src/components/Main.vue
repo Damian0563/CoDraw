@@ -7,7 +7,7 @@
       <div class="sidebar-header d-flex flex-column align-items-center mb-4">
         <img class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
         <img :src="url" alt="logo" class="logo mb-3 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
-        <RouterLink to="/codraw/account" class="nav-link account-link mb-2 w-100 text-center">
+        <RouterLink :to="`/codraw/account/${username}`" class="nav-link account-link mb-2 w-100 text-center">
           My Account
         </RouterLink>
         <RouterLink to="/codraw/settings" class="nav-link settings-link mb-2 w-100 text-center">
@@ -147,6 +147,25 @@ const sidebarOpen = ref(true)
 const boards = ref([])
 const popular=ref([])
 const input=ref('')
+const username = ref("")
+async function get_username(){
+  try{
+    const data=await fetch(`${BASE_URL}/username`,{
+      method:"GET",
+      headers:{
+        "X-CSRFToken":csrf
+      },
+      credentials:"include"
+    })
+    const response=await data.json()
+    console.log(response)
+    if(response.status==200) username.value=response.username
+    else username.value="ERROR 404 NOT FOUND"
+  }catch(e){
+    console.error(e)
+  }
+}
+
 async function log_out(){
   try{
     const data=await fetch(`${BASE_URL}/log_out`,{
@@ -292,7 +311,8 @@ onMounted(async() => {
   await Promise.all([
     status(),
     get_boards(),
-    load_popular()
+    load_popular(),
+    get_username()
   ])
   loading.value=false
 })
