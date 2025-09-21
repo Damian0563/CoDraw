@@ -109,7 +109,7 @@
                     <footer class="d-flex flex-column py-2" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;">
                       <div class="d-flex align-items-center gap-2 mx-2 mb-2">
                         <span class="fw-semibold text-warning">Owner:</span>
-                        <a :href="`/codraw/user/${board.owner}`" style="color:#ff4f4f !important;">{{ board.owner }}</a>
+                        <a :href="`/codraw/account/${board.owner}`" style="color:#ff4f4f !important;">{{ board.owner }}</a>
                       </div>
                       <div class="d-flex align-items-center gap-2 mx-2">
                         <input class="form-control form-control-sm" readonly disabled :value="'Views: ' + board.views" style="width:150px;"/>
