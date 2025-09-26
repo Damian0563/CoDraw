@@ -105,7 +105,39 @@ def find_room(room:str,owner:str)->bool:
     return models.Board.objects.filter(room=room)
     #return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
-def get_boards(id: str,timezone) -> List[Dict[str, str]]:
+
+def edit(room:str,title:str,description:str,timezone:str)->None:
+    try:
+        client_tz = ZoneInfo(timezone)
+        entry=models.Board.objects.get(room=room)
+        entry.title=title
+        entry.description=description
+        entry.last_edit=str(time.time())
+        concat=str(str(title)+". "+str(description))
+        tokenized=nltk.word_tokenize(concat)
+        tags=nltk.pos_tag(tokenized)
+        lemmatizer=WordNetLemmatizer()
+        result=[]
+        for instance in tags:
+            word,word_type=instance[0],instance[1]
+            word=word.lower()
+            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
+            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
+            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
+        entry.summary=json.dumps(list(set(result)))
+        entry.save()
+    except models.Board.DoesNotExist:
+        pass
+
+def delete_board(room:str)->bool:
+    try:
+        board=models.Board.objects.get(room=room)
+        board.delete()
+        return True
+    except models.Board.DoesNotExist:
+        return False
+
+def get_boards(id: str,timezone:str) -> List[Dict[str, str]]:
     try:
         client_tz = ZoneInfo(timezone)
         entries=models.Board.objects.filter(owner=decode_user(id))
@@ -126,6 +158,36 @@ def get_boards(id: str,timezone) -> List[Dict[str, str]]:
     # except Exception as e:
     #     print(e)
     #     return []
+
+def get_mail_by_username(username:str)->str:
+    try:
+        print(username)
+        entry=models.User.objects.get(username=username)
+        return entry.mail
+    except models.User.DoesNotExist:
+        return ""
+
+def get_boards_of_username(timezone:str,username:str)->list[dict]:
+    try:
+        client_tz = ZoneInfo(timezone)
+        mail=get_mail_by_username(username)
+        print(mail)
+        entries=models.Board.objects.filter(owner=mail)
+        res=[
+            {
+                "room": entry.room,
+                "title": entry.title,
+                "description": entry.description,
+                "visibility": entry.visibility,
+                "views":entry.views,
+                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+            }
+            for entry in entries
+        ]
+        return res
+    except models.Board.DoesNotExist:
+        return []
+
 
 def get_username(email:str)->str:
     try:

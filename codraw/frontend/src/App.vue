@@ -18,7 +18,10 @@ export default {
 body {
   margin: 0;
   padding: 0;
+  overflow-y: scroll; /* keeps scroll active */
+  scrollbar-width: none; /* Firefox */
 }
+
 
 #app {
   font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

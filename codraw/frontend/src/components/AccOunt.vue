@@ -27,11 +27,12 @@
             <img
               v-else
               :src="save"
-              @click="edits[index] = !edits[index]"
+              @click="edits[index] = !edits[index];resave(boards[index]);boards[index].modified='Just now'"
               style="width:20px;height:20px;cursor:pointer;"
             >
             <img
               :src="bin"
+              @click="delete_board(boards[index].room);boards.splice(index,1)"
               style="width:20px;height:20px;cursor:pointer;"
             >
           </div>
@@ -55,13 +56,13 @@
           </div>
           <div v-else>
             <input
-            class="form-control fw-bold mt-2 bg-dark text-white"
+            class="form-control fw-bold mt-2 bg-white text-dark"
             v-model="board.title"
             @click.stop
             :placeholder="'Board Title'"
             />
             <input
-            class="form-control small mt-3 bg-dark text-white"
+            class="form-control small mt-3 bg-white text-dark"
             v-model="board.description"
             @click.stop
             :placeholder="'Board Description'"
@@ -97,36 +98,96 @@ import back from '@/assets/goback.webp'
 import bin from '@/assets/bin.webp'
 import save from '@/assets/save.webp'
 import edit from '@/assets/edit.webp'
+
 const username=ref(null)
-const pathParts = window.location.pathname.split('/');
-username.value = pathParts[pathParts.length - 1];
 const admin = ref(false)
 const csrf = get_cookie('csrftoken')
 const boards = ref([])
 const loading = ref(true)
-//const deletes=ref({})
 const edits=ref({})
 
 
-const get_status=async()=>{
-
+const delete_board=async(room)=>{
+  try{
+    const data=await fetch(`${BASE_URL}/delete/${room}`,{
+      method:"GET",
+      headers:{"X-CSRFToken":csrf},
+      credentials:"include"
+    })
+    const response=await data.json()
+    if(response.status===200) console.log("Board deleted successfully")
+    else console.log("Board not deleted successfully")
+  }catch(e){
+    console.error(e)
+  }
 }
 
-const get_boards = async () => {
+const resave=async(board)=>{
+  loading.value=true;
+  if(board.original_description!==board.description || board.original_title!==board.title){
+    try{
+      const data=await fetch(`${BASE_URL}/codraw/update/${board.room}`,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "X-CSRFToken":csrf
+        },
+        credentials:"include",
+        body:JSON.stringify({
+          "title":board.title,
+          "description":board.description,
+          "timezone":DateTime.local().zoneName
+        })
+      })
+      const response=await data.json()
+      if(response.status===200) console.log("board saved successfully")
+      else console.log("board saved unsuccessfully")
+    }catch(e){
+      console.error(e)
+    }
+  }
+  loading.value=false;
+}
+
+const get_status=async(curr_user)=>{
+  try{
+    const data=await fetch(`${BASE_URL}/username`,{
+      method:"GET",
+      headers:{
+        "X-CSRFToken":csrf
+      },
+      credentials:"include"
+    })
+    const response=await data.json()
+    let user2=""
+    if(response.status==200) user2=response.username
+    else user2="ERROR 404 NOT FOUND"
+    return user2===curr_user
+  }catch(e){
+    console.error(e)
+  }
+}
+
+const get_boards = async (username) => {
   try {
-    const data = await fetch(`${BASE_URL}/codraw/get_boards`, {
+    const data = await fetch(`${BASE_URL}/codraw/boards/${username}`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrf
       },
       body: JSON.stringify({
-        "timezone": DateTime.local().zoneName
+        "timezone": DateTime.local().zoneName,
       }),
       credentials: "include"
     })
     const response = await data.json()
-    boards.value = response.boards
+    boards.value = response.boards.map(b => ({
+      ...b,
+      original_title: b.title,
+      original_description: b.description
+    }))
+    console.log(response)
     edits.value=response.boards.map(()=>false)
   } catch (e) {
     console.error(e)
@@ -159,9 +220,10 @@ async function join(room){
 
 onMounted(async () => {
   loading.value = true;
-  let result=get_status();
-  admin.value=result[0]
-  await get_boards();
+  const pathParts = window.location.pathname.split('/');
+  username.value = pathParts[pathParts.length - 1];
+  admin.value=await get_status(username.value);
+  await get_boards(username.value);
   loading.value = false;
 })
 </script>

@@ -158,7 +158,6 @@ async function get_username(){
       credentials:"include"
     })
     const response=await data.json()
-    console.log(response)
     if(response.status==200) username.value=response.username
     else username.value="ERROR 404 NOT FOUND"
   }catch(e){

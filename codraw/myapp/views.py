@@ -153,17 +153,37 @@ def load_board(request):
 @api_view(['POST'])
 def my_projects(request):
     try:
-        id=request.session['user_id']
-        data=json.loads(request.body)
-        timezone=data['timezone']
-        boards=database.get_boards(id,timezone)
-        return Response({'status':200,"boards":boards})
+        id=None
+        try:
+            id=request.session['user_id']
+        except KeyError:
+            id=request.COOKIES.get('token')
+        finally:
+            if id is not None:
+                data=json.loads(request.body)
+                timezone=data['timezone']
+                boards=database.get_boards(id,timezone)
+                return Response({'status':200,"boards":boards})
+            return Response({'status':400})
     except KeyError:
         return Response({'status':500})
 
 @api_view(['GET','PUT'])
 def settings(request):
     pass
+
+@api_view(['GET'])
+@ensure_csrf_cookie
+def delete(request,room):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            if database.delete_board(room):return Response({'status':200})
+        return Response({'status':400})
 
 
 @api_view(['GET'])
@@ -176,9 +196,27 @@ def username(request):
         id=request.COOKIES.get('token')
     finally:
         if id is not None:
-            username=database.decode_user(id)
+            mail=database.decode_user(id)
+            username=database.get_username(mail)
             return Response({'status':200,'username':username})
         return Response({'status':404})
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+def edit(request,room):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            data=json.loads(request.body)
+            title=data['title']
+            description=data['description']
+            timezone=data['timezone']
+            database.edit(room,title,description,timezone)
+        return Response({'status':400})
 
 @api_view(['POST'])
 @ensure_csrf_cookie
@@ -209,6 +247,22 @@ def save(request):
             database.save_project(room,payload,bg)
         return Response({'status':200})
     return Response({'status':400})
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+def boards_user(request,username):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            data=json.loads(request.body)
+            timezone=data['timezone']
+            boards=database.get_boards_of_username(timezone,username)
+            return Response({'status':200,"boards":boards})
+        return Response({'status':400,'boards':[]})
 
 @api_view(['POST'])
 @ensure_csrf_cookie

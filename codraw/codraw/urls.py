@@ -41,5 +41,8 @@ urlpatterns = [
     path('codraw/check_owner',views.check_owner,name='check_owner'),
     path('get_popular',views.trending,name="trending"),
     path('search',views.search,name="search"),
-    path('username',views.username,name="username")
+    path('username',views.username,name="username"),
+    path('codraw/update/<str:room>',views.edit,name="edit"),
+    path("codraw/boards/<str:username>",views.boards_user,name="boards_user"),
+    path('delete/<str:room>',views.delete,name="delete")
 ]

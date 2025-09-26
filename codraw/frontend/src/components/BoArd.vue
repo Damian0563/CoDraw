@@ -944,7 +944,17 @@ onUnmounted(()=>{
 })
 </script>
 
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden !important; /* disables global scrolling */
+}
+</style>
+
 <style scoped>
+
+
 .fade-slide-enter-from,
 .fade-slide-leave-to {
   opacity: 0;
