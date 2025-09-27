@@ -174,6 +174,19 @@ def settings(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+def status(request):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None and database.exists(id):
+            return Response({'status':200,"user":True})
+        return Response({'status':200,'user':False})
+
+@api_view(['GET'])
+@ensure_csrf_cookie
 def delete(request,room):
     id=None
     try:

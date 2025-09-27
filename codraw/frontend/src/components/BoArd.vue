@@ -333,6 +333,7 @@ const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
+import { FastLayer } from 'konva/lib/FastLayer.js';
 const stageRef = ref(null);
 const windowWidth = ref(window.innerWidth);
 const admin=ref(false)
@@ -355,10 +356,28 @@ const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
 const motiv=ref(false)
+const visitor=ref(true)
 //const images = ref([]); 
 
-
-
+const check_visitor=async()=>{
+  if(admin.value){ 
+    visitor.value=false;
+  }else{
+    try{
+      const data=await fetch(`${BASE_URL}/status`,{
+        method:"GET",
+        headers:{"X-CSRFToken":csrf},
+        credentials:"include"
+      })
+      response=await data.json()
+      if(response.status===200 && response.user) visitor.value=true;
+      else visitor.value=false;
+      console.log(visitor.value)
+    }catch(e){
+      console.error(e)
+    }
+  }
+}
 
 const show_text = computed(() => windowWidth.value > 1330);
 const stageConfig = {
@@ -823,6 +842,7 @@ onMounted(async()=>{
     setTimeout(()=> get_details_and_load(),100)
   }
   await check_owner()
+  await check_visitor()
   const stage=stageRef.value.getNode(); // get Konva Stage
   const scaleBy=1.1;
   stage.on('wheel', (e) => {

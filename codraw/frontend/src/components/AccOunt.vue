@@ -18,55 +18,39 @@
           class="project-card"
         > 
           <div class="d-flex justify-content-end align-items-center gap-2">
-            <img
-              v-if="!edits[index]"
-              :src="edit"
-              @click="edits[index] = !edits[index]"
-              style="width:20px;height:20px;cursor:pointer;"
-            >
-            <img
-              v-else
-              :src="save"
-              @click="edits[index] = !edits[index];resave(boards[index]);boards[index].modified='Just now'"
-              style="width:20px;height:20px;cursor:pointer;"
-            >
-            <img
-              :src="bin"
-              @click="delete_board(boards[index].room);boards.splice(index,1)"
-              style="width:20px;height:20px;cursor:pointer;"
-            >
-          </div>
-          <div v-if="!edits[index]">
-            <input
-            class="form-control fw-bold mt-2 bg-dark text-white"
-            v-model="board.title"
-            @click.stop
-            :placeholder="'Board Title'"
-            readonly
-            disabled
-            />
-            <input
-            class="form-control small mt-3 bg-dark text-white"
-            v-model="board.description"
-            @click.stop
-            :placeholder="'Board Description'"
-            readonly
-            disabled
-            />
-          </div>
-          <div v-else>
-            <input
-            class="form-control fw-bold mt-2 bg-white text-dark"
-            v-model="board.title"
-            @click.stop
-            :placeholder="'Board Title'"
-            />
-            <input
-            class="form-control small mt-3 bg-white text-dark"
-            v-model="board.description"
-            @click.stop
-            :placeholder="'Board Description'"
-            />
+            <div v-if="admin" class="w-100">
+              <div class="d-flex justify-content-end align-items-center gap-2">
+                <img
+                  v-if="!edits[index]"
+                  :src="edit"
+                  @click="edits[index] = !edits[index]"
+                  style="width:20px;height:20px;cursor:pointer;"
+                >
+                <img
+                  v-else
+                  :src="save"
+                  @click="edits[index] = !edits[index];resave(boards[index]);boards[index].modified='Just now'"
+                  style="width:20px;height:20px;cursor:pointer;"
+                >
+                <img
+                  :src="bin"
+                  @click="delete_board(boards[index].room);boards.splice(index,1)"
+                  style="width:20px;height:20px;cursor:pointer;"
+                >
+              </div>
+              <div v-if="!edits[index]">
+                <input class="form-control fw-bold mt-2 bg-dark text-white" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled />
+                <input class="form-control small mt-3 bg-dark text-white" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled />
+              </div>
+              <div v-else>
+                <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" />
+                <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" />
+              </div>
+            </div>
+            <div v-else class="w-100">
+              <input class="form-control fw-bold mt-2 bg-dark text-white" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
+              <input class="form-control small mt-3 bg-dark text-white" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled />
+            </div>
           </div>
           <div class="card-body text-white position-relative flex-grow-1">
             <div class="d-flex flex-column align-items-start gap-1"
