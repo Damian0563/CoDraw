@@ -6,7 +6,7 @@ class User(Document):
     password=fields.StringField(required=True,max_length=255)
     code=fields.StringField(max_length=5)
     valid=fields.BooleanField(default=False)
-
+    bookmarks=fields.ListField(default=list)
 
 class Board(Document):
     owner=fields.EmailField(max_length=100)

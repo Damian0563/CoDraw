@@ -82,6 +82,7 @@
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
         id="save_btn"
+        v-if="admin || visitor"
         @click="check_save('save')"
         style="
           background: #4f8cff;
@@ -127,6 +128,26 @@
       </button>
     </div>
     <div id="inv_div" style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
+      <button
+        v-if="visitor"
+        id="bookmark-btn"
+        @click="toggleBookmark"
+        class="mb-2"
+        style="
+        background: #4f8cff;
+        color:#fff ;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: ease-in-out 0.6s;
+        "
+      >
+        <img :src="bookmarkIcon" alt="Bookmark" style="width: 18px; height: 18px;" />
+        <span>{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
+      </button>
       <button
         id="inv"
         @click="copyInvitationLink"
@@ -326,6 +347,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
+import bookmarkIcon from '@/assets/star.webp'
 const loading=ref(false)
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted} from 'vue';
@@ -333,7 +355,6 @@ const currentLine = ref(null)
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
-import { FastLayer } from 'konva/lib/FastLayer.js';
 const stageRef = ref(null);
 const windowWidth = ref(window.innerWidth);
 const admin=ref(false)
@@ -357,6 +378,7 @@ const layerRef = ref(null);
 const isPanning = ref(false);
 const motiv=ref(false)
 const visitor=ref(true)
+const isBookmarked=ref(false);
 //const images = ref([]); 
 
 const check_visitor=async()=>{
@@ -369,13 +391,36 @@ const check_visitor=async()=>{
         headers:{"X-CSRFToken":csrf},
         credentials:"include"
       })
-      response=await data.json()
+      let response=await data.json()
       if(response.status===200 && response.user) visitor.value=true;
       else visitor.value=false;
-      console.log(visitor.value)
     }catch(e){
       console.error(e)
     }
+  }
+}
+
+const check_book_mark=async()=>{
+  const me=new URL(window.location.href).pathname.split("/")[2]
+  const room=new URL(window.location.href).pathname.split("/")[2]
+  try{
+    const data=await fetch(`${BASE_URL}/is_bookmarked/${room}`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken":csrf
+      },
+      body:JSON.stringify({
+        "user":me
+      }),
+      credentials:"include"
+    })
+    const response=await data.json();
+    if(response.status===200 && response.bookmarked) isBookmarked.value=true;
+    else isBookmarked.value=false;
+  }catch(e){
+    isBookmarked.value=false;
+    console.error(e)
   }
 }
 
@@ -452,7 +497,7 @@ const check_owner=async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
-    // const room = parts[3];  // 'room_id
+    const room = parts[3];  // 'room_id
     const data=await fetch(`${BASE_URL}/codraw/check_owner`,{
       method:"POST",
       headers:{
@@ -461,7 +506,8 @@ const check_owner=async()=>{
       },
       credentials:"include",
       body:JSON.stringify({
-        "owner":owner
+        "owner":owner,
+        "room":room
       })
     })
     const response=await data.json()
@@ -469,6 +515,7 @@ const check_owner=async()=>{
       admin.value=true
     }
   }catch(e){
+    admin.value=false
     console.error(e)
   }
 }
@@ -843,6 +890,9 @@ onMounted(async()=>{
   }
   await check_owner()
   await check_visitor()
+  if(visitor.value){
+    await check_book_mark();
+  }
   const stage=stageRef.value.getNode(); // get Konva Stage
   const scaleBy=1.1;
   stage.on('wheel', (e) => {
@@ -1096,7 +1146,7 @@ input:checked + .slider::before {
 }
 
 
-#inv:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
+#inv:hover,#bookmark-btn:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
   background: #fff !important;
   color:#4f8cff !important; 
 }

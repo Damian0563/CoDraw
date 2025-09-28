@@ -45,5 +45,6 @@ urlpatterns = [
     path('codraw/update/<str:room>',views.edit,name="edit"),
     path("codraw/boards/<str:username>",views.boards_user,name="boards_user"),
     path("status",views.status,name="status"),
-    path('delete/<str:room>',views.delete,name="delete")
+    path('delete/<str:room>',views.delete,name="delete"),
+    path('is_bookmarked/<str:room>',views.check_bookmark,name="check_bookmark")
 ]

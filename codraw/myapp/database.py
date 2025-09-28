@@ -188,6 +188,18 @@ def get_boards_of_username(timezone:str,username:str)->list[dict]:
     except models.Board.DoesNotExist:
         return []
 
+def add_bookmark()->None:
+    pass
+
+def check_bookmark(room:str,id:str)->bool:
+    mail=decode_user(id)
+    return room in models.User.objects.get(mail=mail).bookmarks
+
+def exists(id: str) -> bool:
+    return models.User.objects.filter(id=id).count() > 0
+
+def check_ownership(mail:str,room:str)->bool:
+    return models.Board.objects.filter(owner=mail,room=room).count()>0
 
 def get_username(email:str)->str:
     try:

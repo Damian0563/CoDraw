@@ -181,6 +181,7 @@ def status(request):
     except KeyError:
         id=request.COOKIES.get('token')
     finally:
+        print(id)
         if id is not None and database.exists(id):
             return Response({'status':200,"user":True})
         return Response({'status':200,'user':False})
@@ -302,16 +303,29 @@ def save_new(request):
 def check_owner(request):
     data=json.loads(request.body)
     owner=data['owner']
+    room=data['room']
     id=None
     try:
         id=request.session['user_id']
     except KeyError:
         id=request.COOKIES.get('token')
     finally:
-        if id==owner:
+        if id==owner and database.check_ownership(database.decode_user(owner),room):
             return Response({'status':200})
         return Response({'status':400})
     
+@api_view(['POST'])
+@ensure_csrf_cookie
+def check_bookmark(request,room):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None and database.check_bookmark(room,id): return Response({'status':200,"bookmarked":True})
+        return Response({'status':403,'bookmarked':False})
+
 @api_view(['POST'])
 @ensure_csrf_cookie
 def trending(request):
