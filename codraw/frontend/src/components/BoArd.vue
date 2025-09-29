@@ -143,6 +143,8 @@
         font-weight: 500;
         cursor: pointer;
         transition: ease-in-out 0.6s;
+        width:200px;
+        height: 40px;
         "
       >
         <img :src="bookmarkIcon" alt="Bookmark" style="width: 18px; height: 18px;" />
@@ -164,6 +166,8 @@
           font-weight: 500;
           cursor: pointer;
           transition: ease-in-out 0.6s;
+          width:200px;
+          height: 40px;
         "
       >
         <img :src="url" alt="Copy" style="width: 18px; height: 18px;" />
@@ -400,9 +404,36 @@ const check_visitor=async()=>{
   }
 }
 
+const toggleBookmark=async()=>{
+  const me=new URL(window.location.href).pathname.split("/")[2]
+  const room=new URL(window.location.href).pathname.split("/")[3]
+  try{
+    const data=await fetch(`${BASE_URL}/bookmark/${room}`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken":csrf
+      },
+      credentials:"include",
+      body:JSON.stringify({
+        "user":me,
+        "status":isBookmarked.value
+      })
+    })
+    const response=await data.json()
+    if(response.status===200 && response.bookmarked){
+      isBookmarked.value=true;
+    }else{
+      isBookmarked.value=false;
+    }
+  }catch(e){
+    isBookmarked.value=false;
+  }
+}
+
 const check_book_mark=async()=>{
   const me=new URL(window.location.href).pathname.split("/")[2]
-  const room=new URL(window.location.href).pathname.split("/")[2]
+  const room=new URL(window.location.href).pathname.split("/")[3]
   try{
     const data=await fetch(`${BASE_URL}/is_bookmarked/${room}`,{
       method:"POST",

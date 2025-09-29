@@ -161,7 +161,6 @@ def get_boards(id: str,timezone:str) -> List[Dict[str, str]]:
 
 def get_mail_by_username(username:str)->str:
     try:
-        print(username)
         entry=models.User.objects.get(username=username)
         return entry.mail
     except models.User.DoesNotExist:
@@ -188,8 +187,22 @@ def get_boards_of_username(timezone:str,username:str)->list[dict]:
     except models.Board.DoesNotExist:
         return []
 
-def add_bookmark()->None:
-    pass
+
+def modify_bookmark(id:str,curr_status:str,room:str)->bool:
+    mail=decode_user(id)
+    try:
+        entry=models.User.objects.get(mail=mail)
+        if curr_status:
+            entry.bookmarks.remove(room)
+        else:
+            entry.bookmarks.append(room)
+        entry.save()
+        return True
+    except models.User.DoesNotExist:
+        return False
+    except Exception as e:
+        print(e)
+        return False
 
 def check_bookmark(room:str,id:str)->bool:
     mail=decode_user(id)
@@ -287,7 +300,7 @@ def save_project(room:str,payload:str,bg:str)->bool:
         entry.save()  
         return True
     except Exception as e:
-        print(payload)
+        #print(payload)
         print('quick save error: ',e)
         return False
     

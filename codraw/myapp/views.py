@@ -328,6 +328,25 @@ def check_bookmark(request,room):
 
 @api_view(['POST'])
 @ensure_csrf_cookie
+def bookmark(request,room):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            data=json.loads(request.body)
+            me=data['user']
+            curr_bookmark=data['status']
+            if database.modify_bookmark(me,curr_bookmark,room):
+                if curr_bookmark: return Response({'status':200,'bookmarked':False})
+                else: return Response({'status':200,'bookmarked':True})
+            return Response({'status':200,'bookmarked':False})
+        return Response({'status':400})
+
+@api_view(['POST'])
+@ensure_csrf_cookie
 def trending(request):
     id=None
     try:
