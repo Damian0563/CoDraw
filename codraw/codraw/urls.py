@@ -47,5 +47,6 @@ urlpatterns = [
     path("status",views.status,name="status"),
     path('delete/<str:room>',views.delete,name="delete"),
     path('is_bookmarked/<str:room>',views.check_bookmark,name="check_bookmark"),
-    path('bookmark/<str:room>',views.bookmark,name="bookmark")
+    path('bookmark/<str:room>',views.bookmark,name="bookmark"),
+    path('get_bookmarks/<str:username>',views.get_bookmarks,name="get_bookmarks")
 ]

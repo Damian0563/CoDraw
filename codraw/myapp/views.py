@@ -345,6 +345,12 @@ def bookmark(request,room):
             return Response({'status':200,'bookmarked':False})
         return Response({'status':400})
 
+@api_view(['GET'])
+@ensure_csrf_cookie
+def get_bookmarks(request,username):
+    pass
+
+
 @api_view(['POST'])
 @ensure_csrf_cookie
 def trending(request):

@@ -170,7 +170,6 @@ def get_boards_of_username(timezone:str,username:str)->list[dict]:
     try:
         client_tz = ZoneInfo(timezone)
         mail=get_mail_by_username(username)
-        print(mail)
         entries=models.Board.objects.filter(owner=mail)
         res=[
             {

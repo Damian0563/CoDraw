@@ -7,7 +7,6 @@
     <RouterLink to="/codraw">
       <img :src="back" class="back" style="width:50px;height: 50px;">
     </RouterLink>
-    <button class="bookmarks btn btn-primary">Bookmarks</button>
     <div class="container">
       <h2 class="fw-bold mb-5 text-center">{{ username }}'s Boards</h2>
       <div class="boards-wrapper mt-2">
@@ -69,6 +68,9 @@
         </div>
       </div>
     </div>
+    <div class="container mt-5" v-if="admin"> 
+      <h1>Bookmarks</h1>
+    </div>
   </main>
 </template>
 
@@ -89,7 +91,7 @@ const csrf = get_cookie('csrftoken')
 const boards = ref([])
 const loading = ref(true)
 const edits=ref({})
-
+const bookmarks=ref([])
 
 const delete_board=async(room)=>{
   try{
@@ -103,6 +105,24 @@ const delete_board=async(room)=>{
     else console.log("Board not deleted successfully")
   }catch(e){
     console.error(e)
+  }
+}
+
+const get_bookmarks=async(username)=>{
+  try{
+    const data=await fetch(`${BASE_URL}/get_bookmarks/${username}`,{
+      method:"GET",
+      headers:{
+        "X-CSRFToken":csrf
+      },
+      credentials:"include"
+    })
+    const response=await data.json()
+    if(response.status===200) bookmarks.value=response.bookmarks
+    else bookmarks.value=[]
+  }catch(e){
+    console.error(e)
+    bookmarks.value=[]
   }
 }
 
@@ -208,6 +228,7 @@ onMounted(async () => {
   username.value = pathParts[pathParts.length - 1];
   admin.value=await get_status(username.value);
   await get_boards(username.value);
+  await get_bookmarks(username.value)
   loading.value = false;
 })
 </script>
