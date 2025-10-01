@@ -110,7 +110,7 @@ const delete_board=async(room)=>{
 
 const get_bookmarks=async(username)=>{
   try{
-    const data=await fetch(`${BASE_URL}/get_bookmarks/${username}`,{
+    const data=await fetch(`${BASE_URL}/get_bookmarks/${username}/${DateTime.local().zoneName}`,{
       method:"GET",
       headers:{
         "X-CSRFToken":csrf

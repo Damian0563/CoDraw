@@ -347,8 +347,18 @@ def bookmark(request,room):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
-def get_bookmarks(request,username):
-    pass
+def get_bookmarks(request,username,timezone):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None:
+            bookmarks=database.get_bookmarks(username,timezone)
+            print(bookmarks)
+            return Response({'status':200,'bookmarks':bookmarks})
+        return Response({'status':400,'bookmarks':[]})
 
 
 @api_view(['POST'])
