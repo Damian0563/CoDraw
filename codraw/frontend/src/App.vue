@@ -18,8 +18,8 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  overflow-y: scroll; /* keeps scroll active */
-  scrollbar-width: none; /* Firefox */
+  /* overflow-y: scroll;
+  scrollbar-width: none; Firefox */
 }
 
 
@@ -35,5 +35,7 @@ html, body, #app {
   height: 100%;
   min-height: 100vh;
   background: black;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
 }
 </style>

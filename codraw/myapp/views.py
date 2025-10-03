@@ -345,9 +345,9 @@ def bookmark(request,room):
             return Response({'status':200,'bookmarked':False})
         return Response({'status':400})
 
-@api_view(['GET'])
+@api_view(['POST'])
 @ensure_csrf_cookie
-def get_bookmarks(request,username,timezone):
+def get_bookmarks(request,username):
     id=None
     try:
         id=request.session['user_id']
@@ -355,8 +355,10 @@ def get_bookmarks(request,username,timezone):
         id=request.COOKIES.get('token')
     finally:
         if id is not None:
+            data=json.loads(request.body)
+            timezone=data['timezone']
             bookmarks=database.get_bookmarks(username,timezone)
-            print(bookmarks)
+            #print(bookmarks)
             return Response({'status':200,'bookmarks':bookmarks})
         return Response({'status':400,'bookmarks':[]})
 

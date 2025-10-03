@@ -70,6 +70,30 @@
     </div>
     <div class="container mt-5" v-if="admin"> 
       <h1>Bookmarks</h1>
+      <div class="boards-wrapper mt-5">
+        <div
+          v-for="(board, index) in bookmarks"
+          :key="index"
+          class="project-card"
+        >
+          <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
+          <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
+          <div class="card-body text-white position-relative flex-grow-1">
+            <div class="d-flex flex-column align-items-start gap-1"
+                style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
+              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+                Views: <span class="text-white">{{ board.views }}</span>
+              </span>
+              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+                Last Modified: <span class="text-white">{{ board.modified }}</span>
+              </span>
+              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+                Visibility: <span class="text-white">{{ board.visibility }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </template>
@@ -110,11 +134,14 @@ const delete_board=async(room)=>{
 
 const get_bookmarks=async(username)=>{
   try{
-    const data=await fetch(`${BASE_URL}/get_bookmarks/${username}/${DateTime.local().zoneName}`,{
-      method:"GET",
+    const data=await fetch(`${BASE_URL}/get_bookmarks/${username}`,{
+      method:"POST",
       headers:{
         "X-CSRFToken":csrf
       },
+      body:JSON.stringify({
+        "timezone":DateTime.local().zoneName
+      }),
       credentials:"include"
     })
     const response=await data.json()
@@ -191,7 +218,6 @@ const get_boards = async (username) => {
       original_title: b.title,
       original_description: b.description
     }))
-    console.log(response)
     edits.value=response.boards.map(()=>false)
   } catch (e) {
     console.error(e)
@@ -234,7 +260,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Wrapper: flexbox grid with wrapping */
+
 .boards-wrapper {
   display: flex;
   flex-wrap: wrap;

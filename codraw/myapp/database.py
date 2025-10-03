@@ -170,14 +170,12 @@ def get_room_details(room:str,timezone:str)->dict:
     entry=models.Board.objects.get(room=room)
     client_tz=ZoneInfo(timezone)
     return {
-        {
-            "room": entry.room,
-            "title": entry.title,
-            "description": entry.description,
-            "visibility": entry.visibility,
-            "views":entry.views,
-            "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
-        }
+        "room": entry.room,
+        "title": entry.title,
+        "description": entry.description,
+        "visibility": entry.visibility,
+        "views":entry.views,
+        "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
     }
 
 def exists_room(room:str)->bool:
@@ -185,7 +183,7 @@ def exists_room(room:str)->bool:
 
 def get_bookmarks(username:str,timezone:str)->list[dict]:
     try:
-        entry=models.User.objects.filter(username=username)
+        entry=models.User.objects.get(username=username)
         results=[]
         for room in entry.bookmarks:
             if exists_room(room):
