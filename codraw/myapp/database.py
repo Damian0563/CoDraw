@@ -178,6 +178,16 @@ def get_room_details(room:str,timezone:str)->dict:
         "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
     }
 
+def delete_bookmark(id:str,room:str)->bool:
+    try:
+        username=decode_user(id)
+        entry=models.User.objects.get(username=username)
+        if room in entry.bookmarks: 
+            entry.bookmarks.remove(room)
+            entry.save()
+        return True
+    except Exception: return False
+
 def exists_room(room:str)->bool:
     return models.Board.objects.filter(room=room).count()>0
 
@@ -188,7 +198,10 @@ def get_bookmarks(username:str,timezone:str)->list[dict]:
         for room in entry.bookmarks:
             if exists_room(room):
                 details=get_room_details(room,timezone)
-                results.append(details) 
+                results.append(details)
+            else: 
+                entry.bookmarks.remove(room)
+                entry.save()
         return results
     except models.User.DoesNotExist:
         return []

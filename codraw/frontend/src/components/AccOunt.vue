@@ -79,6 +79,11 @@
           <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
           <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
           <div class="card-body text-white position-relative flex-grow-1">
+            <img
+              :src="bin"
+              @click="delete_bookmark(bookmarks[index].room);bookmarks.splice(index,1)"
+              style="width:20px;height:20px;cursor:pointer;"
+            >
             <div class="d-flex flex-column align-items-start gap-1"
                 style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
               <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
@@ -116,6 +121,7 @@ const boards = ref([])
 const loading = ref(true)
 const edits=ref({})
 const bookmarks=ref([])
+const deletes=ref({})
 
 const delete_board=async(room)=>{
   try{
@@ -127,6 +133,21 @@ const delete_board=async(room)=>{
     const response=await data.json()
     if(response.status===200) console.log("Board deleted successfully")
     else console.log("Board not deleted successfully")
+  }catch(e){
+    console.error(e)
+  }
+}
+
+const delete_bookmark=async(room)=>{
+  try{
+    const data=await fetch(`${BASE_URL}/delete/bookmark/${room}`,{
+      method:"GET",
+      headers:{"X-CSRFToken":csrf},
+      credentials:"include"
+    })
+    const response=await data.json()
+    if(response.status===200) console.log("Bookmark deleted successfully")
+    else console.log("Bookmark not deleted successfully")
   }catch(e){
     console.error(e)
   }
@@ -145,8 +166,12 @@ const get_bookmarks=async(username)=>{
       credentials:"include"
     })
     const response=await data.json()
-    if(response.status===200) bookmarks.value=response.bookmarks
+    if(response.status===200){
+      bookmarks.value=response.bookmarks
+      deletes.value=response.bookmarks.map(()=>false)
+    }
     else bookmarks.value=[]
+
   }catch(e){
     console.error(e)
     bookmarks.value=[]

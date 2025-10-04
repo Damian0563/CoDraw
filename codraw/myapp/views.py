@@ -362,6 +362,18 @@ def get_bookmarks(request,username):
             return Response({'status':200,'bookmarks':bookmarks})
         return Response({'status':400,'bookmarks':[]})
 
+@api_view(['GET'])
+@ensure_csrf_cookie
+def delete_bookmark(request,room):
+    id=None
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    finally:
+        if id is not None and database.delete_bookmark(id,room):
+            return Response({'status':200})
+        return Response({'status':400})
 
 @api_view(['POST'])
 @ensure_csrf_cookie
