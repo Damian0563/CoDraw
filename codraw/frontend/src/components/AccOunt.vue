@@ -2,15 +2,29 @@
   <div v-if="loading" class="spinner-overlay">
     <VueSpinnerTail size="60" color="orange" />
   </div>
-
+  <Transition name="fade-slide">
+    <div v-if="showPopup"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+      <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
+      <button @click="showPopup = false" 
+          style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+        ✕
+      </button>
+      <p>{{message}}</p>
+      <button @click="showPopup = false" id="close_form"
+          style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+        Close
+      </button>
+      </div>
+    </div>
+  </Transition>
   <main class="flex-grow-1 text-white py-5">
     <RouterLink to="/codraw">
       <img :src="back" class="back" style="width:50px;height: 50px;">
     </RouterLink>
     <div class="container">
       <h2 class="fw-bold mb-5 text-center">{{ username }}'s Boards</h2>
-      <div class="boards-wrapper mt-2">
-        <!-- @click="join(board.room)" -->
+      <div class="boards-wrapper mt-2 justify-content-start">
         <div
           v-for="(board, index) in boards"
           :key="index"
@@ -19,6 +33,9 @@
           <div class="d-flex justify-content-end align-items-center gap-2">
             <div v-if="admin" class="w-100">
               <div class="d-flex justify-content-end align-items-center gap-2">
+                <button class="btn btn-success success" @click="join(board.room)">
+                  Join room
+                </button>
                 <img
                   v-if="!edits[index]"
                   :src="edit"
@@ -69,21 +86,26 @@
       </div>
     </div>
     <div class="container mt-5" v-if="admin"> 
-      <h1>Bookmarks</h1>
-      <div class="boards-wrapper mt-5">
+      <h1 class="text-start">Bookmarks</h1>
+      <div class="boards-wrapper mt-5 justify-content-start">
         <div
           v-for="(board, index) in bookmarks"
           :key="index"
           class="project-card"
         >
-          <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
-          <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
-          <div class="card-body text-white position-relative flex-grow-1">
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-success success" @click="join(board.room)">
+              Join room
+            </button>
             <img
               :src="bin"
               @click="delete_bookmark(bookmarks[index].room);bookmarks.splice(index,1)"
               style="width:20px;height:20px;cursor:pointer;"
             >
+          </div>
+          <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
+          <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
+          <div class="card-body text-white position-relative flex-grow-1">
             <div class="d-flex flex-column align-items-start gap-1"
                 style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
               <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
@@ -114,6 +136,8 @@ import bin from '@/assets/bin.webp'
 import save from '@/assets/save.webp'
 import edit from '@/assets/edit.webp'
 
+const showPopup=ref(false)
+const message=ref(null)
 const username=ref(null)
 const admin = ref(false)
 const csrf = get_cookie('csrftoken')
@@ -131,7 +155,10 @@ const delete_board=async(room)=>{
       credentials:"include"
     })
     const response=await data.json()
-    if(response.status===200) console.log("Board deleted successfully")
+    if(response.status===200){
+      showPopup.value=true
+      message.value="Board was successfully modified."
+    }
     else console.log("Board not deleted successfully")
   }catch(e){
     console.error(e)
@@ -146,8 +173,11 @@ const delete_bookmark=async(room)=>{
       credentials:"include"
     })
     const response=await data.json()
-    if(response.status===200) console.log("Bookmark deleted successfully")
-    else console.log("Bookmark not deleted successfully")
+    if(response.status===200){
+      showPopup.value=true
+      message.value="Bookmark successfuly deleted."
+    }
+    // else console.log("Bookmark not deleted successfully")
   }catch(e){
     console.error(e)
   }
@@ -196,8 +226,10 @@ const resave=async(board)=>{
         })
       })
       const response=await data.json()
-      if(response.status===200) console.log("board saved successfully")
-      else console.log("board saved unsuccessfully")
+      if(response.status===200){
+        showPopup.value=true
+        message.value="Board was successfully modified."
+      }
     }catch(e){
       console.error(e)
     }
@@ -249,7 +281,6 @@ const get_boards = async (username) => {
   }
 }
 
-/*
 async function join(room){
   try{
     const data=await fetch(`${BASE_URL}/load`,{
@@ -271,7 +302,6 @@ async function join(room){
     console.error(e)
   }
 }
-*/
 
 onMounted(async () => {
   loading.value = true;
@@ -286,11 +316,39 @@ onMounted(async () => {
 
 <style scoped>
 
+.success{
+  transition: 0.5s ease-in-out;
+}
+
+.success:hover{
+  color:green;
+  background:white;
+}
+
 .boards-wrapper {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1.5rem;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform:translateY(-20px);
+}
+
+/* The "leave" state, when the modal is about to disappear */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+/* The "active" state, when the modal is fully visible and in its final position */
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform:translateY(0);
 }
 
 .bookmarks{

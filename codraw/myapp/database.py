@@ -180,13 +180,13 @@ def get_room_details(room:str,timezone:str)->dict:
 
 def delete_bookmark(id:str,room:str)->bool:
     try:
-        username=decode_user(id)
-        entry=models.User.objects.get(username=username)
+        mail=decode_user(id)
+        entry=models.User.objects.get(mail=mail)
         if room in entry.bookmarks: 
             entry.bookmarks.remove(room)
             entry.save()
         return True
-    except Exception: return False
+    except Exception as e: print(e);return False
 
 def exists_room(room:str)->bool:
     return models.Board.objects.filter(room=room).count()>0
