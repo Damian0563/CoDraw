@@ -254,6 +254,7 @@ def exists(id: str) -> bool:
     return models.User.objects.filter(id=id).count() > 0
 
 def check_ownership(mail:str,room:str)->bool:
+    if models.Board.objects.filter(room=room).count()==0: return True #New Project
     return models.Board.objects.filter(owner=mail,room=room).count()>0
 
 def get_username(email:str)->str:

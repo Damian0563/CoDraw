@@ -47,8 +47,6 @@
       ></button>
       <text style="color: white;">Brush Color</text>
       <input type="color" v-model="color">
-      <!--<text style="color: white;">Background Color</text>
-      <input type="color" v-model="background">-->
       <select
         v-model="tool"
         style="
@@ -147,7 +145,7 @@
         height: 40px;
         "
       >
-        <img :src="bookmarkIcon" alt="Bookmark" style="width: 18px; height: 18px;" />
+        <img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark" style="width: 18px; height: 18px;" />
         <span>{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
       </button>
       <button
@@ -313,7 +311,7 @@
     </Transition>
     <div id="zoom">
       <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('up')" >+</label>
-      <img :src="zoom_ico" class="img-fluid" style="width:1.2rem;height: 1.2rem;">
+      <img :src="zoom_ico" decoding="async" loading="lazy" alt="zoom" class="img-fluid" style="width:1.2rem;height: 1.2rem;">
       <input v-model="zoom" style="width: 60px; text-align: center;border-style: none;" disabled>
       <label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('down')">-</label>
     </div>

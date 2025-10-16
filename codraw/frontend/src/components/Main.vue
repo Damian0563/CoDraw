@@ -5,8 +5,8 @@
       :class="{ 'sidebar-collapsed': !sidebarOpen }"
     >
       <div class="sidebar-header d-flex flex-column align-items-center mb-4">
-        <img class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
-        <img :src="url" alt="logo" class="logo mb-3 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
+        <img loading="lazy" alt="sidebar" decoding="async" class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
+        <img :src="url" alt="logo" loading="lazy" decoding="async" class="logo mb-3 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
         <RouterLink :to="`/codraw/account/${username}`" class="nav-link account-link mb-2 w-100 text-center">
           My Account
         </RouterLink>
@@ -25,7 +25,7 @@
           <div 
             class="card create-project-card my text-center bg-dark" 
             @click="create()" 
-            style="min-height: 14rem; min-width: 14rem; cursor: pointer;"
+            style="height: 14rem; width: 14rem; cursor: pointer;"
           >
             <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
               <span style="font-size: 3rem; color: #ffc107;">+</span>
@@ -40,21 +40,18 @@
             @click="join(board.room)"
           >
             <div class="card-body d-flex flex-column text-white" style="height: 100%;">
-              <!-- <div class="position-absolute top-0 end-0 m-2" @click.stop="hover[index] = !hover[index]">
-                <img :src="info" alt="info icon" style="width: 22px; height: 22px; cursor: pointer;" />
-              </div> -->
-              <h5 class="card-title fw-bold text-warning mb-2">{{ board.title }}</h5>
-              <p class="card-text text-white-50 small">{{ board.description }}</p>
+              <h5 class="card-title fw-bold txtcard mb-2">{{ board.title }}</h5>
+              <p class="card-text txtcard small">{{ board.description }}</p>
               <footer
                 class="mt-auto py-2 px-2"
                 style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;"
               >
-                <div class="d-flex justify-content-between small text-warning">
-                  <span>Views: <span class="text-white">{{ board.views }}</span></span>
-                  <span>{{ board.modified }}</span>
+                <div class="d-flex justify-content-between small">
+                  <span class="txtcard">Views: <span class="txtcard">{{ board.views }}</span></span>
+                  <span class="txtcard">{{ board.modified }}</span>
                 </div>
-                <div class="text-start small text-warning">
-                  Visibility: <span class="text-white">{{ board.visibility }}</span>
+                <div class="text-start small txtcard">
+                  Visibility: <span class="txtcard">{{ board.visibility }}</span>
                 </div>
               </footer>
             </div>
@@ -118,28 +115,28 @@
         </div>
         <section id="results" class="my-4 mx-3">
           <div class="container">
-            <div class="row g-4">
+            <div class="row g-1 justify-content-start gap-2">
               <div
                 v-for="(board, index) in popular"
                 :key="index"
                 :class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-                class="card project-card text-center bg-dark"
-                style="min-height: 14rem; min-width: 14rem; cursor: pointer; position: relative;"
+                class="card result-card text-center bg-dark"
+                style="height: 15rem; width: 15rem; cursor: pointer; position: relative;"
                 @click="join(board.room)"
               >
-                <div class="card-body d-flex flex-column text-white" style="height: 100%;">
-                  <h5 class="card-title fw-bold text-warning mb-2">{{ board.title }}</h5>
-                  <p class="card-text text-white-50 small">{{ board.description }}</p>
+                <div class="card-body d-flex flex-column txtcard" style="height: 100%;">
+                  <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+                  <p class="card-text small">{{ board.description }}</p>
                   <footer
                     class="mt-auto py-2 px-2"
                     style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;"
                   >
-                    <div class="d-flex justify-content-between small text-warning">
-                      <span>Views: <span class="text-white">{{ board.views }}</span></span>
-                      <span>{{ board.modified }}</span>
+                    <div class="d-flex justify-content-between small">
+                      <span>Views: <span class="txtcard">{{ board.views }}</span></span>
+                      <span class="txtcard">{{ board.modified }}</span>
                     </div>
-                    <div class="text-start small text-warning">
-                      Owner: <a :href="`/codraw/account/${board.owner}`" style="color:#ff4f4f !important;">{{ board.owner }}</a>
+                    <div class="text-start small">
+                      Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop style="color:#ff4f4f !important;">{{ board.owner }}</a>
                     </div>
                   </footer>
                 </div>
@@ -194,7 +191,7 @@ import {VueSpinnerTail} from 'vue3-spinners'
 const loading = ref(false)
 const hover=ref({})
 const csrf=get_cookie('csrftoken')
-const sidebarOpen = ref(true)
+const sidebarOpen = ref(false)
 const boards = ref([])
 const popular=ref([])
 const input=ref('')
@@ -375,10 +372,29 @@ export default {
 </script>
 
 <style scoped>
-.project-card {
+.project-card, .result-card {
   transition: 0.3s ease-in-out;
   border: 1px solid #ffc10744;
   border-radius: 0.75rem;
+}
+
+
+.txtcard{
+  color: #ffc107;
+}
+
+.result-card:hover{
+  background-color: white !important;
+  color: #000 !important;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+  border-color: black;
+  .txtcard{
+    color: black;
+  }
+  .card-title{
+    color: black;
+  }
 }
 
 .project-card:hover {
@@ -386,6 +402,13 @@ export default {
   color: #000 !important;
   transform: translateY(-4px);
   box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+  border-color: black;
+  .txtcard{
+    color: black;
+  }
+  .card-title{
+    color: black;
+  }
 }
 
 .project-card .card-title {

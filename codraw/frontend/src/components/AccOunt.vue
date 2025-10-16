@@ -20,7 +20,7 @@
   </Transition>
   <main class="flex-grow-1 text-white py-5">
     <RouterLink to="/codraw">
-      <img :src="back" class="back" style="width:50px;height: 50px;">
+      <img :src="back" decoding="async" loading="lazy" class="back" style="width:50px;height: 50px;">
     </RouterLink>
     <div class="container">
       <h2 class="fw-bold mb-5 text-center">{{ username }}'s Boards</h2>
@@ -39,17 +39,26 @@
                 <img
                   v-if="!edits[index]"
                   :src="edit"
+                  loading="lazy"
+                  decoding="async"
+                  alt="edit"
                   @click="edits[index] = !edits[index]"
                   style="width:20px;height:20px;cursor:pointer;"
                 >
                 <img
                   v-else
                   :src="save"
+                  loading="lazy"
+                  decoding="async"
+                  alt="save"
                   @click="edits[index] = !edits[index];resave(boards[index]);boards[index].modified='Just now'"
                   style="width:20px;height:20px;cursor:pointer;"
                 >
                 <img
                   :src="bin"
+                  loading="lazy"
+                  alt="delete"
+                  decoding="async"
                   @click="delete_board(boards[index].room);boards.splice(index,1)"
                   style="width:20px;height:20px;cursor:pointer;"
                 >
@@ -64,6 +73,9 @@
               </div>
             </div>
             <div v-else class="w-100">
+              <button class="btn btn-success success" @click="join(board.room)">
+                Join room
+              </button>
               <input class="form-control fw-bold mt-2 bg-dark text-white" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
               <input class="form-control small mt-3 bg-dark text-white" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled />
             </div>
@@ -99,6 +111,9 @@
             </button>
             <img
               :src="bin"
+              loading="lazy"
+              alt="delete"
+              decoding="async"
               @click="delete_bookmark(bookmarks[index].room);bookmarks.splice(index,1)"
               style="width:20px;height:20px;cursor:pointer;"
             >
