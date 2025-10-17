@@ -6,12 +6,12 @@
     <div class="offcanvas offcanvas-end mx-2" style="background-color: black;" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
       <div class="offcanvas-body">
         <RouterLink class="navbar-brand d-flex align-items-center" to="/">
-          <img :src="imageUrl" alt="logo" height="90" class="me-3" />
+          <img :src="imageUrl" alt="logo" loading="lazy" decoding="async" height="90" class="me-3" />
           <span>CoDraw</span>
         </RouterLink>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
           <li class="nav-item mx-2">
-            <RouterLink class="nav-link" to="/#about" href="#">About</RouterLink>
+            <RouterLink class="nav-link" to="/#about">About</RouterLink>
           </li>
           <li class="nav-item mx-2">
             <RouterLink class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
