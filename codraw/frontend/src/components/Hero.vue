@@ -18,7 +18,8 @@
         <div class="col-md-3 mb-3" v-for="(feature, i) in features" :key="i">
           <div class="card feature-card h-100 bg-dark text-white shadow-lg">
             <div class="card-body text-center">
-              <i :class="feature.icon" class="feature-icon"></i>
+              <!-- <i :class="feature.icon" class="feature-icon"></i> -->
+              <font-awesome-icon :icon="feature.icon" class="feature-icon" />
               <h5 class="card-title mt-3">{{ feature.title }}</h5>
               <p class="card-text">{{ feature.text }}</p>
             </div>
@@ -57,6 +58,39 @@
       </div>
     </div>
   </section>
+  <footer class="footer-section">
+    <div class="container text-center">
+      <div class="row justify-content-center">
+        <div class="col-md-4 mb-3 footer-brand">
+          <h3 class="footer-title">CoDraw</h3>
+          <p class="footer-desc">
+            Collaborative drawing made simple, fast, and fun. Create together from anywhere.
+          </p>
+        </div>
+
+        <div class="col-md-2 mb-3 footer-links">
+          <h5>Explore</h5>
+          <ul>
+            <li><router-link to="/">Home</router-link></li>
+            <li><router-link to="/signup">Get Started</router-link></li>
+          </ul>
+        </div>
+
+        <div class="col-md-3 mb-3 footer-social">
+          <h5>Follow Us</h5>
+          <div class="social-icons">
+            <!-- <a href="https://github.com/Damian0563/CoDraw"><i class="fa-brands fa-github"></i></a> -->
+            <a href="https://github.com/Damian0563/CoDraw"><font-awesome-icon :icon="['fab', 'github']" /></a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="footer-divider" />
+      <p class="footer-copy">
+        © {{ new Date().getFullYear() }} CoDraw. All rights reserved.
+      </p>
+    </div>
+  </footer>
 </template>
 
 <script>
@@ -73,17 +107,20 @@ export default {
         {
           title: "Modern and Slick",
           text: "A visually appealing interface designed for a seamless and enjoyable drawing experience.",
-          icon: "fa-solid fa-palette"
+          // icon: "fa-solid fa-palette"
+          icon:['fas', 'palette']
         },
         {
           title: "Performance Oriented",
           text: "Optimized for speed and responsiveness, ensuring smooth collaboration in real time.",
-          icon: "fa-solid fa-bolt"
+          // icon: "fa-solid fa-bolt"
+          icon: ['fas', 'bolt']
         },
         {
           title: "Intuitive Design",
           text: "Easy-to-use tools and layout, making creativity accessible for everyone.",
-          icon: "fa-solid fa-lightbulb"
+          // icon: "fa-solid fa-lightbulb"
+          icon: ['fas', 'lightbulb']
         }
       ]
     };
@@ -149,6 +186,82 @@ export default {
   transform: translateY(20px);
   animation: fadeInUp 1s ease forwards;
 }
+
+.footer-section {
+  background: linear-gradient(135deg, #000000, #0b0b0b, #111111);
+  color: #d9d9d9;
+  padding: 4rem 1rem 2rem 1rem;
+  border-top: 2px solid rgba(255, 255, 0, 0.2);
+  text-align: center;
+}
+
+.footer-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: yellow;
+  margin-bottom: 0.8rem;
+}
+
+.footer-desc {
+  font-size: 1rem;
+  color: #bfbfbf;
+  line-height: 1.6;
+}
+
+.footer-links h5 {
+  color: yellow;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin: 0.4rem 0;
+}
+
+.footer-links a {
+  color: #d9d9d9;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: yellow;
+}
+
+.footer-social h5 {
+  color: yellow;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.social-icons a {
+  color: #d9d9d9;
+  font-size: 3rem;
+  margin: 0 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: yellow;
+  transform: scale(1.2);
+}
+
+.footer-divider {
+  border-color: rgba(255, 255, 0, 0.2);
+  margin: 2rem 0 1rem;
+}
+
+.footer-copy {
+  color: #a8a8a8;
+  font-size: 0.95rem;
+}
+
 
 .hero-subtitle {
   font-size: 1.3rem;

@@ -10,6 +10,13 @@ import MaIn from './components/Main.vue'
 import SeTtings from './components/SeTtings.vue'
 import AccOunt from './components/AccOunt.vue'
 import BoArd from './components/BoArd.vue'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+import { faPalette, faBolt, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+import {faGithub } from '@fortawesome/free-brands-svg-icons'
+library.add(faPalette, faBolt, faLightbulb,faGithub)
+
 
 const routes = [
   { path: '/', component: HeRo },
@@ -27,4 +34,4 @@ const router = createRouter({
 })
 
 
-createApp(App).use(router).use(VueKonva).mount('#app')
+createApp(App).use(router).use(VueKonva).component('font-awesome-icon',FontAwesomeIcon).mount('#app')

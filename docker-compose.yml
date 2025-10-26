@@ -1,0 +1,50 @@
+services:
+  db:
+    image: mongo:latest
+    container_name: mongodb_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    command: mongod --quiet
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: ./codraw
+      dockerfile: Dockerfile
+    container_name: django_web
+    command: python manage.py runserver --nothreading --noreload -v 0 0.0.0.0:8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@db:27017/mydatabase?authSource=admin
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./codraw/frontend
+      dockerfile: Dockerfile
+    container_name: vue_frontend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./frontend:/app
+    networks:
+      - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:
+    driver: bridge
