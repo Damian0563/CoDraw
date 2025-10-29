@@ -380,6 +380,7 @@ const layerRef = ref(null);
 const isPanning = ref(false);
 const motiv=ref(false)
 const visitor=ref(true)
+const stroke_history=ref([])
 const isBookmarked=ref(false);
 //const images = ref([]); 
 
@@ -486,6 +487,24 @@ ws.value.onmessage = (event) => {
   }else if(data.type==="bg" && data.bg){
     background.value=data.bg
     motiv.value = data.bg === "#ffffff"
+  }else if(data.type=="img"){
+    const img = new window.Image();
+    img.src = data.src;
+    img.onload = () => {
+      const konvaImg = new Konva.Image({
+        id: data.id,
+        image: img,
+        x: data.x,
+        y: data.y,
+        width: data.width,
+        height: data.height,
+        draggable: false,
+      });
+      applyCrop(konvaImg);
+      layer.add(konvaImg);
+      layer.batchDraw();
+    };
+    img.onerror = () => console.error("Remote image failed to load", data.id);
   }
 };
 
@@ -656,10 +675,18 @@ function getCrop(image, size) {
 }
 
 function applyCrop(imgNode) {
-  const crop = getCrop(
-    imgNode.image(), // HTMLImageElement
-    { width: imgNode.width(), height: imgNode.height() }
-  );
+  // const crop = getCrop(
+  //   imgNode.image(), // HTMLImageElement
+  //   { width: imgNode.width(), height: imgNode.height() }
+  // );
+  // imgNode.setAttrs(crop);
+  const image = imgNode.image();
+  if (!image) return;
+
+  const crop = getCrop(image, {
+    width: imgNode.width(),
+    height: imgNode.height()
+  });
   imgNode.setAttrs(crop);
 }
 
@@ -695,19 +722,28 @@ const handlePaste = (event) => {
       const layer = layerRef.value.getNode();
       konvaImg.setAttr("src", e.target.result);
       layer.add(konvaImg);
-      const tr = new Konva.Transformer({
-        nodes: [konvaImg],
-        keepRatio: false,
-        flipEnabled: false,
-        boundBoxFunc: (oldBox, newBox) => {
-          if (Math.abs(newBox.width) < 10 || Math.abs(newBox.height) < 10) {
-            return oldBox;
-          }
-          return newBox;
-        },
-      });
-      layer.add(tr)
+      // const tr = new Konva.Transformer({
+      //   nodes: [konvaImg],
+      //   keepRatio: false,
+      //   flipEnabled: false,
+      //   boundBoxFunc: (oldBox, newBox) => {
+      //     if (Math.abs(newBox.width) < 10 || Math.abs(newBox.height) < 10) {
+      //       return oldBox;
+      //     }
+      //     return newBox;
+      //   },
+      // });
+      // layer.add(tr)
       layer.draw();
+      ws.value.send(JSON.stringify({
+        type:"img",
+        id: konvaImg.id(),
+        src: e.target.result,
+        x: konvaImg.x(),
+        y: konvaImg.y(),
+        width: konvaImg.width(),
+        height: konvaImg.height(),
+      }))
   }
   reader.onloadstart= function() {
     console.error('Starting');
@@ -845,6 +881,8 @@ const handleMouseDown = (e) => {
   }))
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
+  stroke_history.value.push(JSON.stringify(layerRef.value.getNode()))
+  console.log(stroke_history)
 };
 
 const handleMouseUp = (e) => {
