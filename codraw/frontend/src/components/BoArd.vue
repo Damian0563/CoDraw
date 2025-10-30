@@ -690,6 +690,16 @@ function applyCrop(imgNode) {
   imgNode.setAttrs(crop);
 }
 
+const undo=()=>{
+  console.log("undo")
+}
+
+const redo=()=>{
+  console.log("redo")
+}
+
+
+
 const handlePaste = (event) => {
   event.preventDefault();
   const stage = stageRef.value?.getNode?.();
@@ -744,6 +754,7 @@ const handlePaste = (event) => {
         width: konvaImg.width(),
         height: konvaImg.height(),
       }))
+      stroke_history.value.push(layer)
   }
   reader.onloadstart= function() {
     console.error('Starting');
@@ -948,6 +959,19 @@ const get_details_and_load = async()=>{
   }
 }
 
+const keyhandler=(event)=>{
+    if (event.ctrlKey && event.key === 'z') {
+      undoHandler()
+    }
+    else if (event.ctrlKey && event.key === 'y') {
+      redoHandler()
+    }
+  }
+
+const onResize = () => {
+  windowWidth.value = window.innerWidth;
+};
+
 onMounted(async()=>{
   loading.value=true
   await nextTick(); 
@@ -960,7 +984,9 @@ onMounted(async()=>{
   if(visitor.value){
     await check_book_mark();
   }
-  const stage=stageRef.value.getNode(); // get Konva Stage
+  
+  window.addEventListener('keyup',keyhandler)
+  const stage=stageRef.value.getNode();
   const scaleBy=1.1;
   stage.on('wheel', (e) => {
     e.evt.preventDefault();
@@ -1010,9 +1036,6 @@ onMounted(async()=>{
       if (layer) layer.batchDraw();
     }, 100);
   });
-  const onResize = () => {
-    windowWidth.value = window.innerWidth;
-  };
   window.addEventListener('resize', onResize); 
   window.addEventListener('paste', handlePaste)
   const preview = document.createElement('div');
@@ -1078,6 +1101,9 @@ onBeforeUnmount(()=>{
 })
 onUnmounted(()=>{
   window.removeEventListener('paste',handlePaste)
+  window.removeEventListener("keyup",keyhandler)
+  window.removeEventListener("resize",onResize)
+  window.removeEventListener("resize")
 })
 </script>
 
