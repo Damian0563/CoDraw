@@ -381,6 +381,7 @@ const isPanning = ref(false);
 const motiv=ref(false)
 const visitor=ref(true)
 const stroke_history=ref([])
+const history_index=ref(0)
 const isBookmarked=ref(false);
 //const images = ref([]); 
 
@@ -692,13 +693,41 @@ function applyCrop(imgNode) {
 
 const undo=()=>{
   console.log("undo")
+  if(history_index.value==0) return
+  else{
+    history_index.value--;
+    //redraw logic
+    console.log(stroke_history.value)
+    console.log(stroke_history.value[history_index.value])
+    const layer=layerRef.value.getNode()
+    const history=stroke_history.value[history_index.value]
+    layer.destroyChildren()
+    const newShapes = Konva.Node.create(history); 
+    newShapes.forEach(child => {
+        layer.add(child);
+    });
+    layer.batchDraw()
+  }
 }
 
 const redo=()=>{
   console.log("redo")
+  if(history_index.value==9) return
+  else{
+    history_index.value++;
+    //redraw
+    console.log(stroke_history.value)
+    console.log(stroke_history.value[history_index.value])
+    const layer=layerRef.value.getNode()
+    const history=stroke_history.value[history_index.value]
+    layer.destroyChildren()
+    const newShapes = Konva.Node.create(history); 
+    newShapes.forEach(child => {
+        layer.add(child);
+    });
+    layer.batchDraw()
+  }
 }
-
-
 
 const handlePaste = (event) => {
   event.preventDefault();
@@ -755,6 +784,11 @@ const handlePaste = (event) => {
         height: konvaImg.height(),
       }))
       stroke_history.value.push(layer)
+      history_index.value++;
+      if (stroke_history.value.length()>10){
+        stroke_history.value=stroke_history.value.slice(1,stroke_history.value.length())
+        history_index.value--;
+      } 
   }
   reader.onloadstart= function() {
     console.error('Starting');
@@ -893,7 +927,11 @@ const handleMouseDown = (e) => {
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
   stroke_history.value.push(JSON.stringify(layerRef.value.getNode()))
-  console.log(stroke_history)
+  history_index.value++;
+  if (stroke_history.value.length()>10){
+    stroke_history.value=stroke_history.value.slice(1,stroke_history.value.length())
+    history_index.value--;
+  } 
 };
 
 const handleMouseUp = (e) => {
@@ -961,10 +999,10 @@ const get_details_and_load = async()=>{
 
 const keyhandler=(event)=>{
     if (event.ctrlKey && event.key === 'z') {
-      undoHandler()
+      undo()
     }
     else if (event.ctrlKey && event.key === 'y') {
-      redoHandler()
+      redo()
     }
   }
 
