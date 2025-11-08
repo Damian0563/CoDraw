@@ -691,23 +691,50 @@ function applyCrop(imgNode) {
   imgNode.setAttrs(crop);
 }
 
-const undo=()=>{
-  console.log("undo")
-  if(history_index.value==0) return
-  else{
-    history_index.value--;
-    //redraw logic
-    console.log(stroke_history.value)
-    console.log(stroke_history.value[history_index.value])
-    const layer=layerRef.value.getNode()
-    const history=stroke_history.value[history_index.value]
-    layer.destroyChildren()
-    const newShapes = Konva.Node.create(history); 
-    newShapes.forEach(child => {
-        layer.add(child);
-    });
-    layer.batchDraw()
+
+const MAX_HISTORY = 10;
+function addToHistory() {
+  const layer = layerRef.value.getNode();
+  if (!layer) return;
+  const children = layer.children || [];
+  const lastChild = children[children.length - 1];
+  if (!lastChild) return;
+  const childConfig = lastChild.toJSON();
+  if (history_index.value < stroke_history.value.length - 1) {
+    stroke_history.value = stroke_history.value.slice(0, history_index.value + 1);
   }
+  stroke_history.value.push(childConfig);
+  history_index.value = stroke_history.value.length - 1;
+  if (stroke_history.value.length > MAX_HISTORY) {
+    stroke_history.value.shift();
+    history_index.value = Math.max(0, history_index.value - 1);
+  }
+}
+
+const undo=async()=>{
+  // console.log("undo")
+  // if(history_index.value==0) return
+  // else{
+  //   history_index.value--;
+  //   //redraw logic
+  //   const layer=layerRef.value.getNode()
+  //   console.log(stroke_history.value, history_index.value)
+  //   const history=JSON.parse(stroke_history.value[history_index.value])
+  //   //const childrenConfig = history.children;
+  //   console.log(history)
+  //   layer.batchDraw();
+  //   console.log(JSON.parse(layer.toJSON()))
+  // }
+  // console.log("done")
+  if (history_index.value <= 0) return;
+
+  const layer = layerRef.value.getNode();
+  const children = layer.children || [];
+  const lastChild = children[children.length - 1];
+  if (lastChild) lastChild.destroy();
+
+  history_index.value--;
+  layer.batchDraw();
 }
 
 const redo=()=>{
@@ -756,23 +783,12 @@ const handlePaste = (event) => {
         width: img.width,
         height: img.height,
         draggable: false,
+        src: e.target.result
       });
       applyCrop(konvaImg)
       const layer = layerRef.value.getNode();
       konvaImg.setAttr("src", e.target.result);
       layer.add(konvaImg);
-      // const tr = new Konva.Transformer({
-      //   nodes: [konvaImg],
-      //   keepRatio: false,
-      //   flipEnabled: false,
-      //   boundBoxFunc: (oldBox, newBox) => {
-      //     if (Math.abs(newBox.width) < 10 || Math.abs(newBox.height) < 10) {
-      //       return oldBox;
-      //     }
-      //     return newBox;
-      //   },
-      // });
-      // layer.add(tr)
       layer.draw();
       ws.value.send(JSON.stringify({
         type:"img",
@@ -782,13 +798,8 @@ const handlePaste = (event) => {
         y: konvaImg.y(),
         width: konvaImg.width(),
         height: konvaImg.height(),
-      }))
-      stroke_history.value.push(layer)
-      history_index.value++;
-      if (stroke_history.value.length()>10){
-        stroke_history.value=stroke_history.value.slice(1,stroke_history.value.length())
-        history_index.value--;
-      } 
+      })) //layer
+      addToHistory()
   }
   reader.onloadstart= function() {
     console.error('Starting');
@@ -926,12 +937,7 @@ const handleMouseDown = (e) => {
   }))
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
-  stroke_history.value.push(JSON.stringify(layerRef.value.getNode()))
-  history_index.value++;
-  if (stroke_history.value.length()>10){
-    stroke_history.value=stroke_history.value.slice(1,stroke_history.value.length())
-    history_index.value--;
-  } 
+  addToHistory()
 };
 
 const handleMouseUp = (e) => {
@@ -1141,7 +1147,6 @@ onUnmounted(()=>{
   window.removeEventListener('paste',handlePaste)
   window.removeEventListener("keyup",keyhandler)
   window.removeEventListener("resize",onResize)
-  window.removeEventListener("resize")
 })
 </script>
 
