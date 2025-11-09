@@ -712,47 +712,51 @@ function addToHistory() {
 }
 
 const undo=async()=>{
-  // console.log("undo")
-  // if(history_index.value==0) return
-  // else{
-  //   history_index.value--;
-  //   //redraw logic
-  //   const layer=layerRef.value.getNode()
-  //   console.log(stroke_history.value, history_index.value)
-  //   const history=JSON.parse(stroke_history.value[history_index.value])
-  //   //const childrenConfig = history.children;
-  //   console.log(history)
-  //   layer.batchDraw();
-  //   console.log(JSON.parse(layer.toJSON()))
-  // }
-  // console.log("done")
   if (history_index.value <= 0) return;
-
   const layer = layerRef.value.getNode();
   const children = layer.children || [];
   const lastChild = children[children.length - 1];
   if (lastChild) lastChild.destroy();
-
   history_index.value--;
   layer.batchDraw();
 }
 
 const redo=()=>{
-  console.log("redo")
-  if(history_index.value==9) return
+  if(history_index.value==MAX_HISTORY-1) return
   else{
     history_index.value++;
     //redraw
-    console.log(stroke_history.value)
-    console.log(stroke_history.value[history_index.value])
     const layer=layerRef.value.getNode()
-    const history=stroke_history.value[history_index.value]
-    layer.destroyChildren()
-    const newShapes = Konva.Node.create(history); 
-    newShapes.forEach(child => {
-        layer.add(child);
-    });
-    layer.batchDraw()
+    const history=JSON.parse(stroke_history.value[history_index.value])
+    if (history){
+      if(history.className==="Image"){
+        console.log("image")
+        console.log(history.attrs)
+        const image = new window.Image()
+        image.src=history.attrs.src
+        image.onload = () => {
+          const konvaImg = new Konva.Image({
+            id: uuidv4(),
+            image: image,
+            x: history.attrs.x,
+            y: history.attrs.y,
+            width: image.width,
+            height: image.height,
+            draggable: false,
+            src: history.attrs.src
+          });
+          applyCrop(konvaImg)
+          konvaImg.setAttr("src", history.attrs.src);
+          layer.add(konvaImg);
+          layer.draw();
+        }
+      }else{
+        const KonvaNode= Konva.Node.create(history)
+        layer.add(KonvaNode)
+        layer.draw()
+      }
+      
+    }    
   }
 }
 
@@ -937,12 +941,12 @@ const handleMouseDown = (e) => {
   }))
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
-  addToHistory()
 };
 
 const handleMouseUp = (e) => {
   isDrawing.value = false;
   currentLine.value = null;
+  addToHistory()
   if (isPanning.value) {
     const stage = e.target.getStage();
     stage.draggable(false);
