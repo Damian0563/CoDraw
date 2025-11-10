@@ -42,6 +42,8 @@
       z-index: 10;
       "
     > 
+      <font-awesome-icon :icon="['fas','undo']" class="feature-icon" @click="undo()"></font-awesome-icon>
+      <font-awesome-icon :icon="['fas','redo']" class="feature-icon" @click="redo()"></font-awesome-icon>
       <button @click="motiv=!motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
       :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"
       ></button>
@@ -712,7 +714,7 @@ function addToHistory() {
 }
 
 const undo=async()=>{
-  if (history_index.value <= 0) return;
+  if (history_index.value < 0) return;
   const layer = layerRef.value.getNode();
   const children = layer.children || [];
   const lastChild = children[children.length - 1];
@@ -1163,7 +1165,14 @@ html, body {
 </style>
 
 <style scoped>
-
+.feature-icon {
+  font-size: 2.5rem;
+  color: orange;
+  transition: transform 0.3s ease;
+}
+.feature-icon:hover {
+  transform: scale(1.2) rotate(5deg);
+}
 
 .fade-slide-enter-from,
 .fade-slide-leave-to {

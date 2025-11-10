@@ -13,9 +13,9 @@ import BoArd from './components/BoArd.vue'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-import { faPalette, faBolt, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+import { faPalette, faBolt, faLightbulb, faUndo ,faRedo} from '@fortawesome/free-solid-svg-icons'
 import {faGithub } from '@fortawesome/free-brands-svg-icons'
-library.add(faPalette, faBolt, faLightbulb,faGithub)
+library.add(faPalette, faBolt, faLightbulb,faUndo,faRedo,faGithub)
 
 
 const routes = [

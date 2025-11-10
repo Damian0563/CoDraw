@@ -18,7 +18,6 @@
         <div class="col-md-3 mb-3" v-for="(feature, i) in features" :key="i">
           <div class="card feature-card h-100 bg-dark text-white shadow-lg">
             <div class="card-body text-center">
-              <!-- <i :class="feature.icon" class="feature-icon"></i> -->
               <font-awesome-icon :icon="feature.icon" class="feature-icon" />
               <h5 class="card-title mt-3">{{ feature.title }}</h5>
               <p class="card-text">{{ feature.text }}</p>
@@ -107,19 +106,16 @@ export default {
         {
           title: "Modern and Slick",
           text: "A visually appealing interface designed for a seamless and enjoyable drawing experience.",
-          // icon: "fa-solid fa-palette"
           icon:['fas', 'palette']
         },
         {
           title: "Performance Oriented",
           text: "Optimized for speed and responsiveness, ensuring smooth collaboration in real time.",
-          // icon: "fa-solid fa-bolt"
           icon: ['fas', 'bolt']
         },
         {
           title: "Intuitive Design",
           text: "Easy-to-use tools and layout, making creativity accessible for everyone.",
-          // icon: "fa-solid fa-lightbulb"
           icon: ['fas', 'lightbulb']
         }
       ]
