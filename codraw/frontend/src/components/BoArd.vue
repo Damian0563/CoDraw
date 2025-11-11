@@ -19,11 +19,16 @@
           ✕
         </button>
         <p>{{message}}</p>
-        <button @click="showPopup = false" id="close_form"
+        <button v-if="message!=='Are you sure you would like to clear the board? This action is irreversible.'" @click="showPopup = false" id="close_form"
             style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
           Close
         </button>
-        </div>
+        <button v-if="message==='Are you sure you would like to clear the board? This action is irreversible.'" 
+          @click="clearDefinetely()" id="confirm_clear"
+          style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+          Confirm
+        </button>
+      </div>
       </div>
     </Transition>
     <div
@@ -467,7 +472,7 @@ const stageConfig = {
 const ws=ref(null)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
 ws.value = new WebSocket(`ws://localhost:8000/ws/socket/${room.value}/`)
-ws.value.onmessage = (event) => {
+ws.value.onmessage = async(event) => {
   const data = JSON.parse(event.data);
   if (!data || !data.type) return;
   const layer = layerRef.value.getNode();
@@ -508,7 +513,11 @@ ws.value.onmessage = (event) => {
       layer.batchDraw();
     };
     img.onerror = () => console.error("Remote image failed to load", data.id);
-  }
+  }else if(data.type==="history_update" && data.history){
+    stroke_history.value=data.history
+    history_index.value=data.index
+  }else if(data.type==="undo") await undo();
+  else if(data.type==="redo") redo();
 };
 
 const handleContextMenu = (e) => {
@@ -711,6 +720,11 @@ function addToHistory() {
     stroke_history.value.shift();
     history_index.value = Math.max(0, history_index.value - 1);
   }
+  ws.value.send(JSON.stringify({
+    type: "history_update",
+    history: stroke_history.value,
+    index: history_index.value
+  }));
 }
 
 const undo=async()=>{
@@ -729,11 +743,10 @@ const redo=()=>{
     history_index.value++;
     //redraw
     const layer=layerRef.value.getNode()
+    if(!stroke_history.value[history_index.value]) return;
     const history=JSON.parse(stroke_history.value[history_index.value])
     if (history){
       if(history.className==="Image"){
-        console.log("image")
-        console.log(history.attrs)
         const image = new window.Image()
         image.src=history.attrs.src
         image.onload = () => {
@@ -876,14 +889,22 @@ function leave(){
   }
 }
 
+function clearDefinetely(){
+  showPopup.value=false
+  message.value=""
+  loading.value=true
+  console.log("Clearing the board")
+  localStorage.removeItem('storage')
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  layerRef.value.getNode().clear();
+  layerRef.value.getNode().batchDraw();
+  loading.value=false
+}
+
 function clear_all(){
   if(admin.value){
-    localStorage.removeItem('storage')
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    layerRef.value.getNode().clear();
-    layerRef.value.getNode().batchDraw();
-    // context.clearRect(0, 0, canvas.width, canvas.height);
-    // layerRef.value.getNode().batchDraw();
+    showPopup.value=true;
+    message.value="Are you sure you would like to clear the board? This action is irreversible.";
   }else{
     showPopup.value=true;
     message.value="You don't have neccessary permissions to clear the board."
@@ -1010,13 +1031,19 @@ const get_details_and_load = async()=>{
 }
 
 const keyhandler=(event)=>{
-    if (event.ctrlKey && event.key === 'z') {
-      undo()
-    }
-    else if (event.ctrlKey && event.key === 'y') {
-      redo()
-    }
+  if (event.ctrlKey && event.key === 'z') {
+    undo()
+    ws.value.send(JSON.stringify({
+      type: "undo"
+    }))
   }
+  else if (event.ctrlKey && event.key === 'y') {
+    redo()
+    ws.value.send(JSON.stringify({
+      type: "redo"
+    }))
+  }
+}
 
 const onResize = () => {
   windowWidth.value = window.innerWidth;
@@ -1170,6 +1197,16 @@ html, body {
   color: orange;
   transition: transform 0.3s ease;
 }
+
+#confirm_clear{
+  background-color: green !important;
+  transition: 0.3s ease !important;
+}
+
+#confirm_clear:hover{
+  background-color: #00cc00 !important;
+}
+
 .feature-icon:hover {
   transform: scale(1.2) rotate(5deg);
 }
