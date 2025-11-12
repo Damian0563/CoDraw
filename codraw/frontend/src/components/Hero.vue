@@ -149,7 +149,6 @@ export default {
 </script>
 
 <style scoped>
-/* --- HERO SECTION --- */
 .hero-background {
   background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
   background-size: 400% 400%;

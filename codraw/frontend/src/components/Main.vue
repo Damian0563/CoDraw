@@ -6,12 +6,9 @@
     >
       <div class="sidebar-header d-flex flex-column align-items-center mb-4">
         <img loading="lazy" alt="sidebar" decoding="async" class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
-        <img :src="url" alt="logo" loading="lazy" decoding="async" class="logo mb-3 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
-        <RouterLink :to="`/codraw/account/${username}`" class="nav-link account-link mb-2 w-100 text-center">
-          My Account
-        </RouterLink>
-        <RouterLink to="/codraw/settings" class="nav-link settings-link mb-2 w-100 text-center">
-          Settings
+        <img :src="url" alt="logo" loading="lazy" decoding="async" class="logo mb-4 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
+        <RouterLink :to="`/codraw/account/${username}`" class="nav-link account-link mb-4 w-100 text-center">
+          <font-awesome-icon class="mx-2" :icon="['fas','user']"></font-awesome-icon>My Account
         </RouterLink>
         <button class="btn btn-danger w-100" @click="log_out()" id="out">Log out</button>
       </div>
@@ -185,9 +182,9 @@ import { get_cookie } from '@/common';
 import {DateTime} from 'luxon'
 import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
-//import info from '@/assets/information.webp'
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 const loading = ref(false)
 const hover=ref({})
 const csrf=get_cookie('csrftoken')

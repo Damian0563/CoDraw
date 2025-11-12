@@ -11,9 +11,6 @@
         </RouterLink>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
           <li class="nav-item mx-2">
-            <RouterLink class="nav-link" to="/#about">About</RouterLink>
-          </li>
-          <li class="nav-item mx-2">
             <RouterLink class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
           </li> 
           <li class="nav-item mx-2">

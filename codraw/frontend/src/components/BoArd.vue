@@ -895,9 +895,9 @@ function clearDefinetely(){
   loading.value=true
   console.log("Clearing the board")
   localStorage.removeItem('storage')
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  layerRef.value.getNode().clear();
-  layerRef.value.getNode().batchDraw();
+  const layer=layerRef.value.getNode();
+  layer.destroyChildren();
+  layer.batchDraw();
   loading.value=false
 }
 
