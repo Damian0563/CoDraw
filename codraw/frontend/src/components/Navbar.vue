@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow p-3">
+  <nav class="navbar navbar-expand-lg navbar-dark hero-background shadow p-3" style="background-color: black !important;">
     <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -35,6 +35,14 @@ export default {
 </script>
 
 <style scoped>
+  .hero-background {
+    background: linear-gradient(135deg, #000000, #111111, #0a0a0a) !important;
+    background-size: 400% 400%;
+    animation: gradientMove 12s ease infinite;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
   #sign,#sing{
     transition: ease-in-out 0.5s;
   }

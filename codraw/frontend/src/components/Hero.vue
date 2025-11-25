@@ -78,7 +78,6 @@
         <div class="col-md-3 mb-3 footer-social">
           <h5>Follow Us</h5>
           <div class="social-icons">
-            <!-- <a href="https://github.com/Damian0563/CoDraw"><i class="fa-brands fa-github"></i></a> -->
             <a href="https://github.com/Damian0563/CoDraw"><font-awesome-icon :icon="['fab', 'github']" /></a>
           </div>
         </div>
