@@ -57,6 +57,12 @@
       </div>
     </div>
   </section>
+  <section class="my-5 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;height: 90vh;width:100%;overflow: hidden;">
+    Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
+    <div class="my-5 mx-auto rounded border border-warning" style="background-color: black; overflow: hidden;">
+      <DemoBoard />
+    </div>
+  </section>
   <footer class="footer-section">
     <div class="container text-center">
       <div class="row justify-content-center">
@@ -95,9 +101,13 @@
 import { get_cookie } from '@/common';
 import { BASE_URL } from '../common.js';
 import logo from '@/assets/logo.webp';
+import DemoBoard from './DemoBoard.vue';
 
 export default {
   name: "HeRo",
+  components: { 
+    DemoBoard
+  },
   data() {
     return {
       logo,

@@ -10,6 +10,7 @@ import MaIn from './components/Main.vue'
 import SeTtings from './components/SeTtings.vue'
 import AccOunt from './components/AccOunt.vue'
 import BoArd from './components/BoArd.vue'
+import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -27,6 +28,7 @@ const routes = [
   { path: '/codraw/settings', component: SeTtings },
   { path: '/codraw/account/:username', component: AccOunt },
   { path: '/board/:id/:room', component: BoArd },
+  {path: '/demo', component: DemoBoard},
   {path: '/learn-more', component: LearnMore}
 ]
 

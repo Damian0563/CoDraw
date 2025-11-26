@@ -1,7 +1,7 @@
 <template>
-  <div style="background-color: black;">
+  <!-- <div style="background-color: black;">
     <img :src='url' class="img-fluid border rounded-circle border-danger-subtle" style="width:10vw;height: auto;margin-top:2% ;">
-  </div>
+  </div> -->
   <Transition name="fade-slide">
     <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
         role="alert"
@@ -63,7 +63,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-import url from '@/assets/logo.webp'
+//import url from '@/assets/logo.webp'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
 let visible=ref(false)
