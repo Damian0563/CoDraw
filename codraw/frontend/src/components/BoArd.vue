@@ -355,6 +355,7 @@ import zoom_ico from '@/assets/zoom.webp'
 import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import {BASE_URL} from '../common.js'
+import {WS_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 import bookmarkIcon from '@/assets/star.webp'
 const loading=ref(false)
@@ -471,7 +472,7 @@ const stageConfig = {
 
 const ws=ref(null)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
-ws.value = new WebSocket(`ws://localhost:8000/ws/socket/${room.value}/`)
+ws.value = new WebSocket(`${WS_URL}/${room.value}/`)
 ws.value.onmessage = async(event) => {
   const data = JSON.parse(event.data);
   if (!data || !data.type) return;

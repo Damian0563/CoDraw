@@ -18,7 +18,7 @@ services:
       context: ./codraw
       dockerfile: Dockerfile
     container_name: django_web
-    command: python manage.py runserver --nothreading --noreload -v 0 0.0.0.0:8080
+    command: python manage.py runserver --noreload -v 0 0.0.0.0:8080
     ports:
       - "8080:8080"
     volumes:
