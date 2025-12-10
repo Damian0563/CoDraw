@@ -10,8 +10,6 @@
       <button class="cta-btn mt-4">Start Drawing Now</button>
     </router-link>
   </div>
-
-  <!-- Features -->
   <div class="features-section">
     <div class="container">
       <div class="row justify-content-center">
@@ -27,8 +25,10 @@
       </div>
     </div>
   </div>
-
-  <section id="about" href="#about" class="about-section">
+  <section class="about-sec container text-center my-5">
+    <text class="about-title">No subscriptions, no hidden fees</text><text class="about-text" style="font-size: 2.5rem;">- just free for everyone, forever with at most respect to privacy.</text>
+  </section>
+  <section id="about" href="#about" class="about-sec">
     <div class="container">
       <div class="row align-items-center">
         <div class="col-md-6 about-text">
@@ -286,7 +286,6 @@ export default {
   }
 }
 
-/* --- CTA BUTTON --- */
 .cta-btn {
   background: linear-gradient(90deg, yellow, gold);
   color: black;
@@ -305,7 +304,6 @@ export default {
   transform: translateY(-3px);
 }
 
-/* --- FEATURES SECTION --- */
 .features-section {
   background: linear-gradient(135deg, #000000, #111111, #0a0a0a) !important;
   padding: 4rem 1rem;
@@ -315,7 +313,7 @@ export default {
   border: 2px solid rgba(255, 255, 0, 0.6);
   border-radius: 1rem;
   transition: all 0.4s ease;
-  background: rgba(20, 20, 20, 0.9);
+  /* background: rgba(20, 20, 20, 0.9); */
 }
 .feature-card:hover {
   box-shadow: 0 0 20px rgba(255, 255, 0, 0.4);
@@ -331,7 +329,6 @@ export default {
   transform: scale(1.2) rotate(5deg);
 }
 
-/* --- ABOUT SECTION --- */
 .about-section {
   background: radial-gradient(circle at top left, #111, #000);
   color: white;
@@ -339,6 +336,14 @@ export default {
   overflow: hidden;
   position: relative;
 }
+
+.about-sec {
+  color: white;
+  padding: 6rem 1.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
 .about-title {
   font-size: 2.6rem;
   font-weight: 700;
