@@ -33,6 +33,11 @@ from mongoengine import connect
 MONGO_DB_NAME = 'CoDraw'
 MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+REDIS_PASSWORD = '111111111'
+
 
 connect(
     db=MONGO_DB_NAME,

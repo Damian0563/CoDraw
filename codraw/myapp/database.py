@@ -19,6 +19,13 @@ def generate_code()->str:
         code+=str(random.randint(0,9))
     return code
 
+def validate_request(request)->str:
+    try:
+        id=request.session['user_id']
+    except KeyError:
+        id=request.COOKIES.get('token')
+    return id
+
 
 def encode_user(mail:str)->str | None:
     try:

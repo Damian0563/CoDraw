@@ -37,3 +37,13 @@ VUE_APP_BASE_URL=<YOUR_LOCAL_HOST_PATH> //i.e http://localhost:8000
 MONGO_INITDB_ROOT_USERNAME=<YOUR_MONGO_ROOT_USERNAME>
 MONGO_INITDB_ROOT_PASSWORD=<YOUR_MONGO_ROOT_PASSWORD>
 ```
+### Helpful commands
+1) instantiating redis for local development using docker:
+```
+docker pull redis
+docker run --name my-redis -p 6379:6379 -d redis
+docker exec -it my-redis redis-cli ping
+docker stop my-redis
+```
+
+
