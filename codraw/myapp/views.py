@@ -122,7 +122,13 @@ def load(request):
         try:  
             data=json.loads(request.body)
             room=data['project']
-            canva,bg=database.get_board_img(room=room)
+            if redis_client.get(f"board:{room}") and redis_client.get(f"bg:{room}"): 
+                canva=redis_client.get(f"board:{room}").decode('utf-8')
+                bg=redis_client.get(f"bg:{room}").decode('utf-8')
+            else:
+                canva,bg=database.get_board_img(room=room)
+                redis_client.setex(f"board:{room}",60*5,canva)
+                redis_client.setex(f"bg:{room}",60*5,bg)
             return Response({'status':200,"canva":json.loads(canva),"bg":bg})
         except Exception: return Response({'status':404,"canva":""})
 
@@ -147,7 +153,8 @@ def my_projects(request):
         if id is not None:
             data=json.loads(request.body)
             timezone=data['timezone']
-            boards=database.get_boards(id,timezone)
+            if redis_client.get(f"boards:{id}:{timezone}"): boards=json.loads(redis_client.get(f"boards:{id}:{timezone}").decode('utf-8'))
+            else: boards=database.get_boards(id,timezone)
             return Response({'status':200,"boards":boards})
         return Response({'status':400})
     except KeyError:
@@ -229,7 +236,11 @@ def boards_user(request,username):
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']
-        boards=database.get_boards_of_username(timezone,username)
+        if redis_client.get(f"boards_user:{username}:{timezone}"): 
+            boards=json.loads(redis_client.get(f"boards_user:{username}:{timezone}").decode('utf-8'))
+        else:
+            boards=database.get_boards_of_username(timezone,username)
+            redis_client.setex(f"boards_user:{username}:{timezone}",60*5,json.dumps(boards))
         return Response({'status':200,"boards":boards})
     return Response({'status':400,'boards':[]})
 
@@ -287,7 +298,11 @@ def get_bookmarks(request,username):
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']
-        bookmarks=database.get_bookmarks(username,timezone)
+        if redis_client.get(f"bookmarks:{username}:{timezone}"): 
+            bookmarks=json.loads(redis_client.get(f"bookmarks:{username}:{timezone}").decode('utf-8'))
+        else:
+            bookmarks=database.get_bookmarks(username,timezone)
+            redis_client.setex(f"bookmarks:{username}:{timezone}",60*5,json.dumps(bookmarks))
         return Response({'status':200,'bookmarks':bookmarks})
     return Response({'status':400,'bookmarks':[]})
 
@@ -306,7 +321,11 @@ def trending(request):
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']  
-        boards=database.get_trending(id,timezone)  
+        if redis_client.get(f"trending:{id}:{timezone}"): 
+            boards=json.loads(redis_client.get(f"trending:{id}:{timezone}").decode('utf-8'))
+        else:
+            boards=database.get_trending(id,timezone)
+            redis_client.setex(f"trending:{id}:{timezone}",60*5,json.dumps(boards))  
         return Response({'status':200,'boards':boards})
     return Response({'status':400,'boards':''})
     
@@ -318,6 +337,10 @@ def search(request):
         data=json.loads(request.body)
         query=data['query']
         timezone=data['timezone']
-        result=database.get_matches(query,timezone)
+        if redis_client.get(f"search:{query}:{timezone}"): 
+            result=json.loads(redis_client.get(f"search:{query}:{timezone}").decode('utf-8'))
+        else:
+            result=database.get_matches(query,timezone)
+            redis_client.setex(f"search:{query}:{timezone}",60*5,json.dumps(result))
         return Response({"status":200,"boards":result})
     return Response({"status":400})

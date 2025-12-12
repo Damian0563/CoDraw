@@ -320,7 +320,6 @@ def get_matches(sentence:str,timezone:str)->list:
                 board_keywords = set(json.loads(board.summary))
             except (TypeError, json.JSONDecodeError):
                 board_keywords = set()
-            #print(len(set(keywords) & board_keywords))
             return len(set(keywords) & board_keywords)
         client_tz=ZoneInfo(timezone)
         sorted_boards = sorted(matches, key=match_count, reverse=True)
