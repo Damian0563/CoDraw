@@ -48,7 +48,6 @@
 </template>
 
 <script setup>
-//import url from '@/assets/logo.webp'
 import { ref } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'

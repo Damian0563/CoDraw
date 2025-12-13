@@ -100,37 +100,6 @@
           transition: ease-in-out 0.6s;
         "
       >Save</button>
-      <button
-      @click="leave()"
-      id="exit"
-      style="
-        background: #ff4f4f;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 20px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: ease-in-out 0.6s;
-      "
-      >Exit</button>
-      <button
-      id="clearall"
-      v-if="admin"
-      style="
-        background: #f68608;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 20px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: ease-in-out 0.6s;
-      "
-      @click="clear_all()"
-      >
-      Clear all
-      </button>
     </div>
     <div
       class="board-wrapper"
@@ -161,11 +130,8 @@
 
 <script setup>
 import { v4 as uuidv4 } from 'uuid'
-//import { get_cookie } from '@/common';
-//import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 const loading=ref(false)
-//const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, onUnmounted} from 'vue';
 const currentLine = ref(null)
 import Konva from 'konva';
@@ -198,12 +164,10 @@ const stageConfig = {
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
 };
-// create canvas element
 const canvas = document.createElement('canvas');
 canvas.width = stageConfig.width;
 canvas.height = stageConfig.height;
 
-// get context
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
 context.fillStyle=background.value
@@ -243,11 +207,6 @@ function getCrop(image, size) {
 }
 
 function applyCrop(imgNode) {
-  // const crop = getCrop(
-  //   imgNode.image(), // HTMLImageElement
-  //   { width: imgNode.width(), height: imgNode.height() }
-  // );
-  // imgNode.setAttrs(crop);
   const image = imgNode.image();
   if (!image) return;
 
@@ -292,7 +251,6 @@ const redo=()=>{
   if(history_index.value==MAX_HISTORY-1) return
   else{
     history_index.value++;
-    //redraw
     const layer=layerRef.value.getNode()
     if(!stroke_history.value[history_index.value]) return;
     const history=JSON.parse(stroke_history.value[history_index.value])
@@ -378,11 +336,6 @@ const check_save = () => {
   message.value="Board was successfully quick saved."
 }
 
-function leave(){
-  localStorage.removeItem('storage')
-  window.location.href='http://localhost:8081/'
-}
-
 function clearDefinetely(){
   showPopup.value=false
   message.value=""
@@ -395,10 +348,6 @@ function clearDefinetely(){
   loading.value=false
 }
 
-function clear_all(){
-  showPopup.value=true;
-  message.value="Are you sure you would like to clear the board? This action is irreversible.";
-}
 const getRelativePointerPosition = (stage) => {
   const transform = stage.getAbsoluteTransform().copy();
   transform.invert();
@@ -406,11 +355,9 @@ const getRelativePointerPosition = (stage) => {
   return transform.point(pos);
 };
 const autosave = () => {
-  // Save the canvas as a data URL (image)
   const stage = stageRef.value?.getNode?.();
   if (!stage) return;
   const dataUrl = stage.toDataURL();
-  // Store the image data and a timestamp/id in the list
   list.value = [{
     id: Date.now(),
     image: dataUrl
@@ -531,7 +478,7 @@ onUnmounted(()=>{
 html, body {
   margin: 0;
   height: 100%;
-  overflow: hidden !important; /* disables global scrolling */
+  overflow: hidden !important;
 }
 </style>
 

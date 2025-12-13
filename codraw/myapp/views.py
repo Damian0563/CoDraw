@@ -123,8 +123,8 @@ def load(request):
             data=json.loads(request.body)
             room=data['project']
             if redis_client.get(f"board:{room}") and redis_client.get(f"bg:{room}"): 
-                canva=redis_client.get(f"board:{room}").decode('utf-8')
-                bg=redis_client.get(f"bg:{room}").decode('utf-8')
+                canva=redis_client.get(f"board:{room}")
+                bg=redis_client.get(f"bg:{room}")
             else:
                 canva,bg=database.get_board_img(room=room)
                 redis_client.setex(f"board:{room}",60*5,canva)
@@ -153,7 +153,7 @@ def my_projects(request):
         if id is not None:
             data=json.loads(request.body)
             timezone=data['timezone']
-            if redis_client.get(f"boards:{id}:{timezone}"): boards=json.loads(redis_client.get(f"boards:{id}:{timezone}").decode('utf-8'))
+            if redis_client.get(f"boards:{id}:{timezone}"): boards=json.loads(redis_client.get(f"boards:{id}:{timezone}"))
             else: boards=database.get_boards(id,timezone)
             return Response({'status':200,"boards":boards})
         return Response({'status':400})
@@ -237,7 +237,7 @@ def boards_user(request,username):
         data=json.loads(request.body)
         timezone=data['timezone']
         if redis_client.get(f"boards_user:{username}:{timezone}"): 
-            boards=json.loads(redis_client.get(f"boards_user:{username}:{timezone}").decode('utf-8'))
+            boards=json.loads(redis_client.get(f"boards_user:{username}:{timezone}"))
         else:
             boards=database.get_boards_of_username(timezone,username)
             redis_client.setex(f"boards_user:{username}:{timezone}",60*5,json.dumps(boards))
@@ -299,7 +299,7 @@ def get_bookmarks(request,username):
         data=json.loads(request.body)
         timezone=data['timezone']
         if redis_client.get(f"bookmarks:{username}:{timezone}"): 
-            bookmarks=json.loads(redis_client.get(f"bookmarks:{username}:{timezone}").decode('utf-8'))
+            bookmarks=json.loads(redis_client.get(f"bookmarks:{username}:{timezone}"))
         else:
             bookmarks=database.get_bookmarks(username,timezone)
             redis_client.setex(f"bookmarks:{username}:{timezone}",60*5,json.dumps(bookmarks))
@@ -322,7 +322,7 @@ def trending(request):
         data=json.loads(request.body)
         timezone=data['timezone']  
         if redis_client.get(f"trending:{id}:{timezone}"): 
-            boards=json.loads(redis_client.get(f"trending:{id}:{timezone}").decode('utf-8'))
+            boards=json.loads(redis_client.get(f"trending:{id}:{timezone}"))
         else:
             boards=database.get_trending(id,timezone)
             redis_client.setex(f"trending:{id}:{timezone}",60*5,json.dumps(boards))  
@@ -338,7 +338,7 @@ def search(request):
         query=data['query']
         timezone=data['timezone']
         if redis_client.get(f"search:{query}:{timezone}"): 
-            result=json.loads(redis_client.get(f"search:{query}:{timezone}").decode('utf-8'))
+            result=json.loads(redis_client.get(f"search:{query}:{timezone}"))
         else:
             result=database.get_matches(query,timezone)
             redis_client.setex(f"search:{query}:{timezone}",60*5,json.dumps(result))
