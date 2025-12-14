@@ -1,7 +1,4 @@
 <template>
-  <!-- <div style="background-color: black;">
-    <img :src='url' class="img-fluid border rounded-circle border-danger-subtle" style="width:10vw;height: auto;margin-top:2% ;">
-  </div> -->
   <Transition name="fade-slide">
     <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
         role="alert"
@@ -63,7 +60,6 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-//import url from '@/assets/logo.webp'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
 let visible=ref(false)
@@ -143,7 +139,6 @@ const two = ref('')
 const three = ref('')
 const four = ref('')
 
-// Helper to get the code string when needed
 function getCode() {
   return `${zero.value}${one.value}${two.value}${three.value}${four.value}`;
 }
@@ -187,13 +182,11 @@ async function verifyCode(){
   transform:translateY(-20px);
 }
 
-/* The "leave" state, when the modal is about to disappear */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
-/* The "active" state, when the modal is fully visible and in its final position */
 .fade-slide-enter-to,
 .fade-slide-leave-from {
   opacity: 1;

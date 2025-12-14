@@ -49,5 +49,6 @@ urlpatterns = [
     path('is_bookmarked/<str:room>',views.check_bookmark,name="check_bookmark"),
     path('bookmark/<str:room>',views.bookmark,name="bookmark"),
     path('get_bookmarks/<str:username>',views.get_bookmarks,name="get_bookmarks"),
-    path('delete/bookmark/<str:room>',views.delete_bookmark,name="delete_bookmark")
+    path('delete/bookmark/<str:room>',views.delete_bookmark,name="delete_bookmark"),
+    path('restore_password/<str:mail>',views.restore_password,name="restore_password"),
 ]

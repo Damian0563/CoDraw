@@ -10,6 +10,7 @@ import MaIn from './components/Main.vue'
 import SeTtings from './components/SeTtings.vue'
 import AccOunt from './components/AccOunt.vue'
 import BoArd from './components/BoArd.vue'
+import RestorePassword from './components/RestorePassword.vue'
 import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -29,7 +30,8 @@ const routes = [
   { path: '/codraw/account/:username', component: AccOunt },
   { path: '/board/:id/:room', component: BoArd },
   {path: '/demo', component: DemoBoard},
-  {path: '/learn-more', component: LearnMore}
+  {path: '/learn-more', component: LearnMore},
+  {path: '/restore/:mail', component: RestorePassword}
 ]
 
 const router = createRouter({

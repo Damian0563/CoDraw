@@ -1,7 +1,4 @@
 <template>
-  <!-- <div style="background-color: black;">
-    <img :src='url' class="img-fluid border rounded-circle" style="width:10vw;height: auto;margin-top:2%; border-color: yellow;">
-  </div> -->
   <Transition name="fade-slide">
     <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
        role="alert"
@@ -42,6 +39,11 @@
       <div class="text-center mt-2">
         <span class="text-secondary">Do not have an account?</span>
         <RouterLink to="/signup" class="ms-2 text-info">Sign up</RouterLink>
+      </div>
+      <div class="text-center mt-2">
+        <div v-if ="name_or_mail">
+          <RouterLink :to="`/restore/${name_or_mail}`" class="ms-2 text-info">Forgot your password?</RouterLink>
+        </div>
       </div>
     </div>  
   </div>
@@ -118,13 +120,11 @@ status();
   transform:translateY(-20px);
 }
 
-/* The "leave" state, when the modal is about to disappear */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
-/* The "active" state, when the modal is fully visible and in its final position */
 .fade-slide-enter-to,
 .fade-slide-leave-from {
   opacity: 1;

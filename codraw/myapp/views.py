@@ -180,6 +180,11 @@ def delete(request,room):
         if database.delete_board(room):return Response({'status':200})
     return Response({'status':400})
 
+@api_view(['POST'])
+@ensure_csrf_cookie
+def restore_password(request,mail):
+    return Response({'status':200})
+
 
 @api_view(['GET'])
 @ensure_csrf_cookie

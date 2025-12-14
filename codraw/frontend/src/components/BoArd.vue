@@ -614,8 +614,7 @@ const save_definetely = async()=>{
   try{
     loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
-    //const owner = parts[2]; // 'user_id'
-    const room = parts[3];  // 'room_id
+    const room = parts[3];
     if(!title.value){
       showPopup.value=true
       message.value="Please provide a title for your board."
