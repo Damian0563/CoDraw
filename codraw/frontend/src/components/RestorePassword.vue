@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {BASE_URL} from '../common.js'
 import { get_cookie } from '@/common'
 const mail =ref(new URL(window.location.href).pathname.split('/')[2])
@@ -63,6 +63,29 @@ async function submitCode(){
         console.log(err)
     }
 }
+onMounted(()=>{
+    const mail =ref(new URL(window.location.href).pathname.split('/')[2])
+    async function isValid(){
+        try{
+            const data=await fetch(`${BASE_URL}/restore_password/${mail.value}`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': get_cookie('csrftoken')
+                },
+                credentials: 'include'
+            })
+            const response=await data.json()
+            return response.status===200
+        }catch(err){
+            console.log(err)
+            window.location.href='/signin'
+        }
+    }
+    const valid=isValid()
+    if(!valid){
+        //display error
+    }
+})
 </script>
 
 <style>

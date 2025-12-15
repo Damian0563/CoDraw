@@ -4,6 +4,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from uuid import uuid4
 from codraw.redis_client import get_redis_client
 import json
+from . import helpers
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
@@ -111,7 +112,7 @@ def main(request):
 @api_view(['GET'])
 @ensure_csrf_cookie
 def get_url(request):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         return Response({'status':200,'url':f"/board/{id}/{str(uuid4())}"})
     return Response({'status':400})
@@ -136,7 +137,7 @@ def load(request):
 @ensure_csrf_cookie
 def load_board(request):
     if request.method=='POST':
-        id=database.validate_request(request)
+        id=helpers.validate_request(request)
         if id is not None:
             data=json.loads(request.body)
             url=f"/board/{id}/{data['room']}"
@@ -149,7 +150,7 @@ def load_board(request):
 @api_view(['POST'])
 def my_projects(request):
     try:
-        id=database.validate_request(request)
+        id=helpers.validate_request(request)
         if id is not None:
             data=json.loads(request.body)
             timezone=data['timezone']
@@ -167,7 +168,7 @@ def settings(request):
 @api_view(['GET'])
 @ensure_csrf_cookie
 def status(request):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None and database.exists(id):
         return Response({'status':200,"user":True})
     return Response({'status':200,'user':False})
@@ -175,21 +176,25 @@ def status(request):
 @api_view(['GET'])
 @ensure_csrf_cookie
 def delete(request,room):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         if database.delete_board(room):return Response({'status':200})
     return Response({'status':400})
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 @ensure_csrf_cookie
 def restore_password(request,mail):
+    if request.method=="GET":
+        if helpers.valid_email(mail) and database.user_exists(mail):
+            return Response({'status':200})
+        return Response({'status':404})
     return Response({'status':200})
 
 
 @api_view(['GET'])
 @ensure_csrf_cookie
 def username(request):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         mail=database.decode_user(id)
         username=database.get_username(mail)
@@ -199,7 +204,7 @@ def username(request):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def edit(request,room):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         title=data['title']
@@ -224,7 +229,7 @@ def board(request,id,room):
 @api_view(['GET','POST'])
 def save(request):
     data=json.loads(request.body)
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     room=data.get('project')
     if database.find_room(room,id):
         bg=data.get('bg')
@@ -237,7 +242,7 @@ def save(request):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def boards_user(request,username):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']
@@ -259,7 +264,7 @@ def save_new(request):
     description=data.get('description')
     type=data.get('type') 
     background=data.get('bg')
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None and database.save_new_project(project,payload,id,title,description,type,background):
         return Response({'status':200})
     return Response({'status':400})
@@ -270,7 +275,7 @@ def check_owner(request):
     data=json.loads(request.body)
     owner=data['owner']
     room=data['room']
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id==owner and database.check_ownership(database.decode_user(owner),room):
         return Response({'status':200})
     return Response({'status':400})
@@ -278,14 +283,14 @@ def check_owner(request):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def check_bookmark(request,room):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None and database.check_bookmark(room,id): return Response({'status':200,"bookmarked":True})
     return Response({'status':403,'bookmarked':False})
 
 @api_view(['POST'])
 @ensure_csrf_cookie
 def bookmark(request,room):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         me=data['user']
@@ -299,7 +304,7 @@ def bookmark(request,room):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def get_bookmarks(request,username):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']
@@ -314,7 +319,7 @@ def get_bookmarks(request,username):
 @api_view(['GET'])
 @ensure_csrf_cookie
 def delete_bookmark(request,room):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None and database.delete_bookmark(id,room):
         return Response({'status':200})
     return Response({'status':400})
@@ -322,7 +327,7 @@ def delete_bookmark(request,room):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def trending(request):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         timezone=data['timezone']  
@@ -337,7 +342,7 @@ def trending(request):
 @api_view(['POST'])
 @ensure_csrf_cookie
 def search(request):
-    id=database.validate_request(request)
+    id=helpers.validate_request(request)
     if id is not None:
         data=json.loads(request.body)
         query=data['query']

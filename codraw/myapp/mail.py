@@ -25,7 +25,6 @@ def account_creation(mail: str, code: Union[str, int]) -> None:
     msg["Subject"] = "Creation of account on CoDraw."
     msg["From"] = "codraw.io@gmail.com"
     msg["To"] = mail
-    # Optional plain text version
     plain_message = """\
     Good Morning,
 
@@ -44,4 +43,4 @@ def account_creation(mail: str, code: Union[str, int]) -> None:
     server.login('codraw.io@gmail.com', os.getenv('GMAIL_PASS'))
     server.sendmail(msg["From"], msg["To"], msg.as_string())
     server.quit()
-    print(f"Email sent to {mail} with code {code}")
+    #print(f"Email sent to {mail} with code {code}")

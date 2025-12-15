@@ -1,10 +1,11 @@
 from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
-import random, json
+import json
+from . import helpers
 import time
 from zoneinfo import ZoneInfo
-from datetime import datetime, timezone
+from datetime import datetime
 import nltk
 from nltk.stem import WordNetLemmatizer
 nltk.download('punkt')
@@ -12,20 +13,6 @@ nltk.download('punkt_tab')
 nltk.download('averaged_perceptron_tagger_eng')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
-
-def generate_code()->str:
-    code=""
-    for i in range(5):
-        code+=str(random.randint(0,9))
-    return code
-
-def validate_request(request)->str:
-    try:
-        id=request.session['user_id']
-    except KeyError:
-        id=request.COOKIES.get('token')
-    return id
-
 
 def encode_user(mail:str)->str | None:
     try:
@@ -58,11 +45,11 @@ def add_user(username:str,mail:str,password:str)->bool:
         existing_user = models.User.objects.get(mail=mail, valid=False)
         existing_user.username = username
         existing_user.password = generate_password_hash(password) 
-        existing_user.code = generate_code()
+        existing_user.code = helpers.generate_code()
         existing_user.save()  
         return True
     hashed_password = generate_password_hash(password)
-    models.User.objects.create(username=username, mail=mail, password=hashed_password, code=generate_code(),valid=False)
+    models.User.objects.create(username=username, mail=mail, password=hashed_password, code=helpers.generate_code(),valid=False)
     return True
 
 
