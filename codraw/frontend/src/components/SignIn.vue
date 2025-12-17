@@ -10,6 +10,51 @@
     </div>
     </div>
   </Transition>
+  <Transition name="fade-slide">
+    <div v-if="recovery" class="recovery-container" role="alert" style="max-width: 80vw; width: 500px; position: fixed; top: 8rem; left: 50%; transform: translateX(-50%); z-index: 5000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
+      <!-- <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
+      <h2 class="mt-3" style="color: yellow;font-weight: bold;">Input your email, recovery link will be sent to you!</h2>
+      <div class="mb-3 needs-validation" novalidate>
+        <label for="emailInput" class="form-label text-muted small">Email Address</label>
+        <input 
+          type="email" 
+          class="form-control form-control-lg mb-3" 
+          placeholder="e.g. name@example.com"
+          required
+          v-model="name_or_mail"
+        />
+        <div class="invalid-feedback">
+          Please specify valid email adress.
+        </div>
+        <button @click="sendReset" class="btn btn-primary btn-lg w-100 shadow-sm">
+          Send Recovery Link
+        </button>
+      </div> -->
+      <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
+      <h2 class="mt-3" style="color: yellow;font-weight: bold;">Input your email, recovery link will be sent to you!</h2>
+      <form 
+        class="mb-3 needs-validation" 
+        :class="{ 'was-validated': validated }" 
+        novalidate 
+        @submit.prevent="sendReset"
+      >
+        <label for="emailInput" class="form-label text-muted small">Email Address</label>
+        <input 
+          type="email" 
+          class="form-control form-control-lg mb-3" 
+          placeholder="e.g. name@example.com"
+          required
+          v-model="name_or_mail"
+        />
+        <div class="invalid-feedback mb-2">
+          Please specify a valid email address.
+        </div>  
+        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3">
+          Send Recovery Link
+        </button>
+      </form>
+    </div>
+  </Transition>
   <div class="d-flex justify-content-center pt-5" style="background-color: black; min-height: 40vh;">
     <div class="card p-3 shadow-lg" style="max-width: 400px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign In</h2>
@@ -41,9 +86,7 @@
         <RouterLink to="/signup" class="ms-2 text-info">Sign up</RouterLink>
       </div>
       <div class="text-center mt-2">
-        <div v-if ="name_or_mail">
-          <RouterLink :to="`/restore/${name_or_mail}`" class="ms-2 text-info">Forgot your password?</RouterLink>
-        </div>
+        <text @click="recovery=true" class="ms-2 text-info" style="cursor: pointer;">Forgot your password?</text>
       </div>
     </div>  
   </div>
@@ -58,7 +101,42 @@ let invalid = ref(false)
 let ticked= ref(false)
 const name_or_mail = ref('')
 const password = ref('')
+const validated = ref(false);
+const recovery=ref(false);
 const formRef = ref(null);
+
+
+async function sendReset(event){
+  try{
+    recovery.value=true;
+    const form = event.currentTarget;
+    validated.value = true;
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    const data=await fetch(`${BASE_URL}/restore_password/${name_or_mail.value}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': get_cookie('csrftoken')
+        },
+        credentials: 'include'
+    })
+    const response=await data.json()
+    return response.status===200
+  }catch(e){
+    console.error(e)
+    recovery.value=false;
+    invalid.value = true
+    message.value = 'An error occurred while sending reset email. Are you sure the email is correct?'
+  }finally{
+    invalid.value = true;
+    message.value="Recovery link sent! Please check your email.";
+    recovery.value=false;
+  }
+}
+
 async function SignIn(e){
   e.preventDefault()
   const form = formRef.value;
@@ -182,5 +260,12 @@ status();
 input::placeholder {
   color: #ccc !important;
   opacity: 1;
+}
+
+.recovery-container {
+  max-width: 400px;
+  padding: 2rem;
+  text-align: center;
+  font-family: sans-serif;
 }
 </style>

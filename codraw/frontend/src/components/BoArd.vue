@@ -1236,13 +1236,11 @@ html, body {
 }
 
 
-/* The "leave" state, when the modal is about to disappear */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
-/* The "active" state, when the modal is fully visible and in its final position */
 .fade-slide-enter-to,
 .fade-slide-leave-from {
   opacity: 1;
