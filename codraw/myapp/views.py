@@ -9,6 +9,7 @@ from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 load_dotenv()
+FRONTEND_URL = "http://localhost:8001"
 redis_client=get_redis_client()
 
 @api_view(['GET','POST'])
@@ -181,15 +182,23 @@ def delete(request,room):
         if database.delete_board(room):return Response({'status':200})
     return Response({'status':400})
 
-@api_view(['GET','POST'])
+@api_view(['GET'])
 @ensure_csrf_cookie
 def restore_password(request,mail):
     if request.method=="GET":
-        if helpers.valid_email(mail) and database.user_exists(mail):
+        if helpers.valid_email(mail) and database.get_user(mail) is not None:
+            code=str(uuid4())[:10]
+            link=f"{FRONTEND_URL}/recover/{code}"
+            mailing.restore_password(mail,link)
+            redis_client.setex(f"restore_password:{code}",300,mail)
             return Response({'status':200})
         return Response({'status':404})
     return Response({'status':200})
 
+@ensure_csrf_cookie
+@api_view(['GET','POST'])
+def edit_password(request,code):
+    return Response({'status':200})
 
 @api_view(['GET'])
 @ensure_csrf_cookie

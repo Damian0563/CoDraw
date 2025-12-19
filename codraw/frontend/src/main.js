@@ -31,7 +31,7 @@ const routes = [
   { path: '/board/:id/:room', component: BoArd },
   {path: '/demo', component: DemoBoard},
   {path: '/learn-more', component: LearnMore},
-  {path: '/restore/:mail', component: RestorePassword}
+  {path: '/recover/:code', component: RestorePassword}
 ]
 
 const router = createRouter({

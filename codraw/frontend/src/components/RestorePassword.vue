@@ -49,38 +49,7 @@ const TwoInput = ref(null)
 const ThreeInput = ref(null)
 const FourInput = ref(null)
 const loading=ref(false);
-function getCode() {
-    return `${zero.value}${one.value}${two.value}${three.value}${four.value}`;
-}
-function handleInput(index){
-  if(index === 2 && OneInput.value) OneInput.value.focus()
-  if(index === 3 && TwoInput.value) TwoInput.value.focus()
-  if(index === 4 && ThreeInput.value) ThreeInput.value.focus()
-  if(index === 5 && FourInput.value) FourInput.value.focus()
-}
-async function submitCode(){
-    try{
-        const data=await fetch(`${BASE_URL}/restore_password/${mail.value}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': get_cookie('csrftoken')
-            },
-            body: JSON.stringify({
-                code: getCode()
-            }),
-            credentials: 'include'
-        })
-        const response=await data.json()
-        if(response.status===200){
-            alert("Code verified! You may now reset your password.")
-        }else{  
-            alert("Invalid code. Please try again.")
-        }
-    }catch(err){
-        console.log(err)
-    }
-}
+
 onMounted(()=>{
     loading.value=true;
     const mail =ref(new URL(window.location.href).pathname.split('/')[2])

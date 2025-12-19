@@ -6,30 +6,11 @@
     <button @click="invalid=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
     <div class="alert-content" style="padding-top: 0.2rem;">
       <strong style="color: #ffc107; font-size: 1rem;">{{ message }}</strong>
-      <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">Please try again.</div>
     </div>
     </div>
   </Transition>
   <Transition name="fade-slide">
     <div v-if="recovery" class="recovery-container" role="alert" style="max-width: 80vw; width: 500px; position: fixed; top: 8rem; left: 50%; transform: translateX(-50%); z-index: 5000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
-      <!-- <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
-      <h2 class="mt-3" style="color: yellow;font-weight: bold;">Input your email, recovery link will be sent to you!</h2>
-      <div class="mb-3 needs-validation" novalidate>
-        <label for="emailInput" class="form-label text-muted small">Email Address</label>
-        <input 
-          type="email" 
-          class="form-control form-control-lg mb-3" 
-          placeholder="e.g. name@example.com"
-          required
-          v-model="name_or_mail"
-        />
-        <div class="invalid-feedback">
-          Please specify valid email adress.
-        </div>
-        <button @click="sendReset" class="btn btn-primary btn-lg w-100 shadow-sm">
-          Send Recovery Link
-        </button>
-      </div> -->
       <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
       <h2 class="mt-3" style="color: yellow;font-weight: bold;">Input your email, recovery link will be sent to you!</h2>
       <form 
@@ -132,7 +113,7 @@ async function sendReset(event){
     message.value = 'An error occurred while sending reset email. Are you sure the email is correct?'
   }finally{
     invalid.value = true;
-    message.value="Recovery link sent! Please check your email.";
+    message.value="Recovery link sent, its validity is 5 minutes! Please check your email.";
     recovery.value=false;
   }
 }
