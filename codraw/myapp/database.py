@@ -74,6 +74,14 @@ def check_user(mail:str,password:str)->bool:
         print(f"Error checking user: {e}")
         return False
 
+def update_password(mail:str,new_password:str)->None:
+    try:
+        user=models.User.objects.get(mail=mail)
+        user.password=generate_password_hash(new_password)
+        user.save()
+    except models.User.DoesNotExist:
+        pass
+
 def get_user(mail:str)-> models.User | None:
     try:
         model = models.User.objects.get(mail=mail)

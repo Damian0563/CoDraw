@@ -14,7 +14,7 @@ def account_creation(mail: str, code: Union[str, int]) -> None:
         <p>Good Morning,</p>
         <p>
         Thank you for creating an account on <strong>CoDraw</strong>.
-        This mail is the confirmation of account creation<br>Authentication code is the following: <strong style="font-size:28px">{code}</strong>
+        This mail is the confirmation of account creation<br>Authentication code is the following: <strong>{code}</strong>
         </p>
         <p>Best regards,<br><em>CoDraw Support Team</em></p>
     </body>

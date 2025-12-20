@@ -187,7 +187,7 @@ def delete(request,room):
 def restore_password(request,mail):
     if request.method=="GET":
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
-            code=str(uuid4())[:10]
+            code=str(uuid4())[:20]
             link=f"{FRONTEND_URL}/recover/{code}"
             mailing.restore_password(mail,link)
             redis_client.setex(f"restore_password:{code}",300,mail)
@@ -198,7 +198,20 @@ def restore_password(request,mail):
 @ensure_csrf_cookie
 @api_view(['GET','POST'])
 def edit_password(request,code):
-    return Response({'status':200})
+    if request.method=="GET":
+        mail=redis_client.get(f"restore_password:{code}")
+        if mail is not None:
+            return Response({'status':200})
+        return Response({'status':404})
+    elif request.method=="POST":
+        mail=redis_client.get(f"restore_password:{code}")
+        if mail is not None:
+            data=json.loads(request.body)
+            new_password=data['new_password']
+            database.update_password(mail,new_password)
+            redis_client.delete(f"restore_password:{code}")
+            return Response({'status':200})
+        return Response({'status':404})
 
 @api_view(['GET'])
 @ensure_csrf_cookie

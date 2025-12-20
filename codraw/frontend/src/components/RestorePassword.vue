@@ -12,20 +12,35 @@
                 </div>
             </div>
         </Transition>
+        <Transition name="fade-slide">
+            <div v-if="updated" class="alert alert-success text-center custom-alert p-2"
+                role="alert"
+                style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(40,167,69,0.10); background: #222; border: 1.5px solid #28a745;">
+                <button @click="updated=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #28a745; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
+                <div class="alert-content" style="padding-top: 0.2rem;">
+                    <strong style="color: #28a745; font-size: 1rem;">Password successfully updated!</strong>
+                    <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">You can now sign in with your new password. You will redirected in 10 seconds to the sign in page.</div>
+                </div>
+            </div>
+        </Transition>
         <div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
             <VueSpinnerTail size="60" color="orange" />
         </div>
-        <div class="popup-card mt-4">
-            <h4 class="mb-3 text-white mt-5">Enter Verification Code sent to <span style="color:yellow;font-weight: bold;margin-bottom: 4rem;">{{ mail }}</span></h4>
-            <div class="d-flex justify-content-center mt-4 mb-3">
-                <input maxlength="1" id="1" @input="handleInput(2)" v-model="zero" ref="ZeroInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off" autofocus/>
-                <input maxlength="1" id="2" @input="handleInput(3)" v-model="one" ref="OneInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off"/>
-                <input maxlength="1" id="3" @input="handleInput(4)" v-model="two" ref="TwoInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off"/>
-                <input maxlength="1" id="4" @input="handleInput(5)" v-model="three" ref="ThreeInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" autocomplete="off"/>
-                <input maxlength="1" id="5" class="code-input" v-model="four" ref="FourInput" type="text" pattern="[0-9]*" inputmode="numeric"/>
+        <Transition name="fade-slide">
+            <div class="container align-items-center">
+                <h2 class="text-center mb-3 text-black">Enter New Password</h2>
+                <input type="password" v-model="new_password" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Enter new password" required/>
+                <input type="password" v-model="confirm_password" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Confirm new password" required/>
+                <div v-if="new_password===confirm_password && new_password.length>0">
+                    <button @click="restorePassword" class="btn btn-primary w-100 mt-2">Restore Password</button>
+                </div>
+                <div v-else>
+                    <button disabled class="btn btn-secondary w-100 mt-2">Restore Password</button>
+                    <label class="text-danger mt-2 d-block text-center">Passwords do not match.</label>
+                </div>
+                
             </div>
-            <button class="btn btn-primary" @click="submitCode">Verify</button>
-        </div>
+        </Transition>
     </div>
 
 </template>
@@ -35,27 +50,57 @@ import { onMounted, ref } from 'vue'
 import {BASE_URL} from '../common.js'
 import { get_cookie } from '@/common'
 import {VueSpinnerTail} from 'vue3-spinners'
-const mail =ref(new URL(window.location.href).pathname.split('/')[2])
-const zero = ref(null)
-const one = ref(null)
-const two = ref(null)
-const three = ref(null)
-const four = ref(null)
 const message = ref('')
 const invalid = ref(false)
-//const ZeroInput = ref(null)
-const OneInput = ref(null)
-const TwoInput = ref(null)
-const ThreeInput = ref(null)
-const FourInput = ref(null)
 const loading=ref(false);
+const updated=ref(false);
+const new_password=ref('');
+const confirm_password=ref('');
+
+async function restorePassword(){
+    try{
+        loading.value=true;
+        const code =new URL(window.location.href).pathname.split('/')[2]
+        const data=await fetch(`${BASE_URL}/recover/${code}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': get_cookie('csrftoken')
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                new_password: new_password.value,
+            })
+        })
+        const response=await data.json()
+        return response.status===200
+    }catch(err){
+        loading.value=false;
+        message.value="An error occurred. Please try again.";
+        invalid.value=true;
+    }
+}
+
+restorePassword().then((res)=>{
+    loading.value=false;
+    if(res){
+        updated.value=true;
+        setTimeout(()=>{
+            window.location.href=`${BASE_URL}/signin`
+        },10000)
+    }else{
+        message.value="Failed to update password. The recovery link may be invalid or expired.";
+        invalid.value=true;
+    }
+})
+
 
 onMounted(()=>{
     loading.value=true;
-    const mail =ref(new URL(window.location.href).pathname.split('/')[2])
+    const code =ref(new URL(window.location.href).pathname.split('/')[2])
     async function isValid(){
         try{
-            const data=await fetch(`${BASE_URL}/restore_password/${mail.value}`, {
+            const data=await fetch(`${BASE_URL}/recover/${code.value}`, {
                 method: 'GET',
                 headers: {
                     'X-CSRFToken': get_cookie('csrftoken')
@@ -65,15 +110,13 @@ onMounted(()=>{
             const response=await data.json()
             return response.status===200
         }catch(err){
-            console.log(err)
             window.location.href='/signin'
         }
     }
     isValid().then((res)=>{
         loading.value=false;
-        console.log(res)
         if(!res){
-            message.value="Provided mail is not registered or is invalid."
+            message.value="Recovery link is either invalid or expired."
             invalid.value=true;
         }
     })

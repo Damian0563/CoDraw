@@ -9,6 +9,9 @@
     </div>
     </div>
   </Transition>
+  <div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
+    <VueSpinnerTail size="60" color="orange" />
+  </div>
   <Transition name="fade-slide">
     <div v-if="recovery" class="recovery-container" role="alert" style="max-width: 80vw; width: 500px; position: fixed; top: 8rem; left: 50%; transform: translateX(-50%); z-index: 5000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
       <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
@@ -77,9 +80,11 @@
 import { ref } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
+import {VueSpinnerTail} from 'vue3-spinners'
 let message = ref('')
 let invalid = ref(false)
 let ticked= ref(false)
+const loading=ref(false);
 const name_or_mail = ref('')
 const password = ref('')
 const validated = ref(false);
@@ -89,6 +94,7 @@ const formRef = ref(null);
 
 async function sendReset(event){
   try{
+    
     recovery.value=true;
     const form = event.currentTarget;
     validated.value = true;
@@ -97,6 +103,8 @@ async function sendReset(event){
       event.stopPropagation();
       return;
     }
+    recovery.value=false;
+    loading.value=true;
     const data=await fetch(`${BASE_URL}/restore_password/${name_or_mail.value}`, {
         method: 'GET',
         headers: {
@@ -111,10 +119,11 @@ async function sendReset(event){
     recovery.value=false;
     invalid.value = true
     message.value = 'An error occurred while sending reset email. Are you sure the email is correct?'
+    loading.value=false;
   }finally{
     invalid.value = true;
     message.value="Recovery link sent, its validity is 5 minutes! Please check your email.";
-    recovery.value=false;
+    loading.value=false;
   }
 }
 
@@ -126,6 +135,7 @@ async function SignIn(e){
     e.stopPropagation()
     return;
   }
+  loading.value=true;
   try{
     const csrf=get_cookie('csrftoken')
     const data = await fetch(`${BASE_URL}/signin`, {
@@ -148,10 +158,12 @@ async function SignIn(e){
       invalid.value = true;
       message.value ='Invalid credentials. Please try again.';
     }
+    loading.value=false;
   }catch(e){
     console.error(e)
     invalid.value = true
     message.value = 'An error occurred while signing in.'
+    loading.value=false;  
   }
 }
 async function status(){
