@@ -23,9 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zon^196xo$4xv-w^s2tb#i&gu^m1i@$re7z7to(8gun-shx7fc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = False
 
 import os
 from mongoengine import connect
@@ -90,6 +88,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://codrawapp.com",
+    "https://codrawapp.com",
 ]
 CORS_ALLOW_CREDENTIALS = True
 ASGI_APPLICATION = "codraw.asgi.application"
@@ -181,13 +181,52 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_CLOSE_ON_EXIT = False
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
 
 CSRF_COOKIE_PATH = '/'
 CSRF_COOKIE_DOMAIN = None  # This allows cookies to be accessible on all subdomains
-CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
-CSRF_COOKIE_SECURE = True
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE- 'Lax'
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+ALLOWED_HOSTS = [
+    'codrawapp.com', 
+    'www.codrawapp.com', 
+    '34.116.244.111', 
+    'localhost', 
+    '127.0.0.1'
+]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
+
+# Required for CSRF protection to work with your domain
+CSRF_TRUSTED_ORIGINS = [
+    'http://codrawapp.com',
+    'https://codrawapp.com',
+    'http://www.codrawapp.com',
+    'https://www.codrawapp.com',
+    'http://34.116.244.111'
+]
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
