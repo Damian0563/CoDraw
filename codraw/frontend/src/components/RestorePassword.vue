@@ -1,6 +1,6 @@
 <template>
     <div class="d-block justify-content-center align-items-center mt-4">
-        <h1 class="my-2" style="color: yellow;">Password Restoration</h1>
+        <h1 class="my-4" style="color: yellow;">Password Restoration</h1>
         <Transition name="fade-slide">
             <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
                 role="alert"
@@ -19,7 +19,7 @@
                 <button @click="updated=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #28a745; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
                 <div class="alert-content" style="padding-top: 0.2rem;">
                     <strong style="color: #28a745; font-size: 1rem;">Password successfully updated!</strong>
-                    <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">You can now sign in with your new password. You will redirected in 10 seconds to the sign in page.</div>
+                    <div style="color: #fff; margin-top: 0.2rem; font-size: 0.92rem;">You can now sign in with your new password. You will be redirected in 10 seconds to the sign in page.</div>
                 </div>
             </div>
         </Transition>
@@ -27,18 +27,23 @@
             <VueSpinnerTail size="60" color="orange" />
         </div>
         <Transition name="fade-slide">
-            <div class="container align-items-center">
-                <h2 class="text-center mb-3 text-black">Enter New Password</h2>
-                <input type="password" v-model="new_password" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Enter new password" required/>
-                <input type="password" v-model="confirm_password" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Confirm new password" required/>
+            <div class="container align-items-center w-25 mt-4 bg-white rounded p-4">
+                <h2 class="text-center mb-5 text-black">Enter New Password</h2>
+                <div class="input-group">
+                    <input type="password" id="new" v-model="new_password" class="form-control bg-dark text-black bg-white border-secondary mb-3" placeholder="Enter new password" required/>
+                    <font-awesome-icon :icon="['fas', 'eye']" class="input-icon mt-2 mx-2" style="cursor: pointer;" @click="togglePasswordVisibility('new_password')" />
+                </div>
+                <div class="input-group">
+                    <input type="password" id="confirm" v-model="confirm_password" class="form-control bg-dark text-black bg-white border-secondary mb-3" placeholder="Confirm new password" required/>
+                    <font-awesome-icon :icon="['fas', 'eye']" class="input-icon mt-2 mx-2" style="cursor: pointer;" @click="togglePasswordVisibility('confirm_password')" />
+                </div>
                 <div v-if="new_password===confirm_password && new_password.length>0">
-                    <button @click="restorePassword" class="btn btn-primary w-100 mt-2">Restore Password</button>
+                    <button @click="init()" class="btn btn-primary w-100 mt-2">Restore Password</button>
                 </div>
                 <div v-else>
                     <button disabled class="btn btn-secondary w-100 mt-2">Restore Password</button>
                     <label class="text-danger mt-2 d-block text-center">Passwords do not match.</label>
                 </div>
-                
             </div>
         </Transition>
     </div>
@@ -56,6 +61,15 @@ const loading=ref(false);
 const updated=ref(false);
 const new_password=ref('');
 const confirm_password=ref('');
+
+function togglePasswordVisibility(field) {
+    const inputField = field === 'new_password' ? document.querySelector('#new') : document.querySelector('#confirm');
+    if (inputField.type === 'password') {
+        inputField.type = 'text';
+    } else {
+        inputField.type = 'password';
+    }
+}
 
 async function restorePassword(){
     try{
@@ -79,20 +93,24 @@ async function restorePassword(){
         message.value="An error occurred. Please try again.";
         invalid.value=true;
     }
+    loading.value=false;
 }
 
-restorePassword().then((res)=>{
+const init=()=>{
+    restorePassword().then((res)=>{
     loading.value=false;
     if(res){
         updated.value=true;
         setTimeout(()=>{
-            window.location.href=`${BASE_URL}/signin`
+            window.location.href=`${window.location.origin}/signin`
         },10000)
     }else{
         message.value="Failed to update password. The recovery link may be invalid or expired.";
         invalid.value=true;
     }
-})
+    })
+}
+
 
 
 onMounted(()=>{

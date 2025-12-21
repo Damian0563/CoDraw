@@ -24,8 +24,8 @@
       <button class="btn btn-primary w-100" @click="verifyCode">Verify</button>
     </div>
   </div>
-  <div class="d-flex justify-content-center pt-5" style="background-color: black; min-height: 40vh;">
-    <div class="card p-3 shadow-lg" style="max-width: 400px; width: 100%; background: white; border: none; min-height: unset;">
+  <div class="d-flex justify-content-center pt-5 mb-5" style="background-color: black; min-height: 40vh;">
+    <div class="card p-3 shadow-lg w-50" style="max-width: 700px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign Up</h2>
       <form ref="formRef" @submit="SignUp" class="needs-validation" novalidate>
         <div class="mb-2">
@@ -57,11 +57,13 @@
       </div>
     </div>  
   </div>
+  <FoOter/>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
+import FoOter from './Footer.vue'
 let visible=ref(false)
 let formRef=ref(null)
 let invalid=ref(false)

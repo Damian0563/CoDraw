@@ -16,10 +16,9 @@ import LearnMore from './components/LearnMore.vue';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-import { faPalette, faBolt, faLightbulb, faUndo ,faRedo, faUser} from '@fortawesome/free-solid-svg-icons'
+import { faPalette, faBolt, faLightbulb, faUndo ,faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller} from '@fortawesome/free-solid-svg-icons'
 import {faGithub } from '@fortawesome/free-brands-svg-icons'
-library.add(faPalette, faBolt, faLightbulb,faUndo,faRedo,faUser,faGithub)
-
+library.add(faPalette, faBolt, faLightbulb,faUndo,faRedo,faUser,faEye,faPencil,faFeatherPointed,faPaintBrush,faPaintRoller,faGithub)
 
 const routes = [
   { path: '/', component: HeRo },

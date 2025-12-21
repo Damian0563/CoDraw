@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container mb-5">
     <img
       :src="logo"
       alt="CoDraw Logo"
@@ -19,13 +19,18 @@
       </p>
     </section>
   </div>
+  <FoOter/>
 </template>
 
 
 <script>
 import logo from '@/assets/logo.webp';
+import FoOter from './Footer.vue';
 export default {
   name: "LearnMore",
+  components: {
+    FoOter
+  },
   data() {
     return {
       logo,
