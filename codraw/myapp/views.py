@@ -9,8 +9,8 @@ from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 load_dotenv()
-# FRONTEND_URL = "http://localhost:8001"
-FRONTEND_URL = "http://localhost:8000"
+FRONTEND_URL = "http://localhost:8001"
+#FRONTEND_URL = "http://localhost:8000"
 redis_client=get_redis_client()
 
 @api_view(['GET','POST'])

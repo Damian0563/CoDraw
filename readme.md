@@ -17,6 +17,7 @@ An interactive whiteboard platform aimed at providing a seemless experience for 
 * Project browsing capabilities thanks to natural language processing.
 * Invitations via a link functionality.
 * Mail based account creation(providing a passkey).
+* Password recovery.
 * Rich board customisations & Bookmarks!
 
 ### Tech Stack
