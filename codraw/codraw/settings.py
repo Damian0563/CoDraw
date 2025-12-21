@@ -30,23 +30,38 @@ ALLOWED_HOSTS = []
 import os
 from mongoengine import connect
 
-MONGO_DB_NAME = 'CoDraw'
-MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
-REDIS_HOST = 'localhost' #localhost
+
+REDIS_HOST = 'localhost'
+REDIS_HOST = 'redis'
 REDIS_PORT = 6379
 REDIS_DB = 0
 # REDIS_PASSWORD = '111111111'
 
+# MONGO_DB_NAME = 'CoDraw'
+# MONGO_HOST = 'localhost'
+# MONGO_PORT = 27017
+# connect(
+#     db=MONGO_DB_NAME,
+#     host=MONGO_HOST,
+#     port=MONGO_PORT
+# )
+
+MONGO_USER = 'damian.piechocki05@gmail.com'
+MONGO_PASS = '893012hjfhjsdkfho30kdlda@uwow!'
+MONGO_DB_NAME = 'CoDraw'
+MONGO_HOST = 'db'
+MONGO_PORT = 27017
 
 connect(
     db=MONGO_DB_NAME,
     host=MONGO_HOST,
-    port=MONGO_PORT
+    port=MONGO_PORT,
+    username=MONGO_USER,
+    password=MONGO_PASS,
+    authentication_source='admin'
 )
 
 
-# Application definition
 
 INSTALLED_APPS = [
     'daphne',
@@ -70,7 +85,9 @@ CHANNEL_LAYERS = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8001",
+    "http://localhost:8000",
     "http://127.0.0.1:8001",
+    "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]

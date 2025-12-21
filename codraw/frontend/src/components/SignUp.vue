@@ -49,7 +49,7 @@
             Please specify password.
           </div>
         </div>
-        <button id="sign" class="btn btn-success w-100 mt-2" type="submit" style="background-color: yellow;color: black;">Sign Up</button>
+        <button id="sign" class="btn btn-success w-50 mt-2" type="submit" style="background-color: yellow;color: black;">Sign Up</button>
       </form>
       <div class="text-center mt-2">
         <span class="text-secondary">Already have an account?</span>

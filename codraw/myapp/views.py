@@ -9,7 +9,8 @@ from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 load_dotenv()
-FRONTEND_URL = "http://localhost:8001"
+# FRONTEND_URL = "http://localhost:8001"
+FRONTEND_URL = "http://localhost:8000"
 redis_client=get_redis_client()
 
 @api_view(['GET','POST'])
@@ -42,10 +43,17 @@ def Verify(request):
     code=request.data.get('code')
     mail = request.data.get('mail')
     if database.check_code(mail,code):
-        response = Response({"status":200})
         response=Response({"status":200})
         encoded=database.encode_user(mail)
         request.session['user_id'] = encoded
+        request.session.save()
+        response.set_cookie(
+            key='token',
+            value=encoded,
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+        )
         return response
     return Response({"status":400})
 

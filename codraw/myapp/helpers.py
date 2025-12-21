@@ -1,4 +1,4 @@
-from random import random
+import random
 import re
 
 def generate_code()->str:

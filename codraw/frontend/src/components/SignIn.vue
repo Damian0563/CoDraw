@@ -63,7 +63,7 @@
           </label>
           <input type="checkbox" ref="ticked" @click="ticked=!ticked" id="rememberMe" style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
         </div>
-        <button id="sign" type="submit" class="btn btn-success w-100 mt-2" style="background-color: yellow;color: black;">Sign In</button>
+        <button id="sign" type="submit" class="btn btn-success w-50 mt-2" style="background-color: yellow;color: black;">Sign In</button>
       </form>
       <div class="text-center mt-2">
         <span class="text-secondary">Do not have an account?</span>

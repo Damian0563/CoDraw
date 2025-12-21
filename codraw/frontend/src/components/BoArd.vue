@@ -883,9 +883,9 @@ const check_save = async (mode) => {
 function leave(){
   localStorage.removeItem('storage')
   if(admin.value){
-    window.location.href='http://localhost:8081/codraw'
+    window.location.href='/codraw'
   }else{
-    window.location.href='http://localhost:8081/'
+    window.location.href='/'
   }
 }
 
