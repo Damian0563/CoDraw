@@ -1,4 +1,17 @@
 services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/damian_piechocki05/CoDraw/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
+      - web
+    networks:
+      - app-network
   db:
     image: mongo:latest
     container_name: mongodb_db
@@ -24,9 +37,9 @@ services:
       context: ./codraw
       dockerfile: Dockerfile
     container_name: django_web
-    command: python manage.py runserver --noreload -v 0 0.0.0.0:8080
-    ports:
-      - "8080:8080"
+    command: daphne -b 0.0.0.0 -p 8080 codraw.asgi:application
+    expose:
+      - "8080"
     volumes:
       - ./backend:/app
     depends_on:
@@ -42,9 +55,12 @@ services:
     build:
       context: ./codraw/frontend
       dockerfile: Dockerfile
+      args:
+        - VUE_APP_BASE_URL=https://codrawapp.com/api
+        - VUE_APP_WS_URL=wss://codrawapp.com/ws/
     container_name: vue_frontend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - ./frontend:/app
     networks:
