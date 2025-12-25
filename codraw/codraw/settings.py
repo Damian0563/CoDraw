@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-from datetime import timedelta 
+from mongoengine import connect
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,40 +28,36 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-import os
-from mongoengine import connect
-
 
 REDIS_HOST = 'localhost'
-REDIS_HOST = 'redis'
+# REDIS_HOST = 'redis'
 REDIS_PORT = 6379
 REDIS_DB = 0
 # REDIS_PASSWORD = '111111111'
 
-# MONGO_DB_NAME = 'CoDraw'
-# MONGO_HOST = 'localhost'
-# MONGO_PORT = 27017
-# connect(
-#     db=MONGO_DB_NAME,
-#     host=MONGO_HOST,
-#     port=MONGO_PORT
-# )
-
-MONGO_USER = 'damian.piechocki05@gmail.com'
-MONGO_PASS = '893012hjfhjsdkfho30kdlda@uwow!'
 MONGO_DB_NAME = 'CoDraw'
-MONGO_HOST = 'db'
+MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
-
 connect(
     db=MONGO_DB_NAME,
     host=MONGO_HOST,
-    port=MONGO_PORT,
-    username=MONGO_USER,
-    password=MONGO_PASS,
-    authentication_source='admin'
+    port=MONGO_PORT
 )
 
+# MONGO_USER = 'damian.piechocki05@gmail.com'
+# MONGO_PASS = '893012hjfhjsdkfho30kdlda@uwow!'
+# MONGO_DB_NAME = 'CoDraw'
+# MONGO_HOST = 'db'
+# MONGO_PORT = 27017
+#
+# connect(
+#     db=MONGO_DB_NAME,
+#     host=MONGO_HOST,
+#     port=MONGO_PORT,
+#     username=MONGO_USER,
+#     password=MONGO_PASS,
+#     authentication_source='admin'
+# )
 
 
 INSTALLED_APPS = [
@@ -102,7 +99,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'codraw.urls'
@@ -125,7 +122,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'codraw.wsgi.application'
 
 REST_FRAMEWORK = {
-    
+
 }
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -181,13 +178,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_CLOSE_ON_EXIT = False
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
 
 CSRF_COOKIE_PATH = '/'
 CSRF_COOKIE_DOMAIN = None  # This allows cookies to be accessible on all subdomains
 CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

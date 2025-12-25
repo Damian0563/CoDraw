@@ -472,7 +472,10 @@ const stageConfig = {
 
 const ws=ref(null)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
-ws.value = new WebSocket(`${WS_URL}/${room.value}/`)
+const rawUrl=WS_URL
+const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+const finalUrl = `${cleanBase}/${room.value}/`;
+ws.value = new WebSocket(finalUrl)
 ws.value.onmessage = async(event) => {
   const data = JSON.parse(event.data);
   if (!data || !data.type) return;

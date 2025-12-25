@@ -33,6 +33,7 @@
     </Transition>
     <div
       id="toolbar"
+			:class="{ 'vertical-toolbar': windowWidth < 900 }"
       style="
       position: absolute;
       top: 32px;
@@ -483,8 +484,42 @@ html, body {
 </style>
 
 <style scoped>
+.vertical-toolbar {
+  flex-direction: column !important;
+  padding: 32px 15px !important;
+}
+#toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+@media(max-width:900px){
+	#toolbar {
+    flex-direction: column; 
+    align-items: center; 
+    padding: 20px 20px; 
+		max-width: 90px;
+    left: 20px;          
+  }
+  #toolbar input[type="range"] {
+    width: 70px !important;
+  }
+	#toolbar select {
+		margin-top: 8px !important;
+		font-size: 1rem !important;
+		border-radius: 4px !important;
+		width: 70px !important;
+	}
+	#toolbar button {
+		width: 70px !important;
+		font-size: 1rem !important;
+		margin-top: 8px !important;
+	}
+}
+
 .feature-icon {
-  font-size: 2.5rem;
+  font-size: 1.25rem;
   color: orange;
   transition: transform 0.3s ease;
 }
@@ -520,20 +555,14 @@ html, body {
   z-index: 1000;
   background-color: rgba(255, 255, 255, 0.8);
 }
-
 .board-wrapper {
   width: 100%;
   height: 100%;
 }
-
-
-/* The "leave" state, when the modal is about to disappear */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
-
-/* The "active" state, when the modal is fully visible and in its final position */
 .fade-slide-enter-to,
 .fade-slide-leave-from {
   opacity: 1;
