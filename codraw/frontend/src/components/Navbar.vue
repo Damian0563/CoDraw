@@ -11,10 +11,10 @@
         </RouterLink>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
           <li class="nav-item mx-2">
-            <RouterLink class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
+            <RouterLink aria-label="Go to sign up" class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
           </li> 
           <li class="nav-item mx-2">
-            <RouterLink class="btn btn-outline-light" id="sing" to="/signin">Sign in</RouterLink>
+            <RouterLink aria-label="Go to sign in" class="btn btn-outline-light" id="sing" to="/signin">Sign in</RouterLink>
           </li>
         </ul>
       </div>

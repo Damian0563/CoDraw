@@ -152,7 +152,7 @@ const lastPos = ref(null);
 const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
-const motiv=ref(false)
+const motiv=ref(true)
 const visitor=ref(true)
 const stroke_history=ref([])
 const history_index=ref(0)
@@ -210,7 +210,6 @@ function getCrop(image, size) {
 function applyCrop(imgNode) {
   const image = imgNode.image();
   if (!image) return;
-
   const crop = getCrop(image, {
     width: imgNode.width(),
     height: imgNode.height()
@@ -341,7 +340,6 @@ function clearDefinetely(){
   showPopup.value=false
   message.value=""
   loading.value=true
-  console.log("Clearing the board")
   localStorage.removeItem('storage')
   const layer=layerRef.value.getNode();
   layer.destroyChildren();
@@ -485,6 +483,7 @@ html, body {
 
 <style scoped>
 .vertical-toolbar {
+	justify-content: center;
   flex-direction: column !important;
   padding: 32px 15px !important;
 }
@@ -496,11 +495,14 @@ html, body {
 }
 @media(max-width:900px){
 	#toolbar {
+		justify-content: center;
     flex-direction: column; 
     align-items: center; 
     padding: 20px 20px; 
+		top: 50% !important;
+		transform: translateY(-60%) !important;
 		max-width: 90px;
-    left: 20px;          
+    left: 10px;
   }
   #toolbar input[type="range"] {
     width: 70px !important;
@@ -511,7 +513,7 @@ html, body {
 		border-radius: 4px !important;
 		width: 70px !important;
 	}
-	#toolbar button {
+	#save_btn {
 		width: 70px !important;
 		font-size: 1rem !important;
 		margin-top: 8px !important;

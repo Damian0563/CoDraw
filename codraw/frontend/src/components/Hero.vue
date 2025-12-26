@@ -12,7 +12,7 @@
       <font-awesome-icon :icon="['fa','pencil']" class="feature-icon hero-floating-icon"/>
       <font-awesome-icon :icon="['fa','paint-roller']" class="feature-icon secondary-floating-icon"/>
     </div>
-    <router-link to="/signup">
+    <router-link to="/signup" aria-label="Go to sign up">
       <button class="cta-btn mt-4">Start Drawing Now</button>
     </router-link>
   </div>
@@ -48,16 +48,17 @@
             <br /><br />
             Our mission is simple: empower creativity by connecting people through shared imagination.
           </p>
-          <router-link to="/learn-more">
+          <router-link to="/learn-more" aria-label="Learn More">
             <button class="about-btn mt-3">Learn More</button>
           </router-link>
         </div>
-
         <div class="col-md-6 text-center about-visual">
           <img
             :src="logo"
             alt="Collaborative Drawing"
             class="about-image"
+						loading="lazy"
+						decoding="async"
           />
         </div>
       </div>
@@ -65,7 +66,7 @@
   </section>
   <section class="my-5 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;height: 90vh;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
-    <div class="my-5 mx-auto rounded border border-warning" style="background-color: black; overflow: hidden;">
+    <div class="my-5 rounded border border-warning" style="background-color: black; overflow: hidden;">
       <DemoBoard />
     </div>
   </section>

@@ -38,5 +38,4 @@ const router = createRouter({
   routes,
 })
 
-
 createApp(App).use(router).use(VueKonva).component('font-awesome-icon',FontAwesomeIcon).mount('#app')
