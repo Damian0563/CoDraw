@@ -3,7 +3,7 @@
     style="
       position: relative;
       width: 80vw;
-      height: 80vh;
+      height: 90vh;
       overflow: hidden;
     "
   >
@@ -14,26 +14,21 @@
       <div v-if="showPopup"
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
         <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-        <button @click="showPopup = false" 
-            style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
-          ✕
-        </button>
-        <p>{{message}}</p>
-        <button v-if="message!=='Are you sure you would like to clear the board? This action is irreversible.'" @click="showPopup = false" id="close_form"
-            style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
-          Close
-        </button>
-        <button v-if="message==='Are you sure you would like to clear the board? This action is irreversible.'" 
-          @click="clearDefinetely()" id="confirm_clear"
-          style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
-          Confirm
-        </button>
-      </div>
+					<button @click="showPopup = false" aria-label="close pop up"
+							style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+						✕
+					</button>
+					<p>{{message}}</p>
+					<button v-if="message!=='Are you sure you would like to clear the board? This action is irreversible.'" aria-label="close" @click="showPopup = false" id="close_form"
+						style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+						Close
+					</button>
+        </div>
       </div>
     </Transition>
     <div
       id="toolbar"
-			:class="{ 'vertical-toolbar': windowWidth < 900 }"
+			:class="{ 'vertical-toolbar': windowWidth < 800 }"
       style="
       position: absolute;
       top: 32px;
@@ -47,16 +42,17 @@
       gap: 20px;
       z-index: 10;
       "
-    > 
-      <font-awesome-icon :icon="['fas','undo']" class="feature-icon" @click="undo()"></font-awesome-icon>
-      <font-awesome-icon :icon="['fas','redo']" class="feature-icon" @click="redo()"></font-awesome-icon>
-      <button @click="motiv=!motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
+    >
+      <font-awesome-icon :icon="['fas','undo']" aria-label="Undo" class="feature-icon" @click="undo()"></font-awesome-icon>
+      <font-awesome-icon :icon="['fas','redo']" aria-label="Redo" class="feature-icon" @click="redo()"></font-awesome-icon>
+      <button aria-label="change motiv" @click="motiv=!motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
       :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"
       ></button>
       <text style="color: white;">Brush Color</text>
-      <input type="color" v-model="color">
+      <input type="color" aria-label="select color" v-model="color">
       <select
         v-model="tool"
+				aria-label="tool selector(brush/eraser)"
         style="
           background: #23272f;
           color: #fff;
@@ -77,6 +73,7 @@
       <input
         type="range"
         v-model="width_slider"
+				aria-label="Line width selector"
         min="1"
         max="20"
         style="
@@ -86,22 +83,7 @@
         "
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
-      <button
-        id="save_btn"
-        v-if="admin || visitor"
-        @click="check_save('save')"
-        style="
-          background: #4f8cff;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          padding: 8px 20px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: ease-in-out 0.6s;
-        "
-      >Save</button>
-    </div>
+      </div>
     <div
       class="board-wrapper"
       :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"
@@ -119,7 +101,7 @@
           style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
           >
           <v-layer ref="layerRef">
-              <v-image  
+              <v-image
                 ref="imageRef"
                 :config="imageConfig"
               />
@@ -139,7 +121,6 @@ import Konva from 'konva';
 import { watch } from 'vue';
 const stageRef = ref(null);
 const windowWidth = ref(window.innerWidth);
-const admin=ref(false)
 const showPopup=ref(false)
 const color = ref("#ffffff")
 const background=ref("#000000")
@@ -153,7 +134,6 @@ const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
 const motiv=ref(true)
-const visitor=ref(true)
 const stroke_history=ref([])
 const history_index=ref(0)
 const stageConfig = {
@@ -279,11 +259,9 @@ const redo=()=>{
         layer.add(KonvaNode)
         layer.draw()
       }
-      
-    }    
+    }
   }
 }
-
 const handlePaste = (event) => {
   event.preventDefault();
   const stage = stageRef.value?.getNode?.();
@@ -320,31 +298,8 @@ const handlePaste = (event) => {
       layer.draw();
       addToHistory()
   }
-  reader.onloadstart= function() {
-    console.error('Starting');
-  };
-  reader.onerror = function(event) {
-    console.error('FileReader error:', event.target.error);
-  };
   }
   reader.readAsDataURL(file)
-}
-
-
-const check_save = () => {
-  showPopup.value=true
-  message.value="Board was successfully quick saved."
-}
-
-function clearDefinetely(){
-  showPopup.value=false
-  message.value=""
-  loading.value=true
-  localStorage.removeItem('storage')
-  const layer=layerRef.value.getNode();
-  layer.destroyChildren();
-  layer.batchDraw();
-  loading.value=false
 }
 
 const getRelativePointerPosition = (stage) => {
@@ -437,24 +392,19 @@ onMounted(async()=>{
       const stage = stageRef.value?.getNode();
       const image = imageRef.value?.getNode();
       if (!stage || !image) return;
-
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
-
       canvas.width = newWidth * 4;
       canvas.height = newHeight * 4;
-
       stage.width(canvas.width);
       stage.height(canvas.height);
-
       image.width(canvas.width);
       image.height(canvas.height);
-
       const layer = image.getLayer();
       if (layer) layer.batchDraw();
     }, 100);
   });
-  window.addEventListener('resize', onResize); 
+  window.addEventListener('resize', onResize);
   window.addEventListener('paste', handlePaste)
   watch(motiv,()=>{
     background.value = motiv.value ? "#ffffff" : "#000000"
@@ -485,7 +435,7 @@ html, body {
 .vertical-toolbar {
 	justify-content: center;
   flex-direction: column !important;
-  padding: 32px 15px !important;
+  padding: 15px 15px !important;
 }
 #toolbar {
   display: flex;
@@ -493,30 +443,25 @@ html, body {
   align-items: center;
   gap: 20px;
 }
-@media(max-width:900px){
+@media(max-width:800px){
 	#toolbar {
 		justify-content: center;
-    flex-direction: column; 
-    align-items: center; 
-    padding: 20px 20px; 
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 20px;
 		top: 50% !important;
-		transform: translateY(-60%) !important;
-		max-width: 90px;
+		transform: translateY(-70%) !important;
+		max-width: 70px;
     left: 10px;
   }
   #toolbar input[type="range"] {
-    width: 70px !important;
+    width: 50px !important;
   }
 	#toolbar select {
 		margin-top: 8px !important;
 		font-size: 1rem !important;
 		border-radius: 4px !important;
-		width: 70px !important;
-	}
-	#save_btn {
-		width: 70px !important;
-		font-size: 1rem !important;
-		margin-top: 8px !important;
+		width: 50px !important;
 	}
 }
 
@@ -571,10 +516,6 @@ html, body {
   transform:translateY(0);
 }
 
-.save:hover{
-  background:#fff ;
-  color: #4f8cff;
-}
 .switch {
   position: relative;
   display: inline-block;
@@ -656,7 +597,7 @@ input:checked + .slider::before {
 
 #inv:hover,#bookmark-btn:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
   background: #fff !important;
-  color:#4f8cff !important; 
+  color:#4f8cff !important;
 }
 #exit:hover{
   background:#fff!important;
