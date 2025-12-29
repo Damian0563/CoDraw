@@ -5,15 +5,15 @@
       <font-awesome-icon :icon="['fa','paintbrush']" class="feature-icon secondary-floating-icon"/>
       <font-awesome-icon :icon="['fa','feather-pointed']" class="feature-icon hero-floating-icon"/>
       <p class="hero-subtitle mb-0 mx-2">
-        CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, 
-        and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates 
+        CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share,
+        and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates
         as you bring your creative ideas to life!
       </p>
       <font-awesome-icon :icon="['fa','pencil']" class="feature-icon hero-floating-icon"/>
       <font-awesome-icon :icon="['fa','paint-roller']" class="feature-icon secondary-floating-icon"/>
     </div>
     <router-link to="/signup" aria-label="Go to sign up">
-      <button class="cta-btn mt-4">Start Drawing Now</button>
+      <button class="cta-btn mt-4" aria-label="Start drawing">Start Drawing Now</button>
     </router-link>
   </div>
   <div class="features-section">
@@ -31,25 +31,25 @@
       </div>
     </div>
   </div>
-  <section class="about-sec container text-center my-5">
+  <section class="about-sec container text-center my-5" aria-label="Our mission">
     <text class="about-title">No subscriptions, no hidden fees</text><text class="about-text" style="font-size: 2.5rem;">- just free for everyone, forever with at most respect to privacy.</text>
   </section>
-  <section id="about" href="#about" class="about-sec">
+  <section id="about" href="#about" class="about-sec" aria-label="About codraw">
     <div class="container">
       <div class="row align-items-center">
         <div class="col-md-6 about-text">
           <h2 class="about-title">About CoDraw</h2>
           <p>
-            CoDraw was built for creators who believe in collaboration. Whether you're sketching concepts, 
-            storyboarding, or designing together, CoDraw makes teamwork feel effortless and fun.  
+            CoDraw was built for creators who believe in collaboration. Whether you're sketching concepts,
+            storyboarding, or designing together, CoDraw makes teamwork feel effortless and fun.
             <br /><br />
-            With our real-time synchronization engine and a beautifully minimal interface, you can see every brushstroke 
-            from your teammates the moment it happens — no refreshes, no lag, just instant creativity.  
+            With our real-time synchronization engine and a beautifully minimal interface, you can see every brushstroke
+            from your teammates the moment it happens — no refreshes, no lag, just instant creativity.
             <br /><br />
             Our mission is simple: empower creativity by connecting people through shared imagination.
           </p>
           <router-link to="/learn-more" aria-label="Learn More">
-            <button class="about-btn mt-3">Learn More</button>
+            <button class="about-btn mt-3" aria-label="Learn More">Learn More</button>
           </router-link>
         </div>
         <div class="col-md-6 text-center about-visual">
@@ -64,7 +64,7 @@
       </div>
     </div>
   </section>
-  <section class="my-5 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;height: 90vh;width:100%;overflow: hidden;">
+  <section aria-label="Demo" class="my-5 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;height: 90vh;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
     <div class="my-5 rounded border border-warning" style="background-color: black; overflow: hidden;">
       <DemoBoard />
@@ -82,7 +82,7 @@ import FoOter from './Footer.vue';
 
 export default {
   name: "HeRo",
-  components: { 
+  components: {
     DemoBoard,
     FoOter
   },

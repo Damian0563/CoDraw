@@ -6,7 +6,7 @@
     <div v-if="showPopup"
       style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
       <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-      <button @click="showPopup = false" 
+      <button @click="showPopup = false"
           style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
         ✕
       </button>
@@ -29,7 +29,7 @@
           v-for="(board, index) in boards"
           :key="index"
           class="project-card"
-        > 
+        >
           <div class="d-flex justify-content-end align-items-center gap-2">
             <div v-if="admin" class="w-100">
               <div class="d-flex justify-content-end align-items-center gap-2">
@@ -97,7 +97,7 @@
         </div>
       </div>
     </div>
-    <div class="container mt-5" v-if="admin"> 
+    <div class="container mt-5" v-if="admin">
       <h1 class="text-start">Bookmarks</h1>
       <div class="boards-wrapper mt-5 justify-content-start">
         <div
@@ -192,7 +192,6 @@ const delete_bookmark=async(room)=>{
       showPopup.value=true
       message.value="Bookmark successfuly deleted."
     }
-    // else console.log("Bookmark not deleted successfully")
   }catch(e){
     console.error(e)
   }

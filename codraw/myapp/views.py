@@ -1,15 +1,15 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view  # ignore
 from rest_framework.response import Response
 from django.views.decorators.csrf import ensure_csrf_cookie
 from uuid import uuid4
 from codraw.redis_client import get_redis_client
 import json
+import os
 from . import helpers
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 load_dotenv()
-FRONTEND_URL = "http://localhost:8001"
 redis_client = get_redis_client()
 
 
@@ -211,7 +211,7 @@ def restore_password(request, mail):
     if request.method == "GET":
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
             code = str(uuid4())[:20]
-            link = f"{FRONTEND_URL}/recover/{code}"
+            link = f"{os.getenv('FRONTEND_URL')}/recover/{code}"
             mailing.restore_password(mail, link)
             redis_client.setex(f"restore_password:{code}", 300, mail)
             return Response({'status': 200})
@@ -219,8 +219,8 @@ def restore_password(request, mail):
     return Response({'status': 200})
 
 
-@ensure_csrf_cookie
-@api_view(['GET', 'POST'])
+@ ensure_csrf_cookie
+@ api_view(['GET', 'POST'])
 def edit_password(request, code):
     if request.method == "GET":
         mail = redis_client.get(f"restore_password:{code}")
@@ -238,8 +238,8 @@ def edit_password(request, code):
         return Response({'status': 404})
 
 
-@api_view(['GET'])
-@ensure_csrf_cookie
+@ api_view(['GET'])
+@ ensure_csrf_cookie
 def username(request):
     id = helpers.validate_request(request)
     if id is not None:
@@ -249,8 +249,8 @@ def username(request):
     return Response({'status': 404})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def edit(request, room):
     id = helpers.validate_request(request)
     if id is not None:
@@ -262,8 +262,8 @@ def edit(request, room):
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def logout(request):
     request.session.flush()
     response = Response({"status": 200, "message": "Logged out successfully"})
@@ -271,13 +271,13 @@ def logout(request):
     return response
 
 
-@api_view(['GET', 'POST'])
-@ensure_csrf_cookie
+@ api_view(['GET', 'POST'])
+@ ensure_csrf_cookie
 def board(request, id, room):
     return Response({'status': 200})
 
 
-@api_view(['GET', 'POST'])
+@ api_view(['GET', 'POST'])
 def save(request):
     data = json.loads(request.body)
     id = helpers.validate_request(request)
@@ -291,8 +291,8 @@ def save(request):
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def boards_user(request, username):
     id = helpers.validate_request(request)
     if id is not None:
@@ -309,8 +309,8 @@ def boards_user(request, username):
     return Response({'status': 400, 'boards': []})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def save_new(request):
     data = json.loads(request.body)
     project = data.get('project')
@@ -325,8 +325,8 @@ def save_new(request):
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def check_owner(request):
     data = json.loads(request.body)
     owner = data['owner']
@@ -337,8 +337,8 @@ def check_owner(request):
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def check_bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None and database.check_bookmark(room, id):
@@ -346,8 +346,8 @@ def check_bookmark(request, room):
     return Response({'status': 403, 'bookmarked': False})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None:
@@ -355,6 +355,8 @@ def bookmark(request, room):
         me = data['user']
         curr_bookmark = data['status']
         if database.modify_bookmark(me, curr_bookmark, room):
+            if redis_client.get(f"bookmarks:{me}"):
+                redis_client.delete(f"bookmarks:{me}")
             if curr_bookmark:
                 return Response({'status': 200, 'bookmarked': False})
             else:
@@ -363,35 +365,38 @@ def bookmark(request, room):
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def get_bookmarks(request, username):
     id = helpers.validate_request(request)
     if id is not None:
         data = json.loads(request.body)
         timezone = data['timezone']
-        if redis_client.get(f"bookmarks:{username}:{timezone}"):
+        if redis_client.get(f"bookmarks:{username}"):
             bookmarks = json.loads(redis_client.get(
-                f"bookmarks:{username}:{timezone}"))
+                f"bookmarks:{username}"))
         else:
             bookmarks = database.get_bookmarks(username, timezone)
-            redis_client.setex(f"bookmarks:{username}:{
-                               timezone}", 60*5, json.dumps(bookmarks))
+            redis_client.setex(
+                f"bookmarks:{username}", 60*5, json.dumps(bookmarks))
         return Response({'status': 200, 'bookmarks': bookmarks})
     return Response({'status': 400, 'bookmarks': []})
 
 
-@api_view(['GET'])
-@ensure_csrf_cookie
+@ api_view(['GET'])
+@ ensure_csrf_cookie
 def delete_bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None and database.delete_bookmark(id, room):
+        username = database.decode_user(id)
+        if redis_client.get(f"bookmarks:{username}"):
+            redis_client.delete(f"bookmarks:{username}")
         return Response({'status': 200})
     return Response({'status': 400})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def trending(request):
     id = helpers.validate_request(request)
     if id is not None:
@@ -407,8 +412,8 @@ def trending(request):
     return Response({'status': 400, 'boards': ''})
 
 
-@api_view(['POST'])
-@ensure_csrf_cookie
+@ api_view(['POST'])
+@ ensure_csrf_cookie
 def search(request):
     id = helpers.validate_request(request)
     if id is not None:

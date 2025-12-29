@@ -14,7 +14,7 @@
       <div v-if="showPopup"
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
         <div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-        <button @click="showPopup = false" 
+        <button @click="showPopup = false"
             style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
           ✕
         </button>
@@ -23,7 +23,7 @@
             style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
           Close
         </button>
-        <button v-if="message==='Are you sure you would like to clear the board? This action is irreversible.'" 
+        <button v-if="message==='Are you sure you would like to clear the board? This action is irreversible.'"
           @click="clearDefinetely()" id="confirm_clear"
           style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
           Confirm
@@ -33,20 +33,21 @@
     </Transition>
     <div
       id="toolbar"
+			:class="{'vertical-toolbar':windoWidth<800}"
       style="
-      position: absolute;
-      top: 32px;
-      left: 5%;
-      background: rgba(30, 30, 30, 0.85);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-      padding: 20px 32px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      z-index: 10;
+				position: absolute;
+				top: 32px;
+				left: 5%;
+				background: rgba(30, 30, 30, 0.85);
+				border-radius: 16px;
+				box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+				padding: 20px 32px;
+				display: flex;
+				align-items: center;
+				gap: 20px;
+				z-index: 10;
       "
-    > 
+    >
       <font-awesome-icon :icon="['fas','undo']" class="feature-icon" @click="undo()"></font-awesome-icon>
       <font-awesome-icon :icon="['fas','redo']" class="feature-icon" @click="redo()"></font-awesome-icon>
       <button @click="motiv=!motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
@@ -287,11 +288,11 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <label style="flex-shrink: 0;">Private</label>
           <label class="switch">
-            <input 
-              v-model="type" 
-              type="checkbox" 
-              :true-value="'private'" 
-              :false-value="'public'" 
+            <input
+              v-model="type"
+              type="checkbox"
+              :true-value="'private'"
+              :false-value="'public'"
             />
             <span class="slider"></span>
           </label>
@@ -339,7 +340,7 @@
           style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
           >
           <v-layer ref="layerRef">
-              <v-image  
+              <v-image
                 ref="imageRef"
                 :config="imageConfig"
               />
@@ -391,10 +392,9 @@ const visitor=ref(true)
 const stroke_history=ref([])
 const history_index=ref(0)
 const isBookmarked=ref(false);
-//const images = ref([]); 
 
 const check_visitor=async()=>{
-  if(admin.value){ 
+  if(admin.value){
     visitor.value=false;
   }else{
     try{
@@ -462,7 +462,6 @@ const check_book_mark=async()=>{
     console.error(e)
   }
 }
-
 const show_text = computed(() => windowWidth.value > 1330);
 const stageConfig = {
   width: 4*document.documentElement.clientWidth,
@@ -527,12 +526,10 @@ ws.value.onmessage = async(event) => {
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
 };
-// create canvas element
 const canvas = document.createElement('canvas');
 canvas.width = stageConfig.width;
 canvas.height = stageConfig.height;
 
-// get context
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
 context.fillStyle=background.value
@@ -546,7 +543,7 @@ watch(color, (newColor) => {
 });
 
 function changeZoom(mode){
-  const stage = stageRef.value.getNode(); // get Konva Stage
+  const stage = stageRef.value.getNode();
   const scaleBy = 1.25;
   const oldScale = stage.scaleX();
   const direction = mode==="up"? 1 : -1;
@@ -601,7 +598,6 @@ const load = () => {
   const data = localStorage.getItem('storage');
   if (data) {
     list.value = JSON.parse(data);
-    // Draw the last saved image onto the canvas
     if (list.value.length > 0) {
       const lastImage = new window.Image();
       lastImage.src = list.value[list.value.length - 1].image;
@@ -773,8 +769,8 @@ const redo=()=>{
         layer.add(KonvaNode)
         layer.draw()
       }
-      
-    }    
+
+    }
   }
 }
 
@@ -858,7 +854,7 @@ const check_save = async (mode) => {
       await new Promise(resolve => setTimeout(() => { loading.value = false; resolve(); }, 2000));
       //console.log(flag)
       if(!flag){
-        autosave()  
+        autosave()
         showPopup.value=true
         message.value="Board was successfully quick saved."
       }else isVisible.value=true
@@ -1054,7 +1050,7 @@ const onResize = () => {
 
 onMounted(async()=>{
   loading.value=true
-  await nextTick(); 
+  await nextTick();
   load()
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
@@ -1064,7 +1060,7 @@ onMounted(async()=>{
   if(visitor.value){
     await check_book_mark();
   }
-  
+
   window.addEventListener('keyup',keyhandler)
   const stage=stageRef.value.getNode();
   const scaleBy=1.1;
@@ -1083,12 +1079,10 @@ onMounted(async()=>{
     const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
     zooming.value=newScale
     stage.scale({ x: newScale, y: newScale });
-
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
-
     stage.position(newPos);
     stage.batchDraw();
   })
@@ -1116,7 +1110,7 @@ onMounted(async()=>{
       if (layer) layer.batchDraw();
     }, 100);
   });
-  window.addEventListener('resize', onResize); 
+  window.addEventListener('resize', onResize);
   window.addEventListener('paste', handlePaste)
   const preview = document.createElement('div');
   preview.id = 'preview';
@@ -1190,11 +1184,47 @@ onUnmounted(()=>{
 html, body {
   margin: 0;
   height: 100%;
-  overflow: hidden !important; /* disables global scrolling */
+  overflow: hidden !important;
 }
 </style>
 
 <style scoped>
+.vertical-toolbar {
+	justify-content: center;
+  flex-direction: column !important;
+  padding: 15px 15px !important;
+}
+#toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+@media(max-width:800px){
+	#toolbar {
+		justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 20px;
+		top: 50% !important;
+		transform: translateY(-90%) !important;
+		max-width: 70px;
+    left: 10px;
+  }
+  #toolbar input[type="range"] {
+    width: 50px !important;
+  }
+	#toolbar select {
+		margin-top: 8px !important;
+		font-size: 1rem !important;
+		border-radius: 4px !important;
+		width: 50px !important;
+	}
+	#save_btn,#clearall,#exit{
+		width:50px !important;
+	}
+}
+
 .feature-icon {
   font-size: 2.5rem;
   color: orange;
@@ -1335,7 +1365,7 @@ input:checked + .slider::before {
 
 #inv:hover,#bookmark-btn:hover,#save_btn:hover,#save_def:hover,#close_form:hover{
   background: #fff !important;
-  color:#4f8cff !important; 
+  color:#4f8cff !important;
 }
 #exit:hover{
   background:#fff!important;

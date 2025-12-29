@@ -450,7 +450,7 @@ html, body {
     align-items: center;
     padding: 20px 20px;
 		top: 50% !important;
-		transform: translateY(-70%) !important;
+		transform: translateY(-90%) !important;
 		max-width: 70px;
     left: 10px;
   }
