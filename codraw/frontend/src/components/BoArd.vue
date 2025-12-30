@@ -33,7 +33,7 @@
     </Transition>
     <div
       id="toolbar"
-			:class="{'vertical-toolbar':windoWidth<800}"
+			:class="{'vertical-toolbar':windowWidth<800}"
       style="
 				position: absolute;
 				top: 32px;
@@ -172,7 +172,6 @@
           font-weight: 500;
           cursor: pointer;
           transition: ease-in-out 0.6s;
-          width:200px;
           height: 40px;
         "
       >
@@ -462,7 +461,7 @@ const check_book_mark=async()=>{
     console.error(e)
   }
 }
-const show_text = computed(() => windowWidth.value > 1330);
+const show_text = computed(() => windowWidth.value > 1300);
 const stageConfig = {
   width: 4*document.documentElement.clientWidth,
   height: 4*document.documentElement.clientHeight,
@@ -474,6 +473,7 @@ const room=ref(new URL(window.location.href).pathname.split('/')[3])
 const rawUrl=WS_URL
 const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 const finalUrl = `${cleanBase}/${room.value}/`;
+//console.log(finalUrl)
 ws.value = new WebSocket(finalUrl)
 ws.value.onmessage = async(event) => {
   const data = JSON.parse(event.data);
@@ -916,11 +916,9 @@ const getRelativePointerPosition = (stage) => {
   return transform.point(pos);
 };
 const autosave = () => {
-  // Save the canvas as a data URL (image)
   const stage = stageRef.value?.getNode?.();
   if (!stage) return;
   const dataUrl = stage.toDataURL();
-  // Store the image data and a timestamp/id in the list
   list.value = [{
     id: Date.now(),
     image: dataUrl
@@ -1222,11 +1220,13 @@ html, body {
 	}
 	#save_btn,#clearall,#exit{
 		width:50px !important;
+		font-size: 0.5rem !important;
+		padding: 10px 10px !important;
 	}
 }
 
 .feature-icon {
-  font-size: 2.5rem;
+  font-size: 1.25rem;
   color: orange;
   transition: transform 0.3s ease;
 }
@@ -1348,15 +1348,21 @@ input:checked + .slider::before {
   }
 }
 
-@media(max-width:1000px){
+@media(max-width:950px){
   #inv_div{
     top:140px !important;
     position: fixed !important;
   }
 }
+
+@media(max-width:800px){
+	#inv_div{
+		top:10px !important;
+	}
+}
 #zoom{
   position: fixed;
-  right:40px;
+  right:10px;
   bottom:10px;
   background-color: white;
   z-index: 10;

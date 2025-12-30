@@ -14,7 +14,8 @@ nltk.download('averaged_perceptron_tagger_eng')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 
-def encode_user(mail:str)->str | None:
+
+def encode_user(mail: str) -> str | None:
     try:
         user = models.User.objects.get(mail=mail)
         return str(user.id)
@@ -23,37 +24,40 @@ def encode_user(mail:str)->str | None:
     except Exception as e:
         print(f"Error encoding user: {e}")
         return None
-    
-def decode_user(encoded:models.User.id)->str | None:
+
+
+def decode_user(encoded: models.User.id) -> str | None:
     try:
         return models.User.objects.get(id=encoded).mail
     except models.User.DoesNotExist:
         return None
 
 
-def delete_user(mail:str)->None:
+def delete_user(mail: str) -> None:
     try:
         user = models.User.objects.get(mail=mail)
         user.delete()
     except Exception as e:
         print(f"Error deleting user: {e}")
 
-def add_user(username:str,mail:str,password:str)->bool:
+
+def add_user(username: str, mail: str, password: str) -> bool:
     if models.User.objects.filter(mail=mail, valid=True).count() > 0:
         return False
     if models.User.objects.filter(mail=mail, valid=False).count() > 0:
         existing_user = models.User.objects.get(mail=mail, valid=False)
         existing_user.username = username
-        existing_user.password = generate_password_hash(password) 
+        existing_user.password = generate_password_hash(password)
         existing_user.code = helpers.generate_code()
-        existing_user.save()  
+        existing_user.save()
         return True
     hashed_password = generate_password_hash(password)
-    models.User.objects.create(username=username, mail=mail, password=hashed_password, code=helpers.generate_code(),valid=False)
+    models.User.objects.create(username=username, mail=mail,
+                               password=hashed_password, code=helpers.generate_code(), valid=False)
     return True
 
 
-def check_code(mail:str,code:str)->bool:
+def check_code(mail: str, code: str) -> bool:
     try:
         entry = models.User.objects.get(mail=mail)
         if code == entry.code:
@@ -64,7 +68,8 @@ def check_code(mail:str,code:str)->bool:
     except models.User.DoesNotExist:
         return False
 
-def check_user(mail:str,password:str)->bool:
+
+def check_user(mail: str, password: str) -> bool:
     try:
         user = models.User.objects.get(mail=mail)
         return (check_password_hash(user.password, password) and user.valid)
@@ -74,15 +79,17 @@ def check_user(mail:str,password:str)->bool:
         print(f"Error checking user: {e}")
         return False
 
-def update_password(mail:str,new_password:str)->None:
+
+def update_password(mail: str, new_password: str) -> None:
     try:
-        user=models.User.objects.get(mail=mail)
-        user.password=generate_password_hash(new_password)
+        user = models.User.objects.get(mail=mail)
+        user.password = generate_password_hash(new_password)
         user.save()
     except models.User.DoesNotExist:
         pass
 
-def get_user(mail:str)-> models.User | None:
+
+def get_user(mail: str) -> models.User | None:
     try:
         model = models.User.objects.get(mail=mail)
         return model
@@ -91,8 +98,9 @@ def get_user(mail:str)-> models.User | None:
     except Exception as e:
         print(f"Error retrieving user: {e}")
         return None
-    
-def get_code(mail:str)->str:
+
+
+def get_code(mail: str) -> str:
     try:
         entry = models.User.objects.get(mail=mail)
         return entry.code
@@ -101,56 +109,60 @@ def get_code(mail:str)->str:
     except Exception as e:
         print(f"Error retrieving code: {e}")
         return ""
-    
 
-def find_room(room:str,owner:str)->bool:
+
+def find_room(room: str, owner: str) -> bool:
     return models.Board.objects.filter(room=room)
-    #return models.Board.objects.filter(room=room,owner=decode_user(owner))
 
 
-def edit(room:str,title:str,description:str,timezone:str)->None:
+def edit(room: str, title: str, description: str, timezone: str) -> None:
     try:
         client_tz = ZoneInfo(timezone)
-        entry=models.Board.objects.get(room=room)
-        entry.title=title
-        entry.description=description
-        entry.last_edit=str(time.time())
-        concat=str(str(title)+". "+str(description))
-        tokenized=nltk.word_tokenize(concat)
-        tags=nltk.pos_tag(tokenized)
-        lemmatizer=WordNetLemmatizer()
-        result=[]
+        entry = models.Board.objects.get(room=room)
+        entry.title = title
+        entry.description = description
+        entry.last_edit = str(time.time())
+        concat = str(str(title)+". "+str(description))
+        tokenized = nltk.word_tokenize(concat)
+        tags = nltk.pos_tag(tokenized)
+        lemmatizer = WordNetLemmatizer()
+        result = []
         for instance in tags:
-            word,word_type=instance[0],instance[1]
-            word=word.lower()
-            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
-            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
-            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
-        entry.summary=json.dumps(list(set(result)))
+            word, word_type = instance[0], instance[1]
+            word = word.lower()
+            if word_type.startswith("NN"):
+                result.append(lemmatizer.lemmatize(word, "n"))
+            elif word_type.startswith("V"):
+                result.append(lemmatizer.lemmatize(word, "v"))
+            elif word_type.startswith("JJ"):
+                result.append(lemmatizer.lemmatize(word, "a"))
+        entry.summary = json.dumps(list(set(result)))
         entry.save()
     except models.Board.DoesNotExist:
         pass
 
-def delete_board(room:str)->bool:
+
+def delete_board(room: str) -> bool:
     try:
-        board=models.Board.objects.get(room=room)
+        board = models.Board.objects.get(room=room)
         board.delete()
         return True
     except models.Board.DoesNotExist:
         return False
 
-def get_boards(id: str,timezone:str) -> List[Dict[str, str]]:
+
+def get_boards(id: str, timezone: str) -> List[Dict[str, str]]:
     try:
         client_tz = ZoneInfo(timezone)
-        entries=models.Board.objects.filter(owner=decode_user(id))
-        res=[
+        entries = models.Board.objects.filter(owner=decode_user(id))
+        res = [
             {
                 "room": entry.room,
                 "title": entry.title,
                 "description": entry.description,
                 "visibility": entry.visibility,
-                "views":entry.views,
-                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+                "views": entry.views,
+                "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for entry in entries
         ]
@@ -161,47 +173,54 @@ def get_boards(id: str,timezone:str) -> List[Dict[str, str]]:
     #     print(e)
     #     return []
 
-def get_mail_by_username(username:str)->str:
+
+def get_mail_by_username(username: str) -> str:
     try:
-        entry=models.User.objects.get(username=username)
+        entry = models.User.objects.get(username=username)
         return entry.mail
     except models.User.DoesNotExist:
         return ""
 
-def get_room_details(room:str,timezone:str)->dict:
-    entry=models.Board.objects.get(room=room)
-    client_tz=ZoneInfo(timezone)
+
+def get_room_details(room: str, timezone: str) -> dict:
+    entry = models.Board.objects.get(room=room)
+    client_tz = ZoneInfo(timezone)
     return {
         "room": entry.room,
         "title": entry.title,
         "description": entry.description,
         "visibility": entry.visibility,
-        "views":entry.views,
-        "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+        "views": entry.views,
+        "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
     }
 
-def delete_bookmark(id:str,room:str)->bool:
+
+def delete_bookmark(id: str, room: str) -> bool:
     try:
-        mail=decode_user(id)
-        entry=models.User.objects.get(mail=mail)
-        if room in entry.bookmarks: 
+        mail = decode_user(id)
+        entry = models.User.objects.get(mail=mail)
+        if room in entry.bookmarks:
             entry.bookmarks.remove(room)
             entry.save()
         return True
-    except Exception as e: print(e);return False
+    except Exception as e:
+        print(e)
+        return False
 
-def exists_room(room:str)->bool:
-    return models.Board.objects.filter(room=room).count()>0
 
-def get_bookmarks(username:str,timezone:str)->list[dict]:
+def exists_room(room: str) -> bool:
+    return models.Board.objects.filter(room=room).count() > 0
+
+
+def get_bookmarks(username: str, timezone: str) -> list[dict]:
     try:
-        entry=models.User.objects.get(username=username)
-        results=[]
+        entry = models.User.objects.get(username=username)
+        results = []
         for room in entry.bookmarks:
             if exists_room(room):
-                details=get_room_details(room,timezone)
+                details = get_room_details(room, timezone)
                 results.append(details)
-            else: 
+            else:
                 entry.bookmarks.remove(room)
                 entry.save()
         return results
@@ -211,19 +230,20 @@ def get_bookmarks(username:str,timezone:str)->list[dict]:
         print(e)
         return []
 
-def get_boards_of_username(timezone:str,username:str)->list[dict]:
+
+def get_boards_of_username(timezone: str, username: str) -> list[dict]:
     try:
         client_tz = ZoneInfo(timezone)
-        mail=get_mail_by_username(username)
-        entries=models.Board.objects.filter(owner=mail)
-        res=[
+        mail = get_mail_by_username(username)
+        entries = models.Board.objects.filter(owner=mail)
+        res = [
             {
                 "room": entry.room,
                 "title": entry.title,
                 "description": entry.description,
                 "visibility": entry.visibility,
-                "views":entry.views,
-                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+                "views": entry.views,
+                "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for entry in entries
         ]
@@ -232,10 +252,10 @@ def get_boards_of_username(timezone:str,username:str)->list[dict]:
         return []
 
 
-def modify_bookmark(id:str,curr_status:str,room:str)->bool:
-    mail=decode_user(id)
+def modify_bookmark(id: str, curr_status: str, room: str) -> bool:
+    mail = decode_user(id)
     try:
-        entry=models.User.objects.get(mail=mail)
+        entry = models.User.objects.get(mail=mail)
         if curr_status:
             entry.bookmarks.remove(room)
         else:
@@ -248,36 +268,43 @@ def modify_bookmark(id:str,curr_status:str,room:str)->bool:
         print(e)
         return False
 
-def check_bookmark(room:str,id:str)->bool:
-    mail=decode_user(id)
+
+def check_bookmark(room: str, id: str) -> bool:
+    mail = decode_user(id)
     return room in models.User.objects.get(mail=mail).bookmarks
+
 
 def exists(id: str) -> bool:
     return models.User.objects.filter(id=id).count() > 0
 
-def check_ownership(mail:str,room:str)->bool:
-    if models.Board.objects.filter(room=room).count()==0: return True #New Project
-    return models.Board.objects.filter(owner=mail,room=room).count()>0
 
-def get_username(email:str)->str:
+def check_ownership(mail: str, room: str) -> bool:
+    if models.Board.objects.filter(room=room).count() == 0:
+        return True  # New Project
+    return models.Board.objects.filter(owner=mail, room=room).count() > 0
+
+
+def get_username(email: str) -> str | None:
     try:
-        entry=models.User.objects.get(mail=email)
+        entry = models.User.objects.get(mail=email)
         return entry.username
-    except Exception: pass
+    except Exception:
+        return
 
 
-def get_trending(id:str,timezone:str)->list[Dict[str,str]]:
+def get_trending(id: str, timezone: str) -> list[Dict[str, str]]:
     try:
         client_tz = ZoneInfo(timezone)
-        entries=models.Board.objects.filter(owner__ne=decode_user(id), visibility='Public').order_by('-views')[:9]
-        res=[
+        entries = models.Board.objects.filter(owner__ne=decode_user(
+            id), visibility='Public').order_by('-views')[:9]
+        res = [
             {
                 "room": entry.room,
                 "title": entry.title,
                 "description": entry.description,
                 "views": entry.views,
-                "owner":get_username(entry.owner),
-                "modified":(datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+                "owner": get_username(entry.owner),
+                "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for entry in entries
         ]
@@ -288,35 +315,44 @@ def get_trending(id:str,timezone:str)->list[Dict[str,str]]:
         print(e)
         return []
 
-def increase_view_count(room:str)->None:
-    try:
-        entry=models.Board.objects.get(room=room)
-        entry.views+=1
-        entry.save()
-    except Exception: pass
 
-def get_matches(sentence:str,timezone:str)->list:
+def increase_view_count(room: str) -> None:
     try:
-        tokenized=nltk.word_tokenize(sentence)
-        tags=nltk.pos_tag(tokenized)
-        lemmatizer=WordNetLemmatizer()
-        result=[]
+        entry = models.Board.objects.get(room=room)
+        entry.views += 1
+        entry.save()
+    except Exception:
+        pass
+
+
+def get_matches(sentence: str, timezone: str) -> list:
+    try:
+        tokenized = nltk.word_tokenize(sentence)
+        tags = nltk.pos_tag(tokenized)
+        lemmatizer = WordNetLemmatizer()
+        result = []
         for entry in tags:
-            word,word_type=entry[0],entry[1]
-            word=word.lower()
-            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
-            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
-            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
-        keywords=list(set(result))
-        if len(keywords)==0: return []
-        matches=models.Board.objects.filter(summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
+            word, word_type = entry[0], entry[1]
+            word = word.lower()
+            if word_type.startswith("NN"):
+                result.append(lemmatizer.lemmatize(word, "n"))
+            elif word_type.startswith("V"):
+                result.append(lemmatizer.lemmatize(word, "v"))
+            elif word_type.startswith("JJ"):
+                result.append(lemmatizer.lemmatize(word, "a"))
+        keywords = list(set(result))
+        if len(keywords) == 0:
+            return []
+        matches = models.Board.objects.filter(
+            summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
+
         def match_count(board):
             try:
                 board_keywords = set(json.loads(board.summary))
             except (TypeError, json.JSONDecodeError):
                 board_keywords = set()
             return len(set(keywords) & board_keywords)
-        client_tz=ZoneInfo(timezone)
+        client_tz = ZoneInfo(timezone)
         sorted_boards = sorted(matches, key=match_count, reverse=True)
         boards_list = [
             {
@@ -326,7 +362,7 @@ def get_matches(sentence:str,timezone:str)->list:
                 "visibility": board.visibility,
                 "summary": board.summary,
                 "views": board.views,
-                "modified":(datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
+                "modified": (datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
             for board in sorted_boards
         ]
@@ -335,34 +371,39 @@ def get_matches(sentence:str,timezone:str)->list:
         print(e)
         return []
 
-def save_project(room:str,payload:str,bg:str)->bool:
+
+def save_project(room: str, payload: str, bg: str) -> bool:
     try:
-        entry=models.Board.objects.get(room=room)
-        entry.board=payload
-        entry.background=bg
-        entry.last_edit=str(time.time())
-        entry.save()  
+        entry = models.Board.objects.get(room=room)
+        entry.board = payload
+        entry.background = bg
+        entry.last_edit = str(time.time())
+        entry.save()
         return True
     except Exception as e:
-        #print(payload)
-        print('quick save error: ',e)
+        # print(payload)
+        print('quick save error: ', e)
         return False
-    
-def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str,bg:str) -> bool:
+
+
+def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str, bg: str) -> bool:
     try:
-        summary=str(str(title)+". "+str(description))
-        tokenized=nltk.word_tokenize(summary)
-        tags=nltk.pos_tag(tokenized)
-        lemmatizer=WordNetLemmatizer()
-        result=[]
+        summary = str(str(title)+". "+str(description))
+        tokenized = nltk.word_tokenize(summary)
+        tags = nltk.pos_tag(tokenized)
+        lemmatizer = WordNetLemmatizer()
+        result = []
         for entry in tags:
-            word,word_type=entry[0],entry[1]
-            word=word.lower()
-            if word_type.startswith("NN"): result.append(lemmatizer.lemmatize(word,"n"))
-            elif word_type.startswith("V"): result.append(lemmatizer.lemmatize(word,"v"))
-            elif word_type.startswith("JJ"): result.append(lemmatizer.lemmatize(word,"a"))
-        result=json.dumps(list(set(result)))
-        entry=models.Board.objects.create(
+            word, word_type = entry[0], entry[1]
+            word = word.lower()
+            if word_type.startswith("NN"):
+                result.append(lemmatizer.lemmatize(word, "n"))
+            elif word_type.startswith("V"):
+                result.append(lemmatizer.lemmatize(word, "v"))
+            elif word_type.startswith("JJ"):
+                result.append(lemmatizer.lemmatize(word, "a"))
+        result = json.dumps(list(set(result)))
+        entry = models.Board.objects.create(
             owner=decode_user(owner),
             board=payload,
             room=room,
@@ -377,22 +418,15 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
         entry.save()
         return True
     except Exception as e:
-        print('save new project error: ',e)
+        print('save new project error: ', e)
         return False
 
-def get_board_img(room: str)->list|str:
+
+def get_board_img(room: str) -> list | str:
     try:
-        entry=models.Board.objects.get(room=room)
-        return [entry.board,entry.background]
+        entry = models.Board.objects.get(room=room)
+        return [entry.board, entry.background]
     except Exception as e:
-        print("Error in fetching image: ",e)
+        print("Error in fetching image: ", e)
         return ""
-    
 
-
-
-
-    
-
-
-        

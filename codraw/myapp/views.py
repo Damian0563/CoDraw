@@ -170,9 +170,9 @@ def my_projects(request):
         if id is not None:
             data = json.loads(request.body)
             timezone = data['timezone']
-            if redis_client.get(f"boards:{id}:{timezone}"):
+            if redis_client.get(f"boards:{id}"):
                 boards = json.loads(redis_client.get(
-                    f"boards:{id}:{timezone}"))
+                    f"boards:{id}"))
             else:
                 boards = database.get_boards(id, timezone)
             return Response({'status': 200, "boards": boards})
@@ -201,6 +201,7 @@ def delete(request, room):
     id = helpers.validate_request(request)
     if id is not None:
         if database.delete_board(room):
+            redis_client.delete(f"boards:{id}")
             return Response({'status': 200})
     return Response({'status': 400})
 
@@ -244,8 +245,9 @@ def username(request):
     id = helpers.validate_request(request)
     if id is not None:
         mail = database.decode_user(id)
-        username = database.get_username(mail)
-        return Response({'status': 200, 'username': username})
+        if mail is not None:
+            username = database.get_username(mail)
+            return Response({'status': 200, 'username': username})
     return Response({'status': 404})
 
 
@@ -287,6 +289,7 @@ def save(request):
         payload = data.get('payload')
         if payload is not None:
             database.save_project(room, payload, bg)
+            redis_client.delete(f"boards:{id}")
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -298,13 +301,14 @@ def boards_user(request, username):
     if id is not None:
         data = json.loads(request.body)
         timezone = data['timezone']
-        if redis_client.get(f"boards_user:{username}:{timezone}"):
+        user_id = database.decode_user(database.get_mail_by_username(username))
+        if redis_client.get(f"boards_user:{user_id}"):
             boards = json.loads(redis_client.get(
-                f"boards_user:{username}:{timezone}"))
+                f"boards:{user_id}"))
         else:
             boards = database.get_boards_of_username(timezone, username)
-            redis_client.setex(f"boards_user:{username}:{
-                               timezone}", 60*5, json.dumps(boards))
+            redis_client.setex(
+                f"boards:{user_id}", 60*5, json.dumps(boards))
         return Response({'status': 200, "boards": boards})
     return Response({'status': 400, 'boards': []})
 
@@ -321,6 +325,7 @@ def save_new(request):
     background = data.get('bg')
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
+        redis_client.delete(f"boards:{id}")
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -355,8 +360,7 @@ def bookmark(request, room):
         me = data['user']
         curr_bookmark = data['status']
         if database.modify_bookmark(me, curr_bookmark, room):
-            if redis_client.get(f"bookmarks:{me}"):
-                redis_client.delete(f"bookmarks:{me}")
+            redis_client.delete(f"bookmarks:{me}")
             if curr_bookmark:
                 return Response({'status': 200, 'bookmarked': False})
             else:
@@ -372,13 +376,14 @@ def get_bookmarks(request, username):
     if id is not None:
         data = json.loads(request.body)
         timezone = data['timezone']
-        if redis_client.get(f"bookmarks:{username}"):
+        encoded = database.encode_user(username)
+        if redis_client.get(f"bookmarks:{encoded}"):
             bookmarks = json.loads(redis_client.get(
-                f"bookmarks:{username}"))
+                f"bookmarks:{encoded}"))
         else:
             bookmarks = database.get_bookmarks(username, timezone)
             redis_client.setex(
-                f"bookmarks:{username}", 60*5, json.dumps(bookmarks))
+                f"bookmarks:{encoded}", 60*5, json.dumps(bookmarks))
         return Response({'status': 200, 'bookmarks': bookmarks})
     return Response({'status': 400, 'bookmarks': []})
 
@@ -388,9 +393,8 @@ def get_bookmarks(request, username):
 def delete_bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None and database.delete_bookmark(id, room):
-        username = database.decode_user(id)
-        if redis_client.get(f"bookmarks:{username}"):
-            redis_client.delete(f"bookmarks:{username}")
+        if redis_client.get(f"bookmarks:{id}"):
+            redis_client.delete(f"bookmarks:{id}")
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -407,7 +411,7 @@ def trending(request):
         else:
             boards = database.get_trending(id, timezone)
             redis_client.setex(
-                f"trending:{id}:{timezone}", 60*5, json.dumps(boards))
+                f"trending:{id}:{timezone}", 60*10, json.dumps(boards))
         return Response({'status': 200, 'boards': boards})
     return Response({'status': 400, 'boards': ''})
 

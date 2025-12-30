@@ -2,7 +2,7 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
 	transpileDependencies: ['vue3-spinners'],
 	devServer: {
-		port: 8000,
+		port: 8001,
 		host: '0.0.0.0',
 	},
 	// devServer: {

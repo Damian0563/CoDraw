@@ -586,9 +586,15 @@ input:checked + .slider::before {
     position: fixed !important;
   }
 }
+
+@media(max-width:800px){
+	#inv_div{
+		top:10px !important;
+	}
+}
 #zoom{
   position: fixed;
-  right:40px;
+  right:10px;
   bottom:10px;
   background-color: white;
   z-index: 10;
