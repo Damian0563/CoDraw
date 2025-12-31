@@ -7,7 +7,6 @@ import SignIn from './components/SignIn.vue'
 import SignUp from './components/SignUp.vue'
 import HeRo from './components/Hero.vue'
 import MaIn from './components/Main.vue'
-//import SeTtings from './components/SeTtings.vue'
 import AccOunt from './components/AccOunt.vue'
 import BoArd from './components/BoArd.vue'
 import RestorePassword from './components/RestorePassword.vue'
@@ -15,7 +14,7 @@ import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-
+import VueGtag from "vue-gtag"
 import { faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 library.add(faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub)
@@ -25,7 +24,6 @@ const routes = [
 	{ path: '/signup', component: SignUp },
 	{ path: '/signin', component: SignIn },
 	{ path: '/codraw', component: MaIn },
-	// { path: '/codraw/settings', component: SeTtings },
 	{ path: '/codraw/account/:username', component: AccOunt },
 	{ path: '/board/:id/:room', component: BoArd },
 	{ path: '/demo', component: DemoBoard },
@@ -38,4 +36,4 @@ const router = createRouter({
 	routes,
 })
 
-createApp(App).use(router).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
+createApp(App).use(router).use(VueGtag, { config: { "id": "G-QW19P198KB" }, router }).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')

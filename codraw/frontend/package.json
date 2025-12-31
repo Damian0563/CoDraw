@@ -20,6 +20,7 @@
     "stream-http": "^3.2.0",
     "uuid": "^12.0.0",
     "vue": "^3.2.13",
+    "vue-gtag": "^3.6.3",
     "vue-konva": "^3.2.1",
     "vue-router": "^4.5.1",
     "vue3-spinners": "^1.2.2"

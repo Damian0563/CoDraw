@@ -137,6 +137,7 @@ def edit(room: str, title: str, description: str, timezone: str) -> None:
             elif word_type.startswith("JJ"):
                 result.append(lemmatizer.lemmatize(word, "a"))
         entry.summary = json.dumps(list(set(result)))
+        entry.last_edit = client_tz
         entry.save()
     except models.Board.DoesNotExist:
         pass
@@ -169,9 +170,6 @@ def get_boards(id: str, timezone: str) -> List[Dict[str, str]]:
         return res
     except models.Board.DoesNotExist:
         return []
-    # except Exception as e:
-    #     print(e)
-    #     return []
 
 
 def get_mail_by_username(username: str) -> str:
@@ -429,4 +427,3 @@ def get_board_img(room: str) -> list | str:
     except Exception as e:
         print("Error in fetching image: ", e)
         return ""
-
