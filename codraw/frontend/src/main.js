@@ -14,7 +14,7 @@ import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import VueGtag from "vue-gtag"
+import createGtag from "vue-gtag"
 import { faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 library.add(faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub)
@@ -36,4 +36,4 @@ const router = createRouter({
 	routes,
 })
 
-createApp(App).use(router).use(VueGtag, { config: { "id": "G-QW19P198KB" }, router }).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
+createApp(App).use(router).use(createGtag, { config: { "id": "G-QW19P198KB" }, router }).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')

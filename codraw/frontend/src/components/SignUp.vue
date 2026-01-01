@@ -15,17 +15,17 @@
       <button @click="visible=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: red;color: white;">&times;</button><br><br>
       <h4 class="mb-3">Enter Verification Code</h4>
       <div class="d-flex justify-content-center mb-3">
-        <input maxlength="1" id="1" @input="handleInput(2)" ref="ZeroInput" v-model="zero" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
-        <input maxlength="1" id="2" @input="handleInput(3)" v-model="one" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" ref="OneInput"/>
-        <input maxlength="1" id="3" @input="handleInput(4)" v-model="two" ref="TwoInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
-        <input maxlength="1" id="4" @input="handleInput(5)" v-model="three" ref="ThreeInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
-        <input maxlength="1" id="5" class="code-input" v-model="four" ref="FourInput" type="text" pattern="[0-9]*" inputmode="numeric"/>
+        <input maxlength="1" id="1" @keyup="handleInput($event,2)" ref="ZeroInput" v-model="zero" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
+        <input maxlength="1" id="2" @keyup="handleInput($event,3)" v-model="one" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric" ref="OneInput"/>
+        <input maxlength="1" id="3" @keyup="handleInput($event,4)" v-model="two" ref="TwoInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
+        <input maxlength="1" id="4" @keyup="handleInput($event,5)" v-model="three" ref="ThreeInput" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
+        <input maxlength="1" id="5" @keyup="handleInput($event,6)" class="code-input" v-model="four" ref="FourInput" type="text" pattern="[0-9]*" inputmode="numeric"/>
       </div>
       <button class="btn btn-primary w-100" @click="verifyCode">Verify</button>
     </div>
   </div>
   <div class="d-flex justify-content-center pt-5 mb-5" style="background-color: black; min-height: 40vh;">
-    <div class="card p-3 shadow-lg w-50" style="max-width: 700px; width: 100%; background: white; border: none; min-height: unset;">
+    <div class="card p-3 shadow-lg w-60 mx-5" style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign Up</h2>
       <form ref="formRef" @submit="SignUp" class="needs-validation" novalidate>
         <div class="mb-2">
@@ -55,12 +55,12 @@
         <span class="text-secondary">Already have an account?</span>
         <RouterLink to="/signin" class="ms-2 text-info">Sign In</RouterLink>
       </div>
-    </div>  
+    </div>
   </div>
   <FoOter/>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref,nextTick } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
 import FoOter from './Footer.vue'
@@ -76,6 +76,11 @@ const OneInput = ref(null)
 const TwoInput = ref(null)
 const ThreeInput = ref(null)
 const FourInput = ref(null)
+const zero = ref('')
+const one = ref('')
+const two = ref('')
+const three = ref('')
+const four = ref('')
 async function status(){
   try {
     const csrf=get_cookie('csrftoken')
@@ -87,7 +92,7 @@ async function status(){
     const response = await data.json();
     if (response.status === 300 && window.location.pathname !== '/codraw') {
       window.location.href = '/codraw';
-    } 
+    }
   } catch (e) {
     console.error(e);
   }
@@ -119,6 +124,7 @@ async function SignUp(e) {
     const response=await data.json()
     if(response.status===200){
       visible.value=true
+			await nextTick()
       ZeroInput.value.focus()
     }else{
       invalid.value=true
@@ -129,17 +135,20 @@ async function SignUp(e) {
     console.error(e)
   }
 }
-function handleInput(index){
-  if(index === 2 && OneInput.value) OneInput.value.focus()
-  if(index === 3 && TwoInput.value) TwoInput.value.focus()
-  if(index === 4 && ThreeInput.value) ThreeInput.value.focus()
-  if(index === 5 && FourInput.value) FourInput.value.focus()
+function handleInput(event,index){
+	if(event.key.startsWith("Arrow") || !("0123456789".includes(event.key))) return;
+	if(event.key==="Backspace" || event.key=="Del"){
+		if(index===3 && !one.value) ZeroInput.value.focus()
+		else if(index===5 && !three.value) TwoInput.value.focus()
+		else if(index===4 && !two.value) OneInput.value.focus()
+		else if(index===6 && !four.value) ThreeInput.value.focus()
+	}else{
+		if(index === 2 && OneInput.value) OneInput.value.focus()
+		else if(index === 3 && TwoInput.value) TwoInput.value.focus()
+		else if(index === 4 && ThreeInput.value) ThreeInput.value.focus()
+		else if(index === 5 && FourInput.value) FourInput.value.focus()
+	}
 }
-const zero = ref('')
-const one = ref('')
-const two = ref('')
-const three = ref('')
-const four = ref('')
 
 function getCode() {
   return `${zero.value}${one.value}${two.value}${three.value}${four.value}`;

@@ -16,23 +16,23 @@
     <div v-if="recovery" class="recovery-container" role="alert" style="max-width: 80vw; width: 500px; position: fixed; top: 8rem; left: 50%; transform: translateX(-50%); z-index: 5000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
       <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
       <h2 class="mt-3" style="color: yellow;font-weight: bold;">Input your email, recovery link will be sent to you!</h2>
-      <form 
-        class="mb-3 needs-validation" 
-        :class="{ 'was-validated': validated }" 
-        novalidate 
+      <form
+        class="mb-3 needs-validation"
+        :class="{ 'was-validated': validated }"
+        novalidate
         @submit.prevent="sendReset"
       >
         <label for="emailInput" class="form-label text-muted small">Email Address</label>
-        <input 
-          type="email" 
-          class="form-control form-control-lg mb-3" 
+        <input
+          type="email"
+          class="form-control form-control-lg mb-3"
           placeholder="e.g. name@example.com"
           required
           v-model="name_or_mail"
         />
         <div class="invalid-feedback mb-2">
           Please specify a valid email address.
-        </div>  
+        </div>
         <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3">
           Send Recovery Link
         </button>
@@ -40,24 +40,24 @@
     </div>
   </Transition>
   <div class="d-flex justify-content-center pt-5 mb-5" style="background-color: black; min-height: 40vh;">
-    <div class="card p-3 shadow-lg w-50" style="max-width: 700px; width: 100%; background: white; border: none; min-height: unset;">
+    <div class="card p-3 shadow-lg w-60 mx-5" style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign In</h2>
       <form ref="formRef" @submit="SignIn" class="needs-validation" novalidate>
         <div class="mb-2">
-          <label for="email" class="form-label text-black text-start w-100">Email address</label>
+          <label for="email" class="form-label text-black text-start w-100" autocomplete="on">Email address</label>
           <input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email" required>
           <div class="invalid-feedback">
             Please specify email.
           </div>
         </div>
         <div class="mb-2">
-          <label for="password" class="form-label text-black text-start w-100">Password</label>
+          <label for="password" class="form-label text-black text-start w-100" autocomplete="on">Password</label>
           <input type="password" v-model="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password" required>
           <div class="invalid-feedback">
             Please specify password.
           </div>
         </div>
-        <div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap" style="padding: 0 !important;gap: 2rem;">
+        <div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap" style="padding: 0 !important;gap: 1.2rem;">
           <label class="form-check-label text-black fw-medium mb-0" for="rememberMe">
             Remember me
           </label>
@@ -72,7 +72,7 @@
       <div class="text-center mt-2">
         <text @click="recovery=true" class="ms-2 text-info" style="cursor: pointer;">Forgot your password?</text>
       </div>
-    </div>  
+    </div>
   </div>
   <FoOter />
 </template>
@@ -97,7 +97,6 @@ const formRef = ref(null);
 
 async function sendReset(event){
   try{
-    
     recovery.value=true;
     const form = event.currentTarget;
     validated.value = true;
@@ -166,7 +165,7 @@ async function SignIn(e){
     console.error(e)
     invalid.value = true
     message.value = 'An error occurred while signing in.'
-    loading.value=false;  
+    loading.value=false;
   }
 }
 async function status(){
@@ -180,7 +179,7 @@ async function status(){
     const response = await data.json();
     if (response.status === 300) {
       window.location.href = '/codraw';
-    } 
+    }
   } catch (e) {
     console.error(e);
   }

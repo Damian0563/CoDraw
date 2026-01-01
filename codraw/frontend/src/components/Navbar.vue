@@ -1,27 +1,32 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark hero-background shadow p-3" style="background-color: black !important;">
-    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" aria-controls="offcanvas" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="offcanvas offcanvas-end mx-2" style="background-color: black;" tabindex="-1" id="offcanvas" aria-labelledby="offcanvasLabel">
-      <div class="offcanvas-body">
-        <RouterLink class="navbar-brand d-flex align-items-center" to="/">
-          <img :src="imageUrl" alt="logo" loading="lazy" decoding="async" height="90" class="me-3" />
-          <span>CoDraw</span>
-        </RouterLink>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
-          <li class="nav-item mx-2">
-            <RouterLink aria-label="Go to sign up" class="btn me-2" to="/signup" id="sign" style="border-color: yellow;color: yellow;">Sign up</RouterLink>
-          </li> 
-          <li class="nav-item mx-2">
-            <RouterLink aria-label="Go to sign in" class="btn btn-outline-light" id="sing" to="/signin">Sign in</RouterLink>
-          </li>
-        </ul>
+    <div class="container-fluid">
+      <RouterLink class="navbar-brand d-flex align-items-center" to="/">
+        <img :src="imageUrl" alt="logo" loading="lazy" decoding="async" height="60" class="me-2" />
+        <span>CoDraw</span>
+      </RouterLink>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" style="background-color: black; max-width: 80vw;">
+        <div class="offcanvas-header border-bottom border-secondary">
+          <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">Menu</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-column flex-lg-row align-items-center">
+            <li class="nav-item my-2 my-lg-0 mx-2">
+              <RouterLink class="btn w-100" to="/signup" id="sign" style="border-color: yellow; color: yellow;">Sign up</RouterLink>
+            </li>
+            <li class="nav-item my-2 my-lg-0 mx-2">
+              <RouterLink class="btn btn-outline-light w-100" id="sing" to="/signin">Sign in</RouterLink>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
 </template>
-
 <script setup>
 import imageUrl from '@/assets/logo.webp'
 </script>
