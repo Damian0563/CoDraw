@@ -134,7 +134,7 @@ def get_url(request):
 def load(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
+            data = request.data
             room = data['project']
             if redis_client.get(f"board:{room}") and redis_client.get(f"bg:{room}"):
                 canva = redis_client.get(f"board:{room}")
@@ -154,7 +154,7 @@ def load_board(request):
     if request.method == 'POST':
         id = helpers.validate_request(request)
         if id is not None:
-            data = json.loads(request.body)
+            data = request.data
             url = f"/board/{id}/{data['room']}"
             database.increase_view_count(data['room'])
             return Response({'status': 200, "url": url})
@@ -168,7 +168,7 @@ def my_projects(request):
     try:
         id = helpers.validate_request(request)
         if id is not None:
-            data = json.loads(request.body)
+            data = request.data
             timezone = data['timezone']
             if redis_client.get(f"boards:{id}"):
                 boards = json.loads(redis_client.get(
@@ -231,7 +231,7 @@ def edit_password(request, code):
     elif request.method == "POST":
         mail = redis_client.get(f"restore_password:{code}")
         if mail is not None:
-            data = json.loads(request.body)
+            data = request.data
             new_password = data['new_password']
             database.update_password(mail, new_password)
             redis_client.delete(f"restore_password:{code}")
@@ -256,7 +256,7 @@ def username(request):
 def edit(request, room):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         title = data['title']
         description = data['description']
         timezone = data['timezone']
@@ -281,7 +281,7 @@ def board(request, id, room):
 
 @ api_view(['GET', 'POST'])
 def save(request):
-    data = json.loads(request.body)
+    data = request.data
     id = helpers.validate_request(request)
     room = data.get('project')
     if database.find_room(room, id):
@@ -299,7 +299,7 @@ def save(request):
 def boards_user(request, username):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         timezone = data['timezone']
         user_id = database.decode_user(database.get_mail_by_username(username))
         if redis_client.get(f"boards_user:{user_id}"):
@@ -316,7 +316,7 @@ def boards_user(request, username):
 @ api_view(['POST'])
 @ ensure_csrf_cookie
 def save_new(request):
-    data = json.loads(request.body)
+    data = request.data
     project = data.get('project')
     payload = data.get('payload')
     title = data.get('title')
@@ -333,7 +333,7 @@ def save_new(request):
 @ api_view(['POST'])
 @ ensure_csrf_cookie
 def check_owner(request):
-    data = json.loads(request.body)
+    data = request.data
     owner = data['owner']
     room = data['room']
     id = helpers.validate_request(request)
@@ -356,7 +356,7 @@ def check_bookmark(request, room):
 def bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         me = data['user']
         curr_bookmark = data['status']
         if database.modify_bookmark(me, curr_bookmark, room):
@@ -374,7 +374,7 @@ def bookmark(request, room):
 def get_bookmarks(request, username):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         timezone = data['timezone']
         encoded = database.encode_user(username)
         if redis_client.get(f"bookmarks:{encoded}"):
@@ -404,7 +404,7 @@ def delete_bookmark(request, room):
 def trending(request):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         timezone = data['timezone']
         if redis_client.get(f"trending:{id}:{timezone}"):
             boards = json.loads(redis_client.get(f"trending:{id}:{timezone}"))
@@ -421,7 +421,7 @@ def trending(request):
 def search(request):
     id = helpers.validate_request(request)
     if id is not None:
-        data = json.loads(request.body)
+        data = request.data
         query = data['query']
         timezone = data['timezone']
         if redis_client.get(f"search:{query}:{timezone}"):
