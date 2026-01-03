@@ -166,7 +166,7 @@ const delete_board=async(room)=>{
   try{
     const data=await fetch(`${BASE_URL}/delete/${room}`,{
       method:"GET",
-      headers:{"X-CSRFToken":csrf},
+      headers:{"Content-Type":"application/json","X-CSRFToken":csrf},
       credentials:"include"
     })
     const response=await data.json()
@@ -184,7 +184,7 @@ const delete_bookmark=async(room)=>{
   try{
     const data=await fetch(`${BASE_URL}/delete/bookmark/${room}`,{
       method:"GET",
-      headers:{"X-CSRFToken":csrf},
+      headers:{"Content-Type":"application/json","X-CSRFToken":csrf},
       credentials:"include"
     })
     const response=await data.json()
@@ -203,6 +203,7 @@ const get_bookmarks=async(username)=>{
       method:"POST",
       headers:{
         "X-CSRFToken":csrf
+				"Content-Type":"application/json"
       },
       body:JSON.stringify({
         "timezone":DateTime.local().zoneName
@@ -256,6 +257,7 @@ const get_status=async(curr_user)=>{
     const data=await fetch(`${BASE_URL}/username`,{
       method:"GET",
       headers:{
+				"Content-Type":"application/json"
         "X-CSRFToken":csrf
       },
       credentials:"include"

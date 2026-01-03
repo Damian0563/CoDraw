@@ -301,7 +301,7 @@ def boards_user(request, username):
     if id is not None:
         data = request.data
         timezone = data['timezone']
-        user_id = database.decode_user(database.get_mail_by_username(username))
+        user_id = database.encode_user(database.get_mail_by_username(username))
         if redis_client.get(f"boards_user:{user_id}"):
             boards = json.loads(redis_client.get(
                 f"boards:{user_id}"))
