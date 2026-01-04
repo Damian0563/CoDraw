@@ -139,11 +139,13 @@ def load(request):
             if redis_client.get(f"board:{room}") and redis_client.get(f"bg:{room}"):
                 canva = redis_client.get(f"board:{room}")
                 bg = redis_client.get(f"bg:{room}")
+                last_access = redis_client.get(f"last_access:{room}")
             else:
-                canva, bg = database.get_board_img(room=room)
+                canva, bg, last_access = database.get_board_img(room=room)
+                redis_client.setex(f"last_access:{room}", 60*5, last_access)
                 redis_client.setex(f"board:{room}", 60*5, canva)
                 redis_client.setex(f"bg:{room}", 60*5, bg)
-            return Response({'status': 200, "canva": json.loads(canva), "bg": bg})
+            return Response({'status': 200, "canva": json.loads(canva), "bg": bg, "last": last_access})
         except Exception:
             return Response({'status': 404, "canva": ""})
 
@@ -290,6 +292,9 @@ def save(request):
         if payload is not None:
             database.save_project(room, payload, bg)
             redis_client.delete(f"boards:{id}")
+            redis_client.delete(f"board:{room}")
+            redis_client.delete(f"bg:{room}")
+            redis_client.delete(f"last_access:{room}")
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -326,6 +331,9 @@ def save_new(request):
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         redis_client.delete(f"boards:{id}")
+        redis_client.delete(f"board:{project}")
+        redis_client.delete(f"bg:{project}")
+        redis_client.delete(f"last_access:{project}")
         return Response({'status': 200})
     return Response({'status': 400})
 

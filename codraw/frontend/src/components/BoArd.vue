@@ -44,7 +44,7 @@
 				padding: 20px 32px;
 				display: flex;
 				align-items: center;
-				gap: 20px;
+				gap: 10px;
 				z-index: 10;
       "
     >
@@ -55,6 +55,7 @@
       ></button>
       <text style="color: white;">Brush Color</text>
       <input type="color" v-model="color">
+			<font-awesome-icon :icon="['fas','hand']" @click="togglePane('$event')" class="feature-icon" :style="{color: paneToggler?'#0d6efd':'orange'}"></font-awesome-icon>
       <select
         v-model="tool"
         style="
@@ -71,7 +72,7 @@
         <option value="brush">Brush</option>
         <option value="eraser">Eraser</option>
       </select>
-      <label style="color: #fff; font-size: 1rem; margin-right: 8px;">
+      <label style="color: #fff; font-size: 1rem; ">
         Line Width
       </label>
       <input
@@ -149,12 +150,12 @@
         font-weight: 500;
         cursor: pointer;
         transition: ease-in-out 0.6s;
-        width:200px;
         height: 40px;
         "
+				:style="{width:show_text?'200px':'unset'}"
       >
         <img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark" style="width: 18px; height: 18px;" />
-        <span>{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
+        <span v-if="show_text">{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
       </button>
       <button
         id="inv"
@@ -174,6 +175,7 @@
           transition: ease-in-out 0.6s;
           height: 40px;
         "
+				:style="{width:show_text?'200px':'unset'}"
       >
         <img :src="url" alt="Copy" style="width: 18px; height: 18px;" />
         <span v-if="show_text">Copy invitation link</span>
@@ -290,8 +292,8 @@
             <input
               v-model="type"
               type="checkbox"
-              :true-value="'private'"
-              :false-value="'public'"
+              :true-value="'Private'"
+              :false-value="'Public'"
             />
             <span class="slider"></span>
           </label>
@@ -391,6 +393,7 @@ const visitor=ref(true)
 const stroke_history=ref([])
 const history_index=ref(0)
 const isBookmarked=ref(false);
+const paneToggler=ref(false)
 
 const check_visitor=async()=>{
   if(admin.value){
@@ -408,6 +411,21 @@ const check_visitor=async()=>{
     }catch(e){
       console.error(e)
     }
+  }
+}
+
+const togglePane=()=>{
+	paneToggler.value = !paneToggler.value;
+  const stage = stageRef.value.getNode();
+  if (paneToggler.value) {
+    isPanning.value = true;
+    isDrawing.value = false;
+    stage.draggable(true);
+		stage.container().style.cursor = 'grab';
+  } else {
+    isPanning.value = false;
+    stage.draggable(false);
+		stage.container().style.cursor = 'default';
   }
 }
 
@@ -594,19 +612,41 @@ const copyInvitationLink = async () => {
   }
 };
 
-const load = () => {
-  const data = localStorage.getItem('storage');
+const load = async() => {
+	const parts = new URL(window.location.href).pathname.split('/')[3]
+  const data = localStorage.getItem(parts);
   if (data) {
-    list.value = JSON.parse(data);
-    if (list.value.length > 0) {
-      const lastImage = new window.Image();
-      lastImage.src = list.value[list.value.length - 1].image;
-      lastImage.onload = () => {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(lastImage, 0, 0);
-        layerRef.value.getNode().batchDraw();
-      };
-    }
+		try{
+      const parsedArray = JSON.parse(data);
+      const stageDataString = parsedArray[0].image;
+      if (stageDataString) {
+        await applyStateToLayer(stageDataString);
+        //console.log("Local storage loaded successfully");
+      }
+		}catch(e){
+			console.error(e)
+		}
+			//  try {
+			//    const parsedArray = JSON.parse(data);
+			//    const stageData = JSON.parse(parsedArray[0].image);
+			//    const layer = layerRef.value.getNode();
+			//    layer.destroyChildren();
+			//    if (stageData.children && stageData.children.length > 0) {
+			//      const savedLayer = stageData.children[0];
+			//        savedLayer.children.forEach(shapeJson => {
+			//          if (shapeJson.className === "Image" && shapeJson.attrs.src) {
+			//            const img = new window.Image();
+			//            img.src = shapeJson.attrs.src;
+			//            shapeJson.attrs.image = img;
+			//          }
+			//          const shape = Konva.Node.create(shapeJson);
+			//          layer.add(shape);
+			//        });
+			// 	layer.draw();
+			// }
+			//  } catch (e) {
+			//    console.error("Failed to load from local storage:", e);
+			//  }
   }
 };
 const save_definetely = async()=>{
@@ -740,7 +780,6 @@ const redo=()=>{
   if(history_index.value==MAX_HISTORY-1) return
   else{
     history_index.value++;
-    //redraw
     const layer=layerRef.value.getNode()
     if(!stroke_history.value[history_index.value]) return;
     const history=JSON.parse(stroke_history.value[history_index.value])
@@ -834,7 +873,7 @@ const check_save = async (mode) => {
   try{
     loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
-    const room = parts[3];  // 'room_id
+    const room = parts[3];
     if(mode==='save'){
       const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
@@ -852,7 +891,6 @@ const check_save = async (mode) => {
         flag=false
       }
       await new Promise(resolve => setTimeout(() => { loading.value = false; resolve(); }, 2000));
-      //console.log(flag)
       if(!flag){
         autosave()
         showPopup.value=true
@@ -880,7 +918,8 @@ const check_save = async (mode) => {
 }
 
 function leave(){
-  localStorage.removeItem('storage')
+	const parts = new URL(window.location.href).pathname.split('/')[3];
+  localStorage.removeItem(parts)
   if(admin.value){
     window.location.href='/codraw'
   }else{
@@ -893,7 +932,8 @@ function clearDefinetely(){
   message.value=""
   loading.value=true
   console.log("Clearing the board")
-  localStorage.removeItem('storage')
+	const parts = new URL(window.location.href).pathname.split('/')[3]
+  localStorage.removeItem(parts)
   const layer=layerRef.value.getNode();
   layer.destroyChildren();
   layer.batchDraw();
@@ -918,12 +958,13 @@ const getRelativePointerPosition = (stage) => {
 const autosave = () => {
   const stage = stageRef.value?.getNode?.();
   if (!stage) return;
-  const dataUrl = stage.toDataURL();
+  const dataUrl = stage.toJSON();
   list.value = [{
     id: Date.now(),
     image: dataUrl
   }];
-  localStorage.setItem('storage', JSON.stringify(list.value));
+	const parts = new URL(window.location.href).pathname.split('/')[3]
+  localStorage.setItem(parts, JSON.stringify(list.value));
 };
 
 const imageConfig = {
@@ -935,7 +976,7 @@ const imageConfig = {
 };
 const handleMouseDown = (e) => {
   const stage = e.target.getStage();
-  if (e.evt.button === 2) {
+  if (e.evt.button === 2 || paneToggler.value) {
     isPanning.value = true;
     stage.draggable(true);
     stage.startDrag();
@@ -987,6 +1028,57 @@ const handleMouseMove = (e) => {
   }));
 };
 
+const handleStageResize = () => {
+	windowWidth.value = window.innerWidth;
+  const stage = stageRef.value?.getNode();
+  const image = imageRef.value?.getNode();
+  if (!stage || !image) return;
+
+  const newWidth = window.innerWidth;
+  const newHeight = window.innerHeight;
+
+  canvas.width = newWidth * 4;
+  canvas.height = newHeight * 4;
+
+  stage.width(canvas.width);
+  stage.height(canvas.height);
+  image.width(canvas.width);
+  image.height(canvas.height);
+
+  const layer = image.getLayer();
+  if (layer) layer.batchDraw();
+};
+const applyStateToLayer = async(jsonString) => {
+  const layer = layerRef.value.getNode();
+  if (!layer) return;
+  layer.destroyChildren();
+  const parsed = JSON.parse(jsonString);
+  const children = parsed.children?.[0]?.children || [];
+  const imagePromises = children.map(shapeJson => {
+    if (shapeJson.className === "Image" && shapeJson.attrs.src) {
+      return new Promise((resolve) => {
+        const img = new window.Image();
+        img.onload = () => {
+          shapeJson.attrs.image = img;
+          resolve();
+        };
+        img.onerror = resolve;
+        img.src = shapeJson.attrs.src;
+      });
+    }
+    return Promise.resolve();
+  });
+  await Promise.all(imagePromises);
+  children.forEach(shapeJson => {
+    const shape = Konva.Node.create(shapeJson);
+    layer.add(shape);
+    if (shape.className === 'Image') {
+      applyCrop(shape);
+    }
+  });
+  layer.batchDraw();
+};
+
 const get_details_and_load = async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
@@ -1003,24 +1095,35 @@ const get_details_and_load = async()=>{
     const response=await data.json()
     const saved_json = response.canva;
     const bg = response.bg;
+		const last_access=response.last
     if(bg){
       background.value=bg
       motiv.value = bg === "#ffffff"
     }
+		const localData = localStorage.getItem(room);
+		if (localData) {
+			const parsedLocal = JSON.parse(localData);
+			if (parsedLocal && parsedLocal[0] && parsedLocal[0].id > last_access) {
+				await load();
+				return;
+			}
+		}
     if(saved_json){
-      const parsed = JSON.parse(saved_json);
-      const layer = layerRef.value.getNode(); //
-      layer.destroyChildren();
-      parsed.children[0].children.forEach(shapeJson => {
-        if(shapeJson.className==="Image" && shapeJson.attrs.src){
-          const img = new window.Image();
-          img.src = shapeJson.attrs.src;
-          shapeJson.attrs.image = img;
-        }
-        const shape = Konva.Node.create(shapeJson);
-        layer.add(shape);
-      });
-      layer.draw();
+			await applyStateToLayer(saved_json)
+					//  const parsed = JSON.parse(saved_json);
+					//  const layer = layerRef.value.getNode(); //
+					//  layer.destroyChildren();
+					//  parsed.children[0].children.forEach(shapeJson => {
+					//    if(shapeJson.className==="Image" && shapeJson.attrs.src){
+					//      const img = new window.Image();
+					// img.onload=()=>layer.batchDraw()
+					//      img.src = shapeJson.attrs.src;
+					//      shapeJson.attrs.image = img;
+					//    }
+					//    const shape = Konva.Node.create(shapeJson);
+					//    layer.add(shape);
+					//  });
+					//  layer.draw();
     }
   }catch(e){
     console.error(e)
@@ -1041,15 +1144,14 @@ const keyhandler=(event)=>{
     }))
   }
 }
-
-const onResize = () => {
-  windowWidth.value = window.innerWidth;
-};
-
+//
+// const onResize = () => {
+//   windowWidth.value = window.innerWidth;
+// };
+let autosaveInterval = null;
 onMounted(async()=>{
   loading.value=true
   await nextTick();
-  load()
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
   }
@@ -1058,7 +1160,7 @@ onMounted(async()=>{
   if(visitor.value){
     await check_book_mark();
   }
-
+	autosaveInterval=setInterval(()=>autosave(),60000)
   window.addEventListener('keyup',keyhandler)
   const stage=stageRef.value.getNode();
   const scaleBy=1.1;
@@ -1084,37 +1186,37 @@ onMounted(async()=>{
     stage.position(newPos);
     stage.batchDraw();
   })
-  let resizeTimeout = null;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      const stage = stageRef.value?.getNode();
-      const image = imageRef.value?.getNode();
-      if (!stage || !image) return;
-
-      const newWidth = window.innerWidth;
-      const newHeight = window.innerHeight;
-
-      canvas.width = newWidth * 4;
-      canvas.height = newHeight * 4;
-
-      stage.width(canvas.width);
-      stage.height(canvas.height);
-
-      image.width(canvas.width);
-      image.height(canvas.height);
-
-      const layer = image.getLayer();
-      if (layer) layer.batchDraw();
-    }, 100);
-  });
-  window.addEventListener('resize', onResize);
+  //let resizeTimeout = null;
+  // window.addEventListener('resize', () => {
+  //   clearTimeout(resizeTimeout);
+  //   resizeTimeout = setTimeout(() => {
+  //     const stage = stageRef.value?.getNode();
+  //     const image = imageRef.value?.getNode();
+  //     if (!stage || !image) return;
+  //
+  //     const newWidth = window.innerWidth;
+  //     const newHeight = window.innerHeight;
+  //
+  //     canvas.width = newWidth * 4;
+  //     canvas.height = newHeight * 4;
+  //
+  //     stage.width(canvas.width);
+  //     stage.height(canvas.height);
+  //
+  //     image.width(canvas.width);
+  //     image.height(canvas.height);
+  //
+  //     const layer = image.getLayer();
+  //     if (layer) layer.batchDraw();
+  //   }, 100);
+  // });
+  window.addEventListener('resize', handleStageResize);
   window.addEventListener('paste', handlePaste)
   const preview = document.createElement('div');
   preview.id = 'preview';
   preview.style.position = 'absolute';
-  preview.style.bottom = '15px';
-  preview.style.left = '15px';
+  preview.style.bottom = '5px';
+  preview.style.left = '5px';
   preview.style.border = '5px solid #ffc107';
   preview.style.borderRadius="5%"
   preview.style.backgroundColor = 'lightgrey';
@@ -1159,12 +1261,20 @@ onMounted(async()=>{
       previewLayer.add(shape);
     });
     previewLayer.draw();
+		// const layer = layerRef.value.getNode();
+		// if (!layer) return;
+		// previewLayer.destroyChildren();
+		// previewLayer.add(previewBg);
+		// const clone = layer.clone({ listening: false });
+		// clone.scale({ x: 1, y: 1 });
+		// clone.position({ x: 0, y: 0 });
+		// previewLayer.add(clone);
+		// previewLayer.batchDraw();
   }
   loading.value=false;
   layer.on('add destroy change',syncPreview)
   syncPreview()
 })
-setInterval(()=>autosave(),60000)
 onBeforeUnmount(()=>{
   if(ws.value){
     ws.value.close()
@@ -1172,9 +1282,10 @@ onBeforeUnmount(()=>{
   loading.value=true
 })
 onUnmounted(()=>{
+	clearInterval(autosaveInterval)
   window.removeEventListener('paste',handlePaste)
   window.removeEventListener("keyup",keyhandler)
-  window.removeEventListener("resize",onResize)
+  window.removeEventListener("resize",handleStageResize)
 })
 </script>
 

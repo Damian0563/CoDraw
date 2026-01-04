@@ -423,7 +423,7 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
 def get_board_img(room: str) -> list | str:
     try:
         entry = models.Board.objects.get(room=room)
-        return [entry.board, entry.background]
+        return [entry.board, entry.background, entry.last_edit]
     except Exception as e:
         print("Error in fetching image: ", e)
         return ""
