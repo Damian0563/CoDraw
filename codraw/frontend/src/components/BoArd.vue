@@ -621,33 +621,11 @@ const load = async() => {
       const stageDataString = parsedArray[0].image;
       if (stageDataString) {
         await applyStateToLayer(stageDataString);
-        //console.log("Local storage loaded successfully");
       }
 		}catch(e){
 			console.error(e)
 		}
-			//  try {
-			//    const parsedArray = JSON.parse(data);
-			//    const stageData = JSON.parse(parsedArray[0].image);
-			//    const layer = layerRef.value.getNode();
-			//    layer.destroyChildren();
-			//    if (stageData.children && stageData.children.length > 0) {
-			//      const savedLayer = stageData.children[0];
-			//        savedLayer.children.forEach(shapeJson => {
-			//          if (shapeJson.className === "Image" && shapeJson.attrs.src) {
-			//            const img = new window.Image();
-			//            img.src = shapeJson.attrs.src;
-			//            shapeJson.attrs.image = img;
-			//          }
-			//          const shape = Konva.Node.create(shapeJson);
-			//          layer.add(shape);
-			//        });
-			// 	layer.draw();
-			// }
-			//  } catch (e) {
-			//    console.error("Failed to load from local storage:", e);
-			//  }
-  }
+	}
 };
 const save_definetely = async()=>{
   try{
@@ -726,11 +704,6 @@ function getCrop(image, size) {
 }
 
 function applyCrop(imgNode) {
-  // const crop = getCrop(
-  //   imgNode.image(), // HTMLImageElement
-  //   { width: imgNode.width(), height: imgNode.height() }
-  // );
-  // imgNode.setAttrs(crop);
   const image = imgNode.image();
   if (!image) return;
 
@@ -974,39 +947,59 @@ const imageConfig = {
   width: canvas.width,
   height: canvas.height
 };
+let lastCenter = null;
+let lastDist = 0;
 const handleMouseDown = (e) => {
-  const stage = e.target.getStage();
-  if (e.evt.button === 2 || paneToggler.value) {
-    isPanning.value = true;
-    stage.draggable(true);
-    stage.startDrag();
-    lastPos.value = stage.getPointerPosition();
-    return;
-  }
-  isDrawing.value = true;
-  const pos = getRelativePointerPosition(stage);
-  const newLine = new Konva.Line({
-    stroke: color.value,
-    strokeWidth: width_slider.value,
-    globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
-    points: [pos.x, pos.y],
-    lineCap: 'round',
-    lineJoin: 'round'
-  });
-  ws.value.send(JSON.stringify({
-    type: "start",
-    stroke: color.value,
-    width: width_slider.value,
-    operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
-    points: [pos.x, pos.y]
-  }))
-  layerRef.value.getNode().add(newLine);
-  currentLine.value = newLine;
+	if (!e.evt.touches || e.evt.touches.length==1){
+		const stage = e.target.getStage();
+		if (e.evt.button === 2 || paneToggler.value) {
+			isPanning.value = true;
+			stage.draggable(true);
+			stage.startDrag();
+			lastPos.value = stage.getPointerPosition();
+			return;
+		}
+		isDrawing.value = true;
+		const pos = getRelativePointerPosition(stage);
+		const newLine = new Konva.Line({
+			stroke: color.value,
+			strokeWidth: width_slider.value,
+			globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+			points: [pos.x, pos.y],
+			lineCap: 'round',
+			lineJoin: 'round'
+		});
+		ws.value.send(JSON.stringify({
+			type: "start",
+			stroke: color.value,
+			width: width_slider.value,
+			operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+			points: [pos.x, pos.y]
+		}))
+		layerRef.value.getNode().add(newLine);
+		currentLine.value = newLine;
+	}else if(e.evt.touches && e.evt.touches.length==2){
+		//zoom for mobile
+		isDrawing.value = false;
+    currentLine.value = null;
+		const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    lastDist = Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+    lastCenter = {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+	}
 };
 
 const handleMouseUp = (e) => {
   isDrawing.value = false;
   currentLine.value = null;
+  lastDist = 0;
+  lastCenter = null;
   addToHistory()
   if (isPanning.value) {
     const stage = e.target.getStage();
@@ -1016,16 +1009,47 @@ const handleMouseUp = (e) => {
 };
 
 const handleMouseMove = (e) => {
-  if (!isDrawing.value || !currentLine.value) return;
-  const stage = e.target.getStage();
-  const point = getRelativePointerPosition(stage);
-  const newPoints = currentLine.value.points().concat([point.x, point.y]);
-  currentLine.value.points(newPoints);
-  layerRef.value.getNode().batchDraw();
-  ws.value.send(JSON.stringify({
-    type: "draw",
-    points: [point.x, point.y]
-  }));
+	if(!e.evt.touches || e.evt.touches.length==1){
+		if (!isDrawing.value || !currentLine.value) return;
+		const stage = e.target.getStage();
+		const point = getRelativePointerPosition(stage);
+		const newPoints = currentLine.value.points().concat([point.x, point.y]);
+		currentLine.value.points(newPoints);
+		layerRef.value.getNode().batchDraw();
+		ws.value.send(JSON.stringify({
+			type: "draw",
+			points: [point.x, point.y]
+		}));
+	}else if(e.evt.touches && e.evt.touches.length==2 && lastCenter){
+		const stage = stageRef.value.getNode();
+    const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    const dist = Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+    const newCenter = {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+    const pointTo = {
+      x: (newCenter.x - stage.x()) / stage.scaleX(),
+      y: (newCenter.y - stage.y()) / stage.scaleX(),
+    };
+    const scaleBy = dist / lastDist;
+    const newScale = stage.scaleX() * scaleBy;
+		if(newScale>0.05 && newScale<5){
+			stage.scale({ x: newScale, y: newScale });
+			const newPos = {
+				x: newCenter.x - pointTo.x * newScale,
+				y: newCenter.y - pointTo.y * newScale,
+			};
+			stage.position(newPos);
+			stage.batchDraw();
+		}
+    lastDist = dist;
+    lastCenter = newCenter;
+  }
 };
 
 const handleStageResize = () => {
@@ -1110,21 +1134,7 @@ const get_details_and_load = async()=>{
 		}
     if(saved_json){
 			await applyStateToLayer(saved_json)
-					//  const parsed = JSON.parse(saved_json);
-					//  const layer = layerRef.value.getNode(); //
-					//  layer.destroyChildren();
-					//  parsed.children[0].children.forEach(shapeJson => {
-					//    if(shapeJson.className==="Image" && shapeJson.attrs.src){
-					//      const img = new window.Image();
-					// img.onload=()=>layer.batchDraw()
-					//      img.src = shapeJson.attrs.src;
-					//      shapeJson.attrs.image = img;
-					//    }
-					//    const shape = Konva.Node.create(shapeJson);
-					//    layer.add(shape);
-					//  });
-					//  layer.draw();
-    }
+		}
   }catch(e){
     console.error(e)
   }
@@ -1144,10 +1154,7 @@ const keyhandler=(event)=>{
     }))
   }
 }
-//
-// const onResize = () => {
-//   windowWidth.value = window.innerWidth;
-// };
+
 let autosaveInterval = null;
 onMounted(async()=>{
   loading.value=true
@@ -1186,30 +1193,6 @@ onMounted(async()=>{
     stage.position(newPos);
     stage.batchDraw();
   })
-  //let resizeTimeout = null;
-  // window.addEventListener('resize', () => {
-  //   clearTimeout(resizeTimeout);
-  //   resizeTimeout = setTimeout(() => {
-  //     const stage = stageRef.value?.getNode();
-  //     const image = imageRef.value?.getNode();
-  //     if (!stage || !image) return;
-  //
-  //     const newWidth = window.innerWidth;
-  //     const newHeight = window.innerHeight;
-  //
-  //     canvas.width = newWidth * 4;
-  //     canvas.height = newHeight * 4;
-  //
-  //     stage.width(canvas.width);
-  //     stage.height(canvas.height);
-  //
-  //     image.width(canvas.width);
-  //     image.height(canvas.height);
-  //
-  //     const layer = image.getLayer();
-  //     if (layer) layer.batchDraw();
-  //   }, 100);
-  // });
   window.addEventListener('resize', handleStageResize);
   window.addEventListener('paste', handlePaste)
   const preview = document.createElement('div');
