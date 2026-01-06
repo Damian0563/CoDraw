@@ -552,7 +552,7 @@ const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
 context.fillStyle=background.value
 context.lineJoin = 'round';
-context.lineWidth = width_slider.value;
+context.lineWidth = Number(width_slider.value);
 context.lineCap = 'round';
 context.lineJoin = 'round';
 
@@ -963,23 +963,26 @@ const handleMouseDown = (e) => {
 		const pos = getRelativePointerPosition(stage);
 		const newLine = new Konva.Line({
 			stroke: color.value,
-			strokeWidth: width_slider.value,
+			strokeWidth: Number(width_slider.value),
 			globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
 			points: [pos.x, pos.y],
 			lineCap: 'round',
-			lineJoin: 'round'
+			lineJoin: 'round',
+			tension:0.5
 		});
 		ws.value.send(JSON.stringify({
 			type: "start",
 			stroke: color.value,
-			width: width_slider.value,
+			width: Number(width_slider.value),
 			operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
 			points: [pos.x, pos.y]
 		}))
 		layerRef.value.getNode().add(newLine);
 		currentLine.value = newLine;
 	}else if(e.evt.touches && e.evt.touches.length==2){
-		//zoom for mobile
+		if (e.evt.cancelable) {
+			e.evt.preventDefault();
+		}
 		isDrawing.value = false;
     currentLine.value = null;
 		const touch1 = e.evt.touches[0];
@@ -1021,6 +1024,9 @@ const handleMouseMove = (e) => {
 			points: [point.x, point.y]
 		}));
 	}else if(e.evt.touches && e.evt.touches.length==2 && lastCenter){
+		if (e.evt.cancelable) {
+       e.evt.preventDefault();
+    }
 		const stage = stageRef.value.getNode();
     const touch1 = e.evt.touches[0];
     const touch2 = e.evt.touches[1];
@@ -1360,6 +1366,9 @@ html, body {
 .board-wrapper {
   width: 100%;
   height: 100%;
+	touch-action:none;
+	-webkit-user-select:none;
+	user-select:none;
 }
 
 

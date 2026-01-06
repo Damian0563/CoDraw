@@ -20,15 +20,15 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 library.add(faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand)
 
 const routes = [
-	{ path: '/', component: HeRo },
-	{ path: '/signup', component: SignUp },
-	{ path: '/signin', component: SignIn },
-	{ path: '/codraw', component: MaIn },
-	{ path: '/codraw/account/:username', component: AccOunt },
-	{ path: '/board/:id/:room', component: BoArd },
-	{ path: '/demo', component: DemoBoard },
-	{ path: '/learn-more', component: LearnMore },
-	{ path: '/recover/:code', component: RestorePassword }
+	{ path: '/', component: HeRo, meta: { showNav: true } },
+	{ path: '/signup', component: SignUp, meta: { showNav: true } },
+	{ path: '/signin', component: SignIn, meta: { showNav: true } },
+	{ path: '/codraw', component: MaIn, meta: { showNav: false } },
+	{ path: '/codraw/account/:username', component: AccOunt, meta: { showNav: false } },
+	{ path: '/board/:id/:room', component: BoArd, meta: { showNav: false } },
+	{ path: '/demo', component: DemoBoard, meta: { showNav: false } },
+	{ path: '/learn-more', component: LearnMore, meta: { showNav: true } },
+	{ path: '/recover/:code', component: RestorePassword, meta: { showNav: true } }
 ]
 
 const router = createRouter({

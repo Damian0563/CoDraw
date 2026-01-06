@@ -1,5 +1,6 @@
 <template>
-  <NavBar v-if="$route.path.substring(0,7) !== '/codraw' && $route.path.substring(0,6)!=='/board'"/>
+  <!-- <NavBar v-if="$route.path.substring(0,7) !== '/codraw' && $route.path.substring(0,6)!=='/board'"/> -->
+	<NavBar v-if="$route.meta.showNav"/>
   <router-view/>
 </template>
 
