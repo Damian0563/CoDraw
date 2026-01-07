@@ -83,7 +83,6 @@
         style="
           accent-color: #4f8cff;
           width: 60px;
-          margin-right: 8px;
         "
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
@@ -491,7 +490,6 @@ const room=ref(new URL(window.location.href).pathname.split('/')[3])
 const rawUrl=WS_URL
 const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 const finalUrl = `${cleanBase}/${room.value}/`;
-//console.log(finalUrl)
 ws.value = new WebSocket(finalUrl)
 ws.value.onmessage = async(event) => {
   const data = JSON.parse(event.data);
@@ -504,7 +502,8 @@ ws.value.onmessage = async(event) => {
       globalCompositeOperation: data.operation,
       points: data.points,
       lineCap: "round",
-      lineJoin: "round"
+      lineJoin: "round",
+			tension:0.5
     });
     newLine._remote = true;
     layer.add(newLine);

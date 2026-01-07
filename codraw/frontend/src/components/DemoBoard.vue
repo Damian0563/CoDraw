@@ -79,7 +79,6 @@
         style="
           accent-color: #4f8cff;
           width: 60px;
-          margin-right: 8px;
         "
       >
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
@@ -101,10 +100,6 @@
           style="overflow-x: hidden;overflow-y: hidden;border: none !important;"
           >
           <v-layer ref="layerRef">
-              <v-image
-                ref="imageRef"
-                :config="imageConfig"
-              />
           </v-layer>
       </v-stage>
     </div>
@@ -112,7 +107,6 @@
 </template>
 
 <script setup>
-import { v4 as uuidv4 } from 'uuid'
 import {VueSpinnerTail} from 'vue3-spinners'
 const loading=ref(false)
 import { onMounted, ref, onBeforeUnmount, onUnmounted} from 'vue';
@@ -130,7 +124,6 @@ const isDrawing = ref(false);
 const width_slider=ref(5);
 const list=ref([])
 const lastPos = ref(null);
-const imageRef = ref(null);
 const layerRef = ref(null);
 const isPanning = ref(false);
 const motiv=ref(true)
@@ -153,50 +146,13 @@ const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
 context.fillStyle=background.value
 context.lineJoin = 'round';
-context.lineWidth = width_slider.value;
+context.lineWidth = Number(width_slider.value);
 context.lineCap = 'round';
 context.lineJoin = 'round';
 
 watch(color, (newColor) => {
   context.strokeStyle = newColor;
 });
-
-function getCrop(image, size) {
-  const width = size.width;
-  const height = size.height;
-  const aspectRatio = width / height;
-  let newWidth;
-  let newHeight;
-  const imageRatio = image.width / image.height;
-  if (aspectRatio >= imageRatio) {
-    newWidth = image.width;
-    newHeight = image.width / aspectRatio;
-  } else {
-    newWidth = image.height * aspectRatio;
-    newHeight = image.height;
-  }
-  let x = 0;
-  let y = 0;
-  x = (image.width - newWidth) / 2;
-  y = (image.height - newHeight) / 2
-  return {
-    cropX: x,
-    cropY: y,
-    cropWidth: newWidth,
-    cropHeight: newHeight,
-  };
-}
-
-function applyCrop(imgNode) {
-  const image = imgNode.image();
-  if (!image) return;
-  const crop = getCrop(image, {
-    width: imgNode.width(),
-    height: imgNode.height()
-  });
-  imgNode.setAttrs(crop);
-}
-
 
 const MAX_HISTORY = 10;
 function addToHistory() {
@@ -235,71 +191,11 @@ const redo=()=>{
     if(!stroke_history.value[history_index.value]) return;
     const history=JSON.parse(stroke_history.value[history_index.value])
     if (history){
-      if(history.className==="Image"){
-        const image = new window.Image()
-        image.src=history.attrs.src
-        image.onload = () => {
-          const konvaImg = new Konva.Image({
-            id: uuidv4(),
-            image: image,
-            x: history.attrs.x,
-            y: history.attrs.y,
-            width: image.width,
-            height: image.height,
-            draggable: false,
-            src: history.attrs.src
-          });
-          applyCrop(konvaImg)
-          konvaImg.setAttr("src", history.attrs.src);
-          layer.add(konvaImg);
-          layer.draw();
-        }
-      }else{
-        const KonvaNode= Konva.Node.create(history)
-        layer.add(KonvaNode)
-        layer.draw()
-      }
+			const KonvaNode= Konva.Node.create(history)
+			layer.add(KonvaNode)
+			layer.draw()
     }
   }
-}
-const handlePaste = (event) => {
-  event.preventDefault();
-  const stage = stageRef.value?.getNode?.();
-  if (!stage) return;
-  const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
-  const point = getRelativePointerPosition(stage, pointer);
-  const clipboardData = event.clipboardData;
-  if (!clipboardData || clipboardData.files.length === 0) {
-    return;
-  }
-  const file = clipboardData.files[0];
-  if (!file.type.startsWith('image/')) {
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new window.Image();
-    img.src = e.target.result;
-    img.onload = () => {
-      const konvaImg = new Konva.Image({
-        id: uuidv4(),
-        image: img,
-        x: point.x,
-        y: point.y,
-        width: img.width,
-        height: img.height,
-        draggable: false,
-        src: e.target.result
-      });
-      applyCrop(konvaImg)
-      const layer = layerRef.value.getNode();
-      konvaImg.setAttr("src", e.target.result);
-      layer.add(konvaImg);
-      layer.draw();
-      addToHistory()
-  }
-  }
-  reader.readAsDataURL(file)
 }
 
 const getRelativePointerPosition = (stage) => {
@@ -319,13 +215,6 @@ const autosave = () => {
   localStorage.setItem('storage', JSON.stringify(list.value));
 };
 
-const imageConfig = {
-  image: canvas,
-  x: 0,
-  y: 0,
-  width: canvas.width,
-  height: canvas.height
-};
 const handleMouseDown = (e) => {
   const stage = e.target.getStage();
   if (e.evt.button === 2) {
@@ -339,11 +228,12 @@ const handleMouseDown = (e) => {
   const pos = getRelativePointerPosition(stage);
   const newLine = new Konva.Line({
     stroke: color.value,
-    strokeWidth: width_slider.value,
+    strokeWidth: Number(width_slider.value),
     globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
     points: [pos.x, pos.y],
     lineCap: 'round',
-    lineJoin: 'round'
+    lineJoin: 'round',
+		tension: 0.5
   });
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
@@ -390,22 +280,16 @@ onMounted(async()=>{
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       const stage = stageRef.value?.getNode();
-      const image = imageRef.value?.getNode();
-      if (!stage || !image) return;
+      if (!stage) return;
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
       canvas.width = newWidth * 4;
       canvas.height = newHeight * 4;
       stage.width(canvas.width);
       stage.height(canvas.height);
-      image.width(canvas.width);
-      image.height(canvas.height);
-      const layer = image.getLayer();
-      if (layer) layer.batchDraw();
     }, 100);
   });
   window.addEventListener('resize', onResize);
-  window.addEventListener('paste', handlePaste)
   watch(motiv,()=>{
     background.value = motiv.value ? "#ffffff" : "#000000"
     color.value= motiv.value ? "#000000":"#ffffff"
@@ -417,7 +301,6 @@ onBeforeUnmount(()=>{
   loading.value=true
 })
 onUnmounted(()=>{
-  window.removeEventListener('paste',handlePaste)
   window.removeEventListener("keyup",keyhandler)
   window.removeEventListener("resize",onResize)
 })

@@ -12,12 +12,13 @@ import BoArd from './components/BoArd.vue'
 import RestorePassword from './components/RestorePassword.vue'
 import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
+import NotFound from './components/NotFound.vue'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { createGtag } from "vue-gtag"
-import { faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faHand } from '@fortawesome/free-solid-svg-icons'
+import { faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faHand, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
-library.add(faPalette, faBolt, faLightbulb, faUndo, faRedo, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand)
+library.add(faPalette, faBolt, faLightbulb, faUndo, faRedo, faExclamationTriangle, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand)
 
 const routes = [
 	{ path: '/', component: HeRo, meta: { showNav: true } },
@@ -28,7 +29,8 @@ const routes = [
 	{ path: '/board/:id/:room', component: BoArd, meta: { showNav: false } },
 	{ path: '/demo', component: DemoBoard, meta: { showNav: false } },
 	{ path: '/learn-more', component: LearnMore, meta: { showNav: true } },
-	{ path: '/recover/:code', component: RestorePassword, meta: { showNav: true } }
+	{ path: '/recover/:code', component: RestorePassword, meta: { showNav: true } },
+	{ path: '/:pathMatch(.*)*', component: NotFound, meta: { showNav: true } }
 ]
 
 const router = createRouter({
