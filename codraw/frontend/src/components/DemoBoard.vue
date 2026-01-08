@@ -111,6 +111,7 @@ import {VueSpinnerTail} from 'vue3-spinners'
 const loading=ref(false)
 import { onMounted, ref, onBeforeUnmount, onUnmounted} from 'vue';
 const currentLine = ref(null)
+let drawFrameId = null
 import Konva from 'konva';
 import { watch } from 'vue';
 const stageRef = ref(null);
@@ -130,8 +131,8 @@ const motiv=ref(true)
 const stroke_history=ref([])
 const history_index=ref(0)
 const stageConfig = {
-  width: 4*document.documentElement.clientWidth,
-  height: 4*document.documentElement.clientHeight,
+  width: 2*document.documentElement.clientWidth,
+  height: 2*document.documentElement.clientHeight,
   draggable: false
 };
 
@@ -233,7 +234,7 @@ const handleMouseDown = (e) => {
     points: [pos.x, pos.y],
     lineCap: 'round',
     lineJoin: 'round',
-		tension: 0.5
+		tension: 0.3
   });
   layerRef.value.getNode().add(newLine);
   currentLine.value = newLine;
@@ -248,15 +249,26 @@ const handleMouseUp = (e) => {
     stage.draggable(false);
     isPanning.value = false;
   }
+  if (drawFrameId !== null) {
+    cancelAnimationFrame(drawFrameId);
+    drawFrameId = null;
+    layerRef.value.getNode().batchDraw();
+  }
 };
 
 const handleMouseMove = (e) => {
   if (!isDrawing.value || !currentLine.value) return;
   const stage = e.target.getStage();
   const point = getRelativePointerPosition(stage);
-  const newPoints = currentLine.value.points().concat([point.x, point.y]);
-  currentLine.value.points(newPoints);
-  layerRef.value.getNode().batchDraw();
+  const points = currentLine.value.points();
+  points.push(point.x, point.y);
+  currentLine.value.points(points);
+  if (drawFrameId === null) {
+    drawFrameId = requestAnimationFrame(() => {
+      layerRef.value.getNode().batchDraw();
+      drawFrameId = null;
+    });
+  }
 };
 
 const keyhandler=(event)=>{

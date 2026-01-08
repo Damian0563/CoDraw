@@ -363,6 +363,8 @@ const loading=ref(false)
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted} from 'vue';
 const currentLine = ref(null)
+let drawFrameId = null
+let lastWsSendTime = 0
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
@@ -480,8 +482,8 @@ const check_book_mark=async()=>{
 }
 const show_text = computed(() => windowWidth.value > 1300);
 const stageConfig = {
-  width: 4*document.documentElement.clientWidth,
-  height: 4*document.documentElement.clientHeight,
+  width: 2*document.documentElement.clientWidth,
+  height: 2*document.documentElement.clientHeight,
   draggable: false
 };
 
@@ -503,14 +505,15 @@ ws.value.onmessage = async(event) => {
       points: data.points,
       lineCap: "round",
       lineJoin: "round",
-			tension:0.5
+			tension:0.3
     });
     newLine._remote = true;
     layer.add(newLine);
     currentLine.value = newLine;
   } else if (data.type === "draw" && currentLine.value?._remote) {
-    const newPoints = currentLine.value.points().concat(data.points);
-    currentLine.value.points(newPoints);
+    const points = currentLine.value.points();
+    points.push(...data.points);
+    currentLine.value.points(points);
     layer.batchDraw();
   }else if(data.type==="bg" && data.bg){
     background.value=data.bg
@@ -967,7 +970,7 @@ const handleMouseDown = (e) => {
 			points: [pos.x, pos.y],
 			lineCap: 'round',
 			lineJoin: 'round',
-			tension:0.5
+			tension:0.3
 		});
 		ws.value.send(JSON.stringify({
 			type: "start",
@@ -1008,6 +1011,11 @@ const handleMouseUp = (e) => {
     stage.draggable(false);
     isPanning.value = false;
   }
+  if (drawFrameId !== null) {
+    cancelAnimationFrame(drawFrameId);
+    drawFrameId = null;
+    layerRef.value.getNode().batchDraw();
+  }
 };
 
 const handleMouseMove = (e) => {
@@ -1015,13 +1023,23 @@ const handleMouseMove = (e) => {
 		if (!isDrawing.value || !currentLine.value) return;
 		const stage = e.target.getStage();
 		const point = getRelativePointerPosition(stage);
-		const newPoints = currentLine.value.points().concat([point.x, point.y]);
-		currentLine.value.points(newPoints);
-		layerRef.value.getNode().batchDraw();
-		ws.value.send(JSON.stringify({
-			type: "draw",
-			points: [point.x, point.y]
-		}));
+		const points = currentLine.value.points();
+		points.push(point.x, point.y);
+		currentLine.value.points(points);
+		const now = Date.now();
+		if (now - lastWsSendTime >= 16) {
+			lastWsSendTime = now;
+			ws.value.send(JSON.stringify({
+				type: "draw",
+				points: [point.x, point.y]
+			}));
+		}
+		if (drawFrameId === null) {
+			drawFrameId = requestAnimationFrame(() => {
+				layerRef.value.getNode().batchDraw();
+				drawFrameId = null;
+			});
+		}
 	}else if(e.evt.touches && e.evt.touches.length==2 && lastCenter){
 		if (e.evt.cancelable) {
        e.evt.preventDefault();
