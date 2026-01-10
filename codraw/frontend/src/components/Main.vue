@@ -19,9 +19,9 @@
       <div class="mb-4">
         <h2 class="mb-4 text-start">My Projects</h2>
         <div id="projects" class="container">
-          <div 
-            class="card create-project-card my text-center bg-dark" 
-            @click="create()" 
+          <div
+            class="card create-project-card my text-center bg-dark"
+            @click="create()"
             style="height: 14rem; width: 14rem; cursor: pointer;"
           >
             <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
@@ -53,125 +53,12 @@
               </footer>
             </div>
           </div>
-          <!-- <div
-            v-for="(board, index) in boards"
-            :key="index"
-            class="card create-project-card my text-center bg-dark"
-            @click="join(board.room)"
-            style="min-height: 14rem; min-width: 14rem; cursor: pointer; position: relative;"
-          >
-            <div class="card-body d-flex flex-column text-white" style="height: 100%;">  
-              <div class="w-100" @click.stop="hover[index] = !hover[index]">
-                <img :src="info" style="width:30px;height: 30px;position: absolute;right:0;top:0;" alt="info icon">
-              </div>
-              <div v-if="hover[index]" class="w-100">
-                <div class="d-flex flex-column align-items-start gap-1" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05);padding: 0.5rem;">
-                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Views: <span class="text-white">{{ board.views }}</span></span>
-                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Last Modified: <span class="text-white">{{ board.modified }}</span></span>
-                  <span class="fw-semibold text-warning" style="font-size: 0.85rem;">Visibility: <span class="text-white">{{ board.visibility }}</span></span>
-                </div>
-              </div>
-              <div v-else class="w-100">
-                <h5 class="card-title fw-bold mt-2">{{ board.title }}</h5>
-                <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
-              </div>
-            </div>
-          </div> -->
         </div>
       </div>
+			<Search />
       <div v-if="loading" class="spinner-overlay">
         <VueSpinnerTail size="60" color="orange" />
       </div>
-      <div class="my-5 border rounded justify-content-center" style="background-color: #ffc107;width:100%;height: auto;">
-        <div class="text-center mb-4">
-          <h2 class="fw-bold mt-4">Browse Public Projects</h2>
-          <p class="text-muted">Find boards and ideas shared by the community</p>
-        </div>
-        <div class="row justify-content-center">
-          <div class="col-md-6 col-sm-8 col-7">
-            <div class="input-group shadow-sm rounded mx-2">
-              <input 
-                type="text" 
-                class="form-control border-0 p-3"
-                placeholder="Search public boards..." 
-                aria-label="Search public boards"
-                v-model="input"
-                @keyup.enter="search(input)"
-              >
-              <button class="btn btn-primary" type="button" @click="search(input)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
-                    class="bi bi-search" viewBox="0 0 16 16">
-                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 
-                          1 0 0 0 1.415-1.415l-3.85-3.85zm-5.242 
-                          1.656a5.5 5.5 0 1 1 0-11 5.5 
-                          5.5 0 0 1 0 11z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <section id="results" class="my-4 mx-3">
-          <div class="container">
-            <div class="row g-1 justify-content-start gap-2">
-              <div
-                v-for="(board, index) in popular"
-                :key="index"
-                :class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-                class="card result-card text-center bg-dark"
-                style="height: 15rem; width: 15rem; cursor: pointer; position: relative;"
-                @click="join(board.room)"
-              >
-                <div class="card-body d-flex flex-column txtcard" style="height: 100%;">
-                  <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
-                  <p class="card-text small">{{ board.description }}</p>
-                  <footer
-                    class="mt-auto py-2 px-2"
-                    style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;"
-                  >
-                    <div class="d-flex justify-content-between small">
-                      <span>Views: <span class="txtcard">{{ board.views }}</span></span>
-                      <span class="txtcard">{{ board.modified }}</span>
-                    </div>
-                    <div class="text-start small">
-                      Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop style="color:#ff4f4f !important;">{{ board.owner }}</a>
-                    </div>
-                  </footer>
-                </div>
-              </div>
-              <!-- <div
-                v-for="(board, index) in popular"
-                :key="index"
-                :class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-              >
-                <div
-                  class="card create-project-card text-center bg-dark"
-                  @click="join(board.room)"
-                  style="min-height: 12rem;min-width:10rem ;cursor: pointer;position: relative;"
-                >
-                  <div class="card-body d-flex flex-column text-white" id="shown" style="height: 100%;">
-                    <h5 class="card-title fw-bold">{{ board.title }}</h5>
-                    <p class="card-text" style="font-size: 0.8rem;">{{ board.description }}</p>
-                    <footer class="d-flex flex-column py-2" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;">
-                      <div class="d-flex align-items-center gap-2 mx-2 mb-2">
-                        <span class="fw-semibold text-warning">Owner:</span>
-                        <a :href="`/codraw/account/${board.owner}`" style="color:#ff4f4f !important;">{{ board.owner }}</a>
-                      </div>
-                      <div class="d-flex align-items-center gap-2 mx-2">
-                        <input class="form-control form-control-sm" readonly disabled :value="'Views: ' + board.views" style="width:150px;"/>
-                        <input class="form-control form-control-sm" readonly disabled :value="board.modified" style="width: 150px;"/>
-                      </div>
-                    </footer>
-                  </div>  
-                </div>
-              </div> -->
-              <div v-if="popular.length===0" class="justify-content-center" style="min-height: 12rem;">
-                <text>No results found :(</text>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
     </main>
   </div>
 </template>
@@ -179,10 +66,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common';
-import {DateTime} from 'luxon'
 import url from '@/assets/logo.webp'
 import toggle from '@/assets/sidebar.webp'
 import {BASE_URL} from '../common.js'
+import Search from './Search.vue'
 import {VueSpinnerTail} from 'vue3-spinners'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 const loading = ref(false)
@@ -190,8 +77,6 @@ const hover=ref({})
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(false)
 const boards = ref([])
-const popular=ref([])
-const input=ref('')
 const username = ref("")
 async function get_username(){
   try{
@@ -221,29 +106,6 @@ async function log_out(){
     if(response.status===200){
       window.location.href='/'
     }
-  }catch(e){
-    console.error(e)
-  }
-}
-
-async function search(sentence){
-  try{
-    loading.value=true;
-    const data=await fetch(`${BASE_URL}/search`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json","X-CSRFToken":csrf},
-      credentials:"include",
-      body:JSON.stringify({
-        "query":sentence,
-        "timezone":DateTime.local().zoneName
-      })
-    })
-    const response=await data.json()
-    if(response.status===200){
-      popular.value=JSON.parse(response.boards)
-      //console.log(popular.value.length, popular.value)
-    }
-    loading.value=false
   }catch(e){
     console.error(e)
   }
@@ -330,32 +192,11 @@ async function create(){
   }
 }
 
-async function load_popular(){
-  try{
-    const data=await fetch(`${BASE_URL}/get_popular`,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "X-CSRFToken":csrf
-      },
-      body:JSON.stringify({
-        "timezone":DateTime.local().zoneName
-      }),
-      credentials:"include"
-    })
-    const response=await data.json()
-    popular.value=response.boards
-  }catch(e){
-    console.error(e)
-  }
-}
-
 onMounted(async() => {
   loading.value=true
   await Promise.all([
     status(),
     get_boards(),
-    load_popular(),
     get_username()
   ])
   loading.value=false
@@ -369,7 +210,7 @@ export default {
 </script>
 
 <style scoped>
-.project-card, .result-card {
+.project-card {
   transition: 0.3s ease-in-out;
   border: 1px solid #ffc10744;
   border-radius: 0.75rem;
@@ -378,20 +219,6 @@ export default {
 
 .txtcard{
   color: #ffc107;
-}
-
-.result-card:hover{
-  background-color: white !important;
-  color: #000 !important;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-  border-color: black;
-  .txtcard{
-    color: black;
-  }
-  .card-title{
-    color: black;
-  }
 }
 
 .project-card:hover {
