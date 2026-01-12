@@ -18,12 +18,10 @@
       </div>
     </div>
   </Transition>
-  <main class="flex-grow-1 text-white py-5">
-    <RouterLink to="/codraw">
-      <img :src="back" decoding="async" loading="lazy" class="back" style="width:50px;height: 50px;">
-    </RouterLink>
-    <div class="container">
-      <h2 class="fw-bold mb-5 text-center">{{ username }}'s Boards</h2>
+  <main class="main-layout">
+		<SiDebar/>
+    <div class="container flex-grow-1 d-flex flex-column mt-5 align-items-start">
+      <h2 class="fw-bold mb-5 text-start">{{ username }}'s Boards</h2>
       <div class="boards-wrapper mt-2 justify-content-start">
         <div
           v-for="(board, index) in boards"
@@ -96,48 +94,48 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="container mt-5" v-if="admin">
-      <h1 class="text-start">Bookmarks</h1>
-      <div class="boards-wrapper mt-5 justify-content-start">
-        <div
-          v-for="(board, index) in bookmarks"
-          :key="index"
-          class="project-card"
-        >
-          <div class="d-flex justify-content-end">
-            <button class="btn btn-success success" @click="join(board.room)">
-              Join room
-            </button>
-            <img
-              :src="bin"
-              loading="lazy"
-              alt="delete"
-              decoding="async"
-              @click="delete_bookmark(bookmarks[index].room);bookmarks.splice(index,1)"
-              style="width:20px;height:20px;cursor:pointer;"
-            >
-          </div>
-          <input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
-          <input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
-          <div class="card-body text-white position-relative flex-grow-1">
-            <div class="d-flex flex-column align-items-start gap-1"
-                style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
-              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
-                Views: <span class="text-white">{{ board.views }}</span>
-              </span>
-              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
-                Last Modified: <span class="text-white">{{ board.modified }}</span>
-              </span>
-              <span class="fw-semibold text-warning" style="font-size: 0.85rem;">
-                Visibility: <span class="text-white">{{ board.visibility }}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+			<div class="container mt-5" v-if="admin">
+				<h1 class="text-start">Bookmarks</h1>
+				<div class="boards-wrapper mt-5 justify-content-start">
+					<div
+						v-for="(board, index) in bookmarks"
+						:key="index"
+						class="project-card"
+					>
+						<div class="d-flex justify-content-end">
+							<button class="btn btn-success success" @click="join(board.room)">
+								Join room
+							</button>
+							<img
+								:src="bin"
+								loading="lazy"
+								alt="delete"
+								decoding="async"
+								@click="delete_bookmark(bookmarks[index].room);bookmarks.splice(index,1)"
+								style="width:20px;height:20px;cursor:pointer;"
+							>
+						</div>
+						<input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop :placeholder="'Board Title'" readonly disabled/>
+						<input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop :placeholder="'Board Description'" readonly disabled/>
+						<div class="card-body text-white position-relative flex-grow-1">
+							<div class="d-flex flex-column align-items-start gap-1"
+								style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
+								<span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+									Views: <span class="text-white">{{ board.views }}</span>
+								</span>
+								<span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+									Last Modified: <span class="text-white">{{ board.modified }}</span>
+								</span>
+								<span class="fw-semibold text-warning" style="font-size: 0.85rem;">
+									Visibility: <span class="text-white">{{ board.visibility }}</span>
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
 </template>
 
 <script setup>
@@ -146,7 +144,7 @@ import { DateTime } from 'luxon';
 import { onMounted, ref } from 'vue';
 import { BASE_URL } from '../common.js';
 import { VueSpinnerTail } from 'vue3-spinners';
-import back from '@/assets/goback.webp'
+import SiDebar from './SiDebar.vue'
 import bin from '@/assets/bin.webp'
 import save from '@/assets/save.webp'
 import edit from '@/assets/edit.webp'
@@ -225,6 +223,10 @@ const get_bookmarks=async(username)=>{
 
 const resave=async(board)=>{
   loading.value=true;
+	if(board.title.length===0 || board.description.length===0){
+		showPopup.value=true
+		message.value="Board title or description cannot be empty"
+	}
   if(board.original_description!==board.description || board.original_title!==board.title){
     try{
       const data=await fetch(`${BASE_URL}/codraw/update/${board.room}`,{
@@ -353,14 +355,17 @@ onMounted(async () => {
   opacity: 0;
   transform:translateY(-20px);
 }
-
-/* The "leave" state, when the modal is about to disappear */
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #181818;
+}
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
-/* The "active" state, when the modal is fully visible and in its final position */
 .fade-slide-enter-to,
 .fade-slide-leave-from {
   opacity: 1;
@@ -385,7 +390,6 @@ onMounted(async () => {
   transform: translateX(-15px);
 }
 
-/* Fixed-size cards */
 .project-card {
   background: #1f1f1f;
   border: 1px solid #333;
@@ -395,7 +399,6 @@ onMounted(async () => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  /* justify-content:space-around; */
   text-align: center;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;

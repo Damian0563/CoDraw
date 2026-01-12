@@ -6,13 +6,13 @@
 		<div class="sidebar-header d-flex flex-column align-items-center mb-4">
 			<img loading="lazy" alt="sidebar" decoding="async" class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
 			<img :src="url" alt="logo" loading="lazy" decoding="async" class="logo mb-4 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
-			<RouterLink :to="`/codraw`" class="nav-link account-link mb-4 w-100 text-center">
+			<RouterLink :to="`/codraw`" class="nav-link rounded p-2 account-link mb-4  text-center" style="width:170px" :style="{'background-color':onPage['/codraw']?'#ffc107':'linear-gradient(135deg, #181818 80%, #222 100%)'}">
 				<font-awesome-icon class="mx-2" :icon="['fas','home']"></font-awesome-icon>Start Page
 			</RouterLink>
-			<RouterLink :to="`/codraw/account/${username}`" class="nav-link account-link mb-4 w-100 text-center">
+			<RouterLink :to="`/codraw/account/${username}`" class="nav-link rounded p-2 account-link mb-4 text-center" style="width:170px" :style="{'background-color':onPage['/codraw/account']?'#ffc107':'linear-gradient(135deg, #181818 80%, #222 100%)'}">
 				<font-awesome-icon class="mx-2" :icon="['fas','user']"></font-awesome-icon>My Account
 			</RouterLink>
-			<RouterLink :to="`/codraw/search`" class="nav-link account-link mb-4 w-100 text-center">
+			<RouterLink :to="`/codraw/search`" class="nav-link rounded p-2 account-link mb-4 text-center" style="width:170px" :style="{'background-color':onPage['/codraw/search']?'#ffc107':'linear-gradient(135deg, #181818 80%, #222 100%)'}">
 				<font-awesome-icon class="mx-2" :icon="['fas','search']"></font-awesome-icon>Search
 			</RouterLink>
 			<button class="btn btn-danger" @click="log_out()" id="out">Log out</button>
@@ -38,7 +38,10 @@ const onPage={
 }
 
 function checkCurrentPage(){
-
+	const path=window.location.pathname
+	if(path==="/codraw") onPage['/codraw']=true
+	else if(path==="/codraw/search") onPage['/codraw/search']=true
+	else if(path.startsWith("/codraw/account")) onPage['/codraw/account']=true
 }
 
 async function log_out(){
@@ -74,6 +77,7 @@ async function get_username(){
 }
 onMounted(async() => {
 	loading.value=true
+	checkCurrentPage()
   await get_username()
 	loading.value=false
 })
