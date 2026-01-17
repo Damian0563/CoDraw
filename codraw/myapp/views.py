@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view  # ignore
 from rest_framework.response import Response
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django_ratelimit.decorators import ratelimit
 from uuid import uuid4
 from codraw.redis_client import get_redis_client
 import json
@@ -15,6 +16,7 @@ redis_client = get_redis_client()
 
 @api_view(['GET', 'POST'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def SignUp(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
@@ -40,6 +42,7 @@ def SignUp(request):
 
 @api_view(['POST'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='3/m', block=True)
 def Verify(request):
     code = request.data.get('code')
     mail = request.data.get('mail')
@@ -61,6 +64,7 @@ def Verify(request):
 
 @api_view(['GET', 'POST'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def SignIn(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
@@ -94,6 +98,7 @@ def SignIn(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def home(request):
     if request.session.get('user_id') is not None:
         return Response({"status": 300, "url": "/codraw"})
@@ -108,6 +113,7 @@ def home(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def main(request):
     if request.method == 'GET':
         if request.session.get('user_id') is not None:
@@ -123,6 +129,7 @@ def main(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def get_url(request):
     id = helpers.validate_request(request)
     if id is not None:
@@ -131,6 +138,7 @@ def get_url(request):
 
 
 @api_view(['POST'])
+@ratelimit(key='ip', rate='30/m', block=True)
 def load(request):
     if request.method == "POST":
         try:
@@ -152,6 +160,7 @@ def load(request):
 
 @api_view(["POST"])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def load_board(request):
     if request.method == 'POST':
         id = helpers.validate_request(request)
@@ -166,6 +175,7 @@ def load_board(request):
 
 @ensure_csrf_cookie
 @api_view(['POST'])
+@ratelimit(key='ip', rate='30/m', block=True)
 def my_projects(request):
     try:
         id = helpers.validate_request(request)
@@ -183,13 +193,9 @@ def my_projects(request):
         return Response({'status': 500})
 
 
-@api_view(['GET', 'PUT'])
-def settings(request):
-    pass
-
-
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def status(request):
     id = helpers.validate_request(request)
     if id is not None and database.exists(id):
@@ -199,6 +205,7 @@ def status(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def delete(request, room):
     id = helpers.validate_request(request)
     if id is not None:
@@ -210,6 +217,7 @@ def delete(request, room):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='5/m', block=True)
 def restore_password(request, mail):
     if request.method == "GET":
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
@@ -224,6 +232,7 @@ def restore_password(request, mail):
 
 @ ensure_csrf_cookie
 @ api_view(['GET', 'POST'])
+@ratelimit(key='ip', rate='5/m', block=True)
 def edit_password(request, code):
     if request.method == "GET":
         mail = redis_client.get(f"restore_password:{code}")
@@ -243,6 +252,7 @@ def edit_password(request, code):
 
 @ api_view(['GET'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def username(request):
     id = helpers.validate_request(request)
     if id is not None:
@@ -255,6 +265,7 @@ def username(request):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def edit(request, room):
     id = helpers.validate_request(request)
     if id is not None:
@@ -268,6 +279,7 @@ def edit(request, room):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def logout(request):
     request.session.flush()
     response = Response({"status": 200, "message": "Logged out successfully"})
@@ -282,6 +294,7 @@ def board(request, id, room):
 
 
 @ api_view(['GET', 'POST'])
+@ratelimit(key='ip', rate='30/m', block=True)
 def save(request):
     data = request.data
     id = helpers.validate_request(request)
@@ -301,6 +314,7 @@ def save(request):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def boards_user(request, username):
     id = helpers.validate_request(request)
     if id is not None:
@@ -320,6 +334,7 @@ def boards_user(request, username):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='10/m', block=True)
 def save_new(request):
     data = request.data
     project = data.get('project')
@@ -340,6 +355,7 @@ def save_new(request):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def check_owner(request):
     data = request.data
     owner = data['owner']
@@ -352,6 +368,7 @@ def check_owner(request):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def check_bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None and database.check_bookmark(room, id):
@@ -361,6 +378,7 @@ def check_bookmark(request, room):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None:
@@ -379,6 +397,7 @@ def bookmark(request, room):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def get_bookmarks(request, username):
     id = helpers.validate_request(request)
     if id is not None:
@@ -398,6 +417,7 @@ def get_bookmarks(request, username):
 
 @ api_view(['GET'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def delete_bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None and database.delete_bookmark(id, room):
@@ -409,6 +429,7 @@ def delete_bookmark(request, room):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def trending(request):
     id = helpers.validate_request(request)
     if id is not None:
@@ -426,6 +447,7 @@ def trending(request):
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
 def search(request):
     id = helpers.validate_request(request)
     if id is not None:
