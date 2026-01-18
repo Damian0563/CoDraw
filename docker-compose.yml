@@ -65,6 +65,18 @@ services:
       - ./frontend:/app
     networks:
       - app-network
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app-network
+  graphana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
 
 volumes:
   mongo_data:
