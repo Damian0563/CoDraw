@@ -7,4 +7,6 @@ websocket_urlpatterns = [
     re_path(r'^ws/(?P<room_name>[a-fA-F0-9\-]+)/?$',
             codraw.consumers.ChatConsumer.as_asgi()),
     re_path(r'^ws/.*$', codraw.consumers.ChatConsumer.as_asgi()),
+    re_path(r'^ws/demo/(?P<room_name>[a-fA-F0-9\-]+)/?$',
+            codraw.consumers.ChatConsumer.as_asgi()),
 ]

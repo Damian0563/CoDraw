@@ -10,7 +10,6 @@ import MaIn from './components/Main.vue'
 import AccOunt from './components/AccOunt.vue'
 import BoArd from './components/BoArd.vue'
 import RestorePassword from './components/RestorePassword.vue'
-import DemoBoard from './components/DemoBoard.vue'
 import LearnMore from './components/LearnMore.vue';
 import NotFound from './components/NotFound.vue'
 import SeArch from './components/SeArch.vue'
@@ -29,7 +28,7 @@ const routes = [
 	{ path: '/codraw/search', component: SeArch, meta: { showNav: false } },
 	{ path: '/codraw/account/:username', component: AccOunt, meta: { showNav: false } },
 	{ path: '/board/:id/:room', component: BoArd, meta: { showNav: false } },
-	{ path: '/demo', component: DemoBoard, meta: { showNav: false } },
+	{ path: '/demo', component: BoArd, meta: { showNav: false } },
 	{ path: '/learn-more', component: LearnMore, meta: { showNav: true } },
 	{ path: '/recover/:code', component: RestorePassword, meta: { showNav: true } },
 	{ path: '/:pathMatch(.*)*', component: NotFound, meta: { showNav: true } }

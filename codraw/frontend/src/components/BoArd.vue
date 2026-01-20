@@ -88,7 +88,7 @@
       <span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
       <button
         id="save_btn"
-        v-if="admin || visitor"
+        v-if="(admin || visitor) && MODE==='default'"
         @click="check_save('save')"
         style="
           background: #4f8cff;
@@ -135,7 +135,7 @@
     </div>
     <div id="inv_div" style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
       <button
-        v-if="visitor"
+        v-if="visitor && MODE!=='demo'"
         id="bookmark-btn"
         @click="toggleBookmark"
         class="mb-2"
@@ -158,6 +158,7 @@
       </button>
       <button
         id="inv"
+				v-if="MODE==='default'"
         @click="copyInvitationLink"
         style="
           display: flex;
@@ -363,6 +364,7 @@ const loading=ref(false)
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted} from 'vue';
 const currentLine = ref(null)
+const MODE=new URL(window.location.href).pathname.split('/')[1]=='demo'?'demo':'default'
 let drawFrameId = null
 let lastWsSendTime = 0
 import Konva from 'konva';
@@ -397,6 +399,10 @@ const isBookmarked=ref(false);
 const paneToggler=ref(false)
 
 const check_visitor=async()=>{
+	if(MODE==='demo'){
+		visitor.value=true;
+		return;
+	}
   if(admin.value){
     visitor.value=false;
   }else{
@@ -487,61 +493,63 @@ const stageConfig = {
   draggable: false
 };
 
-const ws=ref(null)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
-const rawUrl=WS_URL
-const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
-const finalUrl = `${cleanBase}/${room.value}/`;
-ws.value = new WebSocket(finalUrl)
-ws.value.onmessage = async(event) => {
-  const data = JSON.parse(event.data);
-  if (!data || !data.type) return;
-  const layer = layerRef.value.getNode();
-  if(data.type === "start") {
-    const newLine = new Konva.Line({
-      stroke: data.stroke,
-      strokeWidth: data.width,
-      globalCompositeOperation: data.operation,
-      points: data.points,
-      lineCap: "round",
-      lineJoin: "round",
-			tension:0.3
-    });
-    newLine._remote = true;
-    layer.add(newLine);
-    currentLine.value = newLine;
-  } else if (data.type === "draw" && currentLine.value?._remote) {
-    const points = currentLine.value.points();
-    points.push(...data.points);
-    currentLine.value.points(points);
-    layer.batchDraw();
-  }else if(data.type==="bg" && data.bg){
-    background.value=data.bg
-    motiv.value = data.bg === "#ffffff"
-  }else if(data.type=="img"){
-    const img = new window.Image();
-    img.src = data.src;
-    img.onload = () => {
-      const konvaImg = new Konva.Image({
-        id: data.id,
-        image: img,
-        x: data.x,
-        y: data.y,
-        width: data.width,
-        height: data.height,
-        draggable: false,
-      });
-      applyCrop(konvaImg);
-      layer.add(konvaImg);
-      layer.batchDraw();
-    };
-    img.onerror = () => console.error("Remote image failed to load", data.id);
-  }else if(data.type==="history_update" && data.history){
-    stroke_history.value=data.history
-    history_index.value=data.index
-  }else if(data.type==="undo") await undo();
-  else if(data.type==="redo") redo();
-};
+const ws=ref(null)
+if(MODE==='default'){
+	const rawUrl=WS_URL
+	const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+	const finalUrl = `${cleanBase}/${room.value}/`;
+	ws.value = new WebSocket(finalUrl)
+	ws.value.onmessage = async(event) => {
+		const data = JSON.parse(event.data);
+		if (!data || !data.type) return;
+		const layer = layerRef.value.getNode();
+		if(data.type === "start") {
+			const newLine = new Konva.Line({
+				stroke: data.stroke,
+				strokeWidth: data.width,
+				globalCompositeOperation: data.operation,
+				points: data.points,
+				lineCap: "round",
+				lineJoin: "round",
+				tension:0.3
+			});
+			newLine._remote = true;
+			layer.add(newLine);
+			currentLine.value = newLine;
+		} else if (data.type === "draw" && currentLine.value?._remote) {
+			const points = currentLine.value.points();
+			points.push(...data.points);
+			currentLine.value.points(points);
+			layer.batchDraw();
+		}else if(data.type==="bg" && data.bg){
+			background.value=data.bg
+			motiv.value = data.bg === "#ffffff"
+		}else if(data.type=="img"){
+			const img = new window.Image();
+			img.src = data.src;
+			img.onload = () => {
+				const konvaImg = new Konva.Image({
+					id: data.id,
+					image: img,
+					x: data.x,
+					y: data.y,
+					width: data.width,
+					height: data.height,
+					draggable: false,
+				});
+				applyCrop(konvaImg);
+				layer.add(konvaImg);
+				layer.batchDraw();
+			};
+			img.onerror = () => console.error("Remote image failed to load", data.id);
+		}else if(data.type==="history_update" && data.history){
+			stroke_history.value=data.history
+			history_index.value=data.index
+		}else if(data.type==="undo") await undo();
+		else if(data.type==="redo") redo();
+	};
+}
 
 const handleContextMenu = (e) => {
   e.evt.preventDefault();
@@ -615,8 +623,13 @@ const copyInvitationLink = async () => {
 };
 
 const load = async() => {
-	const parts = new URL(window.location.href).pathname.split('/')[3]
-  const data = localStorage.getItem(parts);
+	let data=null;
+	if(MODE==='demo'){
+		data = localStorage.getItem("demo");
+	}else{
+		const parts = new URL(window.location.href).pathname.split('/')[3]
+		data = localStorage.getItem(parts);
+	}
   if (data) {
 		try{
       const parsedArray = JSON.parse(data);
@@ -734,11 +747,13 @@ function addToHistory() {
     stroke_history.value.shift();
     history_index.value = Math.max(0, history_index.value - 1);
   }
-  ws.value.send(JSON.stringify({
-    type: "history_update",
-    history: stroke_history.value,
-    index: history_index.value
-  }));
+	if(MODE==='default'){
+		ws.value.send(JSON.stringify({
+			type: "history_update",
+			history: stroke_history.value,
+			index: history_index.value
+		}));
+	}
 }
 
 const undo=async()=>{
@@ -822,15 +837,17 @@ const handlePaste = (event) => {
       konvaImg.setAttr("src", e.target.result);
       layer.add(konvaImg);
       layer.draw();
-      ws.value.send(JSON.stringify({
-        type:"img",
-        id: konvaImg.id(),
-        src: e.target.result,
-        x: konvaImg.x(),
-        y: konvaImg.y(),
-        width: konvaImg.width(),
-        height: konvaImg.height(),
-      })) //layer
+			if(MODE==='default'){
+				ws.value.send(JSON.stringify({
+					type:"img",
+					id: konvaImg.id(),
+					src: e.target.result,
+					x: konvaImg.x(),
+					y: konvaImg.y(),
+					width: konvaImg.width(),
+					height: konvaImg.height(),
+				})) //layer
+			}
       addToHistory()
   }
   reader.onloadstart= function() {
@@ -906,7 +923,6 @@ function clearDefinetely(){
   showPopup.value=false
   message.value=""
   loading.value=true
-  console.log("Clearing the board")
 	const parts = new URL(window.location.href).pathname.split('/')[3]
   localStorage.removeItem(parts)
   const layer=layerRef.value.getNode();
@@ -938,8 +954,12 @@ const autosave = () => {
     id: Date.now(),
     image: dataUrl
   }];
-	const parts = new URL(window.location.href).pathname.split('/')[3]
-  localStorage.setItem(parts, JSON.stringify(list.value));
+	if(MODE==='demo'){
+		localStorage.setItem("demo", JSON.stringify(list.value));
+	}else{
+		const parts = new URL(window.location.href).pathname.split('/')[3]
+		localStorage.setItem(parts, JSON.stringify(list.value));
+	}
 };
 
 const imageConfig = {
@@ -972,13 +992,15 @@ const handleMouseDown = (e) => {
 			lineJoin: 'round',
 			tension:0.3
 		});
-		ws.value.send(JSON.stringify({
-			type: "start",
-			stroke: color.value,
-			width: Number(width_slider.value),
-			operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
-			points: [pos.x, pos.y]
-		}))
+		if(MODE==='default'){
+			ws.value.send(JSON.stringify({
+				type: "start",
+				stroke: color.value,
+				width: Number(width_slider.value),
+				operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+				points: [pos.x, pos.y]
+			}))
+		}
 		layerRef.value.getNode().add(newLine);
 		currentLine.value = newLine;
 	}else if(e.evt.touches && e.evt.touches.length==2){
@@ -1027,7 +1049,7 @@ const handleMouseMove = (e) => {
 		points.push(point.x, point.y);
 		currentLine.value.points(points);
 		const now = Date.now();
-		if (now - lastWsSendTime >= 16) {
+		if (now - lastWsSendTime >= 16 && MODE==='default') {
 			lastWsSendTime = now;
 			ws.value.send(JSON.stringify({
 				type: "draw",
@@ -1128,35 +1150,47 @@ const applyStateToLayer = async(jsonString) => {
 
 const get_details_and_load = async()=>{
   try{
-    const parts = new URL(window.location.href).pathname.split('/');
-    const room = parts[3];
-    const data=await fetch(`${BASE_URL}/codraw/get_details`,{
-      method:"POST",
-      headers:{
-        'Content-Type':'application/json',
-      },
-      body:JSON.stringify({
-        "project":room
-      })
-    })
-    const response=await data.json()
-    const saved_json = response.canva;
-    const bg = response.bg;
-		const last_access=response.last
-    if(bg){
-      background.value=bg
-      motiv.value = bg === "#ffffff"
-    }
-		const localData = localStorage.getItem(room);
-		if (localData) {
-			const parsedLocal = JSON.parse(localData);
-			if (parsedLocal && parsedLocal[0] && parsedLocal[0].id > last_access) {
-				await load();
-				return;
+
+		if(MODE==='default'){
+			const parts = new URL(window.location.href).pathname.split('/');
+			const room = parts[3];
+			const data=await fetch(`${BASE_URL}/codraw/get_details`,{
+				method:"POST",
+				headers:{
+					'Content-Type':'application/json',
+				},
+				body:JSON.stringify({
+					"project":room
+				})
+			})
+			const response=await data.json()
+			const saved_json = response.canva;
+			const bg = response.bg;
+			const last_access=response.last
+			if(bg){
+				background.value=bg
+				motiv.value = bg === "#ffffff"
 			}
-		}
-    if(saved_json){
-			await applyStateToLayer(saved_json)
+			const localData = localStorage.getItem(room);
+			if (localData) {
+				const parsedLocal = JSON.parse(localData);
+				if (parsedLocal && parsedLocal[0] && parsedLocal[0].id > last_access) {
+					await load();
+					return;
+				}
+			}
+			if(saved_json){
+				await applyStateToLayer(saved_json)
+			}
+		}else if(MODE==='demo'){
+			const localData = localStorage.getItem(room);
+			if (localData) {
+				const parsedLocal = JSON.parse(localData);
+				if (parsedLocal && parsedLocal[0]) {
+					await load();
+					return;
+				}
+			}
 		}
   }catch(e){
     console.error(e)
@@ -1166,15 +1200,19 @@ const get_details_and_load = async()=>{
 const keyhandler=(event)=>{
   if (event.ctrlKey && event.key === 'z') {
     undo()
-    ws.value.send(JSON.stringify({
-      type: "undo"
-    }))
+    if(MODE==='default'){
+			ws.value.send(JSON.stringify({
+				type: "undo"
+			}))
+		}
   }
   else if (event.ctrlKey && event.key === 'y') {
     redo()
-    ws.value.send(JSON.stringify({
-      type: "redo"
-    }))
+		if(MODE==='default'){
+			ws.value.send(JSON.stringify({
+				type: "redo"
+			}))
+		}
   }
 }
 
@@ -1185,9 +1223,13 @@ onMounted(async()=>{
   if(await check_save('load')){
     setTimeout(()=> get_details_and_load(),100)
   }
-  await check_owner()
-  await check_visitor()
-  if(visitor.value){
+	if(MODE==='demo'){
+		visitor.value=true;
+	}else{
+		await check_owner()
+		await check_visitor()
+	}
+  if(visitor.value && MODE!=='demo'){
     await check_book_mark();
   }
 	autosaveInterval=setInterval(()=>autosave(),60000)
@@ -1251,7 +1293,7 @@ onMounted(async()=>{
     color.value= motiv.value ? "#000000":"#ffffff"
     previewBg.fill(background.value);
     previewLayer.batchDraw();
-    if(ws.value.readyState===WebSocket.OPEN){
+    if(MODE==='default' && ws.value.readyState===WebSocket.OPEN){
       ws.value.send(JSON.stringify({
         type: "bg",
         bg: background.value
@@ -1267,15 +1309,6 @@ onMounted(async()=>{
       previewLayer.add(shape);
     });
     previewLayer.draw();
-		// const layer = layerRef.value.getNode();
-		// if (!layer) return;
-		// previewLayer.destroyChildren();
-		// previewLayer.add(previewBg);
-		// const clone = layer.clone({ listening: false });
-		// clone.scale({ x: 1, y: 1 });
-		// clone.position({ x: 0, y: 0 });
-		// previewLayer.add(clone);
-		// previewLayer.batchDraw();
   }
   loading.value=false;
   layer.on('add destroy change',syncPreview)

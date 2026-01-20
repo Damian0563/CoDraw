@@ -10,6 +10,7 @@ from . import helpers
 from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
+from .metrics import Metrics
 load_dotenv()
 redis_client = get_redis_client()
 
@@ -36,6 +37,7 @@ def SignUp(request):
             code = database.get_code(mail)
             if code != "":
                 mailing.account_creation(mail, code)
+                Metrics.signup.inc()
                 return Response({"status": 200})
         return Response({"status": 400})
 
@@ -92,6 +94,7 @@ def SignIn(request):
                     secure=True,
                     samesite='Lax',
                 )
+            Metrics.signup.inc()
             return response
         return Response({"status": 400})
 
@@ -100,6 +103,7 @@ def SignIn(request):
 @ensure_csrf_cookie
 @ratelimit(key='ip', rate='30/m', block=True)
 def home(request):
+    Metrics.visit_site.inc()
     if request.session.get('user_id') is not None:
         return Response({"status": 300, "url": "/codraw"})
     elif request.COOKIES.get('token') is not None:
@@ -116,6 +120,7 @@ def home(request):
 @ratelimit(key='ip', rate='30/m', block=True)
 def main(request):
     if request.method == 'GET':
+        Metrics.active_users.inc()
         if request.session.get('user_id') is not None:
             return Response({"status": 200, "message": "Session found"})
         elif request.COOKIES.get('token') is not None:
@@ -132,6 +137,7 @@ def main(request):
 @ratelimit(key='ip', rate='30/m', block=True)
 def get_url(request):
     id = helpers.validate_request(request)
+    Metrics.create_board.inc()
     if id is not None:
         return Response({'status': 200, 'url': f"/board/{id}/{str(uuid4())}"})
     return Response({'status': 400})
@@ -451,6 +457,7 @@ def trending(request):
 def search(request):
     id = helpers.validate_request(request)
     if id is not None:
+        Metrics.search.inc()
         data = request.data
         query = data['query']
         timezone = data['timezone']

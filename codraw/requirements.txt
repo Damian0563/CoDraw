@@ -1,9 +1,10 @@
-asgiref==3.8.1
+asgiref==3.11.0
 attrs==25.3.0
 autobahn==24.4.2
 Automat==25.4.16
 cffi==1.17.1
 channels==4.2.2
+channels_redis==4.3.0
 click==8.2.1
 colorama==0.4.6
 constantly==23.10.4
@@ -11,6 +12,9 @@ cryptography==45.0.5
 daphne==4.2.1
 Django==5.2.2
 django-cors-headers==4.7.0
+django-prometheus==2.4.1
+django-ratelimit==4.1.0
+django-redis==6.0.0
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 dnspython==2.7.0
@@ -21,7 +25,9 @@ incremental==24.7.2
 joblib==1.5.1
 MarkupSafe==3.0.2
 mongoengine==0.29.1
+msgpack==1.1.2
 nltk==3.9.1
+prometheus_client==0.24.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
