@@ -3,40 +3,37 @@
     <SiDebar/>
     <main class="main-content flex-grow-1">
       <RouterView />
-      <h1>Welcome to CoDraw!</h1>
+      <h1 style="color:#ffc107">Welcome to CoDraw!</h1>
       <div class="mb-4">
-        <h2 class="mb-4 text-start">My Projects</h2>
+        <h2 class="mb-4 text-start" style="color:#ffc107">My Projects</h2>
         <div id="projects" class="container">
           <div
-            class="card create-project-card my text-center bg-dark"
+            class="card create-project-card my text-center"
             @click="create()"
-            style="height: 14rem; width: 14rem; cursor: pointer;"
           >
-            <div class="card-body d-flex flex-column align-items-center justify-content-center" style="height: 100%;">
-              <span style="font-size: 3rem; color: #ffc107;">+</span>
-              <h5 class="card-title mt-2 mb-0" style="color:#ffc107">Create Project</h5>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+              <span class="create-icon">+</span>
+              <h5 class="card-title mt-2 mb-0">Create Project</h5>
             </div>
           </div>
           <div
             v-for="(board, index) in boards"
             :key="index"
-            class="card project-card text-center bg-dark"
-            style="min-height: 14rem; min-width: 14rem; cursor: pointer; position: relative;"
+            class="card project-card text-center"
             @click="join(board.room)"
           >
-            <div class="card-body d-flex flex-column text-white" style="height: 100%;">
-              <h5 class="card-title fw-bold txtcard mb-2">{{ board.title }}</h5>
-              <p class="card-text txtcard small">{{ board.description }}</p>
-              <footer
-                class="mt-auto py-2 px-2"
-                style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;"
-              >
-                <div class="d-flex justify-content-between small">
-                  <span class="txtcard">Views: <span class="txtcard">{{ board.views }}</span></span>
-                  <span class="txtcard">{{ board.modified }}</span>
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+              <p class="card-text small">{{ board.description }}</p>
+              <footer class="card-footer">
+								<div class="text-start small">
+                  <span>Visibility: <span>{{ board.visibility }}</span></span>
                 </div>
-                <div class="text-start small txtcard">
-                  Visibility: <span class="txtcard">{{ board.visibility }}</span>
+                <div class="d-flex justify-content-between small ">
+                  <span>Views: <span>{{ board.views }}</span></span>
+                </div>
+                <div class="text-start small">
+                  <span>{{ board.modified }}</span>
                 </div>
               </footer>
             </div>
@@ -178,46 +175,232 @@ export default {
 </script>
 
 <style scoped>
-.project-card {
-  transition: 0.3s ease-in-out;
-  border: 1px solid #ffc10744;
-  border-radius: 0.75rem;
+#projects {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+  padding: 0 0.5rem;
 }
 
-
-.txtcard{
-  color: #ffc107;
-}
-
-.project-card:hover {
-  background-color: #ffc107 !important;
-  color: #000 !important;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-  border-color: black;
-  .txtcard{
-    color: black;
+@media (min-width: 480px) {
+  #projects {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 0;
   }
-  .card-title{
-    color: black;
+}
+
+@media (min-width: 640px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 2rem;
+  }
+}
+
+.project-card,
+.create-project-card {
+  height: 12rem;
+  min-height: 12rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #374151;
+  border-radius: 0.75rem;
+  background: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .project-card,
+  .create-project-card {
+    height: 13rem;
+    min-height: 13rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .project-card,
+  .create-project-card {
+    height: 14rem;
+    min-height: 14rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-card,
+  .create-project-card {
+    height: 15rem;
+    min-height: 15rem;
+  }
+}
+
+.project-card:hover,
+.create-project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+  border-color: #ffc107;
+}
+
+.project-card .card-body {
+  height: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  color: #e5e7eb;
+}
+
+@media (min-width: 640px) {
+  .project-card .card-body {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .project-card .card-body {
+    padding: 1.5rem;
   }
 }
 
 .project-card .card-title {
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #f9fafb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .project-card .card-title {
+    font-size: 1rem;
+  }
 }
 
 .project-card .card-text {
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  line-height: 1.4;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-
-.my {
-  width: 14rem; /* lock width */
-  max-width: 20rem; /* prevents expansion */
+@media (min-width: 640px) {
+  .project-card .card-text {
+    font-size: 0.875rem;
+  }
 }
-#created,#shown{
-  transition: 0.5s ease-in-out;
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #374151;
+}
+
+@media (min-width: 640px) {
+  .card-footer {
+    padding-top: 1rem;
+  }
+}
+
+.card-footer span {
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+@media (min-width: 480px) {
+  .card-footer span {
+    font-size: 0.725rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .card-footer span {
+    font-size: 0.8125rem;
+  }
+}
+
+.card-footer span span {
+  color: #d1d5db;
+  font-weight: 500;
+}
+
+.create-project-card .card-body {
+  height: 100%;
+}
+
+.create-icon {
+  font-size: 3rem;
+  color: #ffc107;
+  font-weight: 300;
+  line-height: 1;
+}
+
+@media (min-width: 480px) {
+  .create-icon {
+    font-size: 3.25rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .create-icon {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .create-icon {
+    font-size: 3.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .create-icon {
+    font-size: 4rem;
+  }
+}
+
+.create-project-card .card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .create-project-card .card-title {
+    font-size: 0.9375rem;
+    margin-top: 0.75rem;
+  }
+}
+
+.create-project-card:hover .card-title {
+  color: #ffc107;
 }
 
 .spinner-overlay {
@@ -230,42 +413,43 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-#shown:hover{
-  background-color:#0d6efd;
-  color:white !important;
-}
-
-#created:hover{
- background-color:#ffc107;
- color:black !important;
-}
-
-
-
-#projects {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 1.5rem; /* same as Bootstrap g-4 */
-  justify-items: center; /* center cards within each column */
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .main-layout {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background: #181818;
+  background: #111827;
 }
+
 .main-content {
   flex-grow: 1;
-  background: #fff;
+  background: #111827;
   min-height: 0;
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 1rem;
   display: flex;
   position: relative;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+}
+
+@media (min-width: 640px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding: 2.25rem 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding: 2.5rem 2rem;
+  }
 }
 </style>
