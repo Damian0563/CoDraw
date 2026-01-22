@@ -46,10 +46,6 @@ services:
       - db
     env_file:
       - .env.prod
-    # environment:
-    #   DATABASE_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@db:27017/mydatabase?authSource=admin
-    #   GMAIL_PASS: ${GMAIL_PASS}
-    #   VUE_APP_BASE_URL: ${VUE_APP_BASE_URL}
     networks:
       - app-network
 
