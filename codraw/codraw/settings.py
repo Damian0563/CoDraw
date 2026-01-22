@@ -9,56 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+from pathlib import Path
 from mongoengine import connect
 import os
-from pathlib import Path
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zon^196xo$4xv-w^s2tb#i&gu^m1i@$re7z7to(8gun-shx7fc'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = ["*"]
-
-
-REDIS_HOST = 'localhost'
-# REDIS_HOST = 'redis'
-REDIS_PORT = 6379
-REDIS_DB = 0
-# REDIS_PASSWORD = '111111111'
-
-MONGO_DB_NAME = 'CoDraw'
-MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
-connect(
-    db=MONGO_DB_NAME,
-    host=MONGO_HOST,
-    port=MONGO_PORT
-)
-
-# MONGO_USER = 'damian.piechocki05@gmail.com'
-# MONGO_PASS = '893012hjfhjsdkfho30kdlda@uwow!'
-# MONGO_DB_NAME = 'CoDraw'
-# MONGO_HOST = 'db'
-# MONGO_PORT = 27017
-#
-# connect(
-#     db=MONGO_DB_NAME,
-#     host=MONGO_HOST,
-#     port=MONGO_PORT,
-#     username=MONGO_USER,
-#     password=MONGO_PASS,
-#     authentication_source='admin'
-# )
-
 
 INSTALLED_APPS = [
     'daphne',
@@ -75,22 +31,6 @@ INSTALLED_APPS = [
     'channels'
 ]
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
-}
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8001",
-    "http://localhost:8000",
-    "http://127.0.0.1:8001",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-CORS_ALLOW_CREDENTIALS = True
-ASGI_APPLICATION = "codraw.asgi.application"
 MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -105,17 +45,7 @@ MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 
 ]
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
 
-RATELIMIT_USE_CACHE = 'default'
 ROOT_URLCONF = 'codraw.urls'
 
 TEMPLATES = [
@@ -138,8 +68,6 @@ WSGI_APPLICATION = 'codraw.wsgi.application'
 REST_FRAMEWORK = {
 
 }
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -147,10 +75,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -167,38 +91,149 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_CLOSE_ON_EXIT = False
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-SESSION_COOKIE_HTTPONLY = True
-
 CSRF_COOKIE_PATH = '/'
-CSRF_COOKIE_DOMAIN = None  # This allows cookies to be accessible on all subdomains
-CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_DOMAIN = None
+
+ASGI_APPLICATION = "codraw.asgi.application"
+CORS_ALLOW_CREDENTIALS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if os.environ.get("MODE") == "LOCAL":
+    SECRET_KEY = 'django-insecure-zon^196xo$4xv-w^s2tb#i&gu^m1i@$re7z7to(8gun-shx7fc'
+    DEBUG = True
+    ALLOWED_HOSTS = ["*"]
+    REDIS_HOST = 'localhost'
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    MONGO_DB_NAME = 'CoDraw'
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    connect(
+        db=MONGO_DB_NAME,
+        host=MONGO_HOST,
+        port=MONGO_PORT
+    )
+
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer'
+        }
+    }
+
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8001",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+
+    RATELIMIT_USE_CACHE = 'default'
+    SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
+    CSRF_COOKIE_SECURE = False
+else:
+    SECRET_KEY = 'django-insecure-zon^196xo$4xv-w^s2tb#i&gu^m1i@$re7z7to(8gun-shx7fc'
+
+    DEBUG = False
+
+    REDIS_HOST = 'redis'
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+
+    MONGO_USER = 'damian.piechocki05@gmail.com'
+    MONGO_PASS = '893012hjfhjsdkfho30kdlda@uwow!'
+    MONGO_DB_NAME = 'CoDraw'
+    MONGO_HOST = 'db'
+    MONGO_PORT = 27017
+
+    connect(
+        db=MONGO_DB_NAME,
+        host=MONGO_HOST,
+        port=MONGO_PORT,
+        username=MONGO_USER,
+        password=MONGO_PASS,
+        authentication_source='admin'
+    )
+
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [(REDIS_HOST, REDIS_PORT)],
+            },
+        },
+    }
+
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8001",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://codrawapp.com",
+        "https://codrawapp.com",
+    ]
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+
+    ALLOWED_HOSTS = [
+        'codrawapp.com',
+        'www.codrawapp.com',
+        '34.116.244.111',
+        'localhost',
+        '127.0.0.1'
+    ]
+
+    CSRF_TRUSTED_ORIGINS = [
+        'http://codrawapp.com',
+        'https://codrawapp.com',
+        'http://www.codrawapp.com',
+        'https://www.codrawapp.com',
+        'http://34.116.244.111'
+    ]
+
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = False
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = 'Lax'
