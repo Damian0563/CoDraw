@@ -218,7 +218,9 @@ else:
         'www.codrawapp.com',
         '34.116.244.111',
         'localhost',
-        '127.0.0.1'
+        '127.0.0.1',
+        'django_web',
+        'web'
     ]
 
     CSRF_TRUSTED_ORIGINS = [

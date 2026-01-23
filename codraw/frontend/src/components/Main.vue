@@ -78,7 +78,7 @@ async function get_username(){
 }
 async function status(){
   try {
-    const data = await fetch(`${BASE_URL}/codraw`, {
+    const data = await fetch(`${BASE_URL}/codraw/`, {
       method: 'GET',
       headers:{'X-CSRFToken':csrf},
       credentials: 'include'
