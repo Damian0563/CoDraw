@@ -75,6 +75,11 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    environment:
+      - GF_SERVER_ROOT_URL=https://codrawapp.com/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+    volumes:
+      - ./grafana_data:/var/lib/grafana
     networks:
       - app-network
 
