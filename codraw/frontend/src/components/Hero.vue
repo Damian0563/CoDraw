@@ -64,10 +64,38 @@
       </div>
     </div>
   </section>
-  <section aria-label="Demo" class="my-5 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;height: 90vh;width:100%;overflow: hidden;">
+
+  <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
-    <div class="my-5 rounded border border-warning" style="background-color: black; overflow: hidden;">
-      <DemoBoard />
+		<router-link to="/demo" aria-label="Go to full demo">
+			<button class="demo-btn mt-4" aria-label="Try Full Demo">Try Full Demo</button>
+		</router-link>
+  </section>
+  <section class="faq-section" aria-label="Frequently Asked Questions">
+    <div class="container">
+      <h2 class="faq-title text-center mb-5">Frequently Asked Questions</h2>
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="accordion" id="faqAccordion">
+            <div class="accordion-item faq-item" v-for="(faq, index) in faqs" :key="index">
+              <h2 class="accordion-header" :id="'heading' + index">
+                <button class="accordion-button faq-button" type="button" data-bs-toggle="collapse"
+                        :data-bs-target="'#collapse' + index" :aria-expanded="index === 0 ? 'true' : 'false'"
+                        :aria-controls="'collapse' + index">
+                  {{ faq.question }}
+                </button>
+              </h2>
+              <div :id="'collapse' + index" class="accordion-collapse collapse"
+                   :class="{ 'show': index === 0 }" :aria-labelledby="'heading' + index"
+                   data-bs-parent="#faqAccordion">
+                <div class="accordion-body faq-body">
+                  {{ faq.answer }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
   <FoOter />
@@ -77,7 +105,6 @@
 import { get_cookie } from '@/common';
 import { BASE_URL } from '../common.js';
 import logo from '@/assets/logo.webp';
-import DemoBoard from './DemoBoard.vue';
 import FoOter from './Footer.vue';
 
 export default {
@@ -104,6 +131,28 @@ export default {
           title: "Intuitive Design",
           text: "Easy-to-use tools and layout, making creativity accessible for everyone.",
           icon: ['fas', 'lightbulb']
+        }
+      ],
+      faqs: [
+        {
+          question: "Is CoDraw really free forever?",
+          answer: "Yes! CoDraw is completely free with no subscriptions, hidden fees, or premium features. We believe creativity should be accessible to everyone."
+        },
+        {
+          question: "How many people can collaborate on a single drawing?",
+          answer: "CoDraw supports real-time collaboration for multiple users. There's no strict limit - you can invite as many friends as you'd like to join your drawing session."
+        },
+        {
+          question: "Do I need to create an account to use CoDraw?",
+          answer: "While you can try our demo without an account, creating one allows you to save your drawings, create private rooms, and collaborate with others."
+        },
+        {
+          question: "What browsers does CoDraw support?",
+          answer: "CoDraw works on all modern browsers including Chrome, Firefox, Safari, and Edge. We recommend using the latest version for the best experience."
+        },
+        {
+          question: "Can I use CoDraw on mobile devices?",
+          answer: "Yes! CoDraw is fully responsive and works great on tablets and mobile devices. Touch controls are optimized for drawing on smaller screens."
         }
       ]
     };
@@ -136,6 +185,10 @@ export default {
 </script>
 
 <style scoped>
+.accordion-button:focus {
+	outline: none;
+	box-shadow: none;
+}
 .hero-background {
   background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
   background-size: 400% 400%;
@@ -313,12 +366,98 @@ export default {
   transform: scale(1.05) rotate(1deg);
 }
 
+.demo-btn {
+  background: linear-gradient(90deg, yellow, gold);
+  color: black;
+  font-weight: 600;
+  padding: 0.9rem 2.4rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.4);
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+  margin-top: 2rem;
+}
+.demo-btn:hover {
+  background: linear-gradient(90deg, gold, yellow);
+  box-shadow: 0 0 25px rgba(255, 255, 0, 0.6);
+  transform: translateY(-3px);
+}
+
+.faq-section {
+  background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
+  padding: 6rem 1.5rem;
+  color: white;
+}
+
+.faq-title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: yellow;
+  margin-bottom: 3rem;
+}
+
+.faq-item {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 0, 0.3);
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+  border-color: yellow;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.2);
+}
+
+.faq-button {
+  background: transparent;
+  color: yellow;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  padding: 1.2rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.faq-button:not(.collapsed) {
+  color: gold;
+  background: rgba(255, 255, 0, 0.1);
+}
+
+.faq-button:hover {
+  background: rgba(255, 255, 0, 0.05);
+}
+
+.faq-button::after {
+  filter: brightness(0) invert(1) sepia(1) saturate(100) hue-rotate(45deg);
+}
+
+.faq-body {
+  color: #e0e0e0;
+  font-size: 1rem;
+  line-height: 1.6;
+  padding: 1rem 1.5rem;
+}
+
+.accordion-collapse {
+  border-radius: 0 0 1rem 1rem;
+}
+
 @media (max-width: 768px) {
   .about-section {
     text-align: center;
   }
   .about-image {
     margin-top: 2rem;
+  }
+  .faq-title {
+    font-size: 2rem;
+  }
+  .faq-button {
+    font-size: 1rem;
+    padding: 1rem;
   }
 }
 </style>
