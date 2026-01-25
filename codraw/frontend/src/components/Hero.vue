@@ -110,7 +110,6 @@ import FoOter from './Footer.vue';
 export default {
   name: "HeRo",
   components: {
-    DemoBoard,
     FoOter
   },
   data() {

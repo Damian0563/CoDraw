@@ -403,21 +403,18 @@ const check_visitor=async()=>{
 		visitor.value=true;
 		return;
 	}
-  if(admin.value){
-    visitor.value=false;
-  }else{
-    try{
-      const data=await fetch(`${BASE_URL}/status`,{
-        method:"GET",
-        headers:{"X-CSRFToken":csrf},
-        credentials:"include"
-      })
-      let response=await data.json()
-      if(response.status===200 && response.user) visitor.value=true;
-      else visitor.value=false;
-    }catch(e){
-      console.error(e)
-    }
+	try{
+		const data=await fetch(`${BASE_URL}/status`,{
+			method:"GET",
+			headers:{"X-CSRFToken":csrf},
+			credentials:"include"
+		})
+		let response=await data.json()
+		if(response.status===200 && response.user) visitor.value=true;
+			else visitor.value=false;
+	}catch(e){
+		console.error(e)
+	}
   }
 }
 
@@ -557,6 +554,7 @@ const handleContextMenu = (e) => {
 const canvas = document.createElement('canvas');
 canvas.width = stageConfig.width;
 canvas.height = stageConfig.height;
+const isSaved=ref(false)
 
 const context = canvas.getContext('2d');
 context.strokeStyle = color.value;
@@ -611,6 +609,9 @@ const check_owner=async()=>{
 
 const copyInvitationLink = async () => {
   try {
+		if(isSaved.value){
+			await check_save('save')
+		}
     const link = window.location.href;
     await navigator.clipboard.writeText(link);
     showPopup.value = true;
@@ -801,6 +802,28 @@ const redo=()=>{
 
     }
   }
+}
+
+const checkSaveStatus=async()=>{
+	const room=new URL(window.location.href).pathname.split('/')[3]
+	const owner=new URL(window.location.href).pathname.split('/')[2]
+	let isSaved=false
+	try{
+		const data=await fetch(`${BASE_URL}/codraw/check_saved`,{
+			method:"POST",
+			headers:{
+				'Content-Type':'application/json',
+			},
+			body:JSON.stringify({
+				"project":room,
+				"owner":owner
+			})
+		})
+		const response=await data.json()
+		isSaved.value=response.saved
+	}catch(e){
+		isSaved.value=false
+	}
 }
 
 const handlePaste = (event) => {
@@ -1226,8 +1249,10 @@ onMounted(async()=>{
 	if(MODE==='demo'){
 		visitor.value=true;
 	}else{
-		await check_owner()
-		await check_visitor()
+		// await check_owner()
+		// await check_visitor()
+		// await checkSaveStatus()
+		await Promise.all([check_owner(),check_visitor(),checkSaveStatus()])
 	}
   if(visitor.value && MODE!=='demo'){
     await check_book_mark();
@@ -1235,7 +1260,7 @@ onMounted(async()=>{
 	autosaveInterval=setInterval(()=>autosave(),60000)
   window.addEventListener('keyup',keyhandler)
   const stage=stageRef.value.getNode();
-  const scaleBy=1.1;
+  const scaleBy=1.25;
   stage.on('wheel', (e) => {
     e.evt.preventDefault();
     const oldScale=stage.scaleX();

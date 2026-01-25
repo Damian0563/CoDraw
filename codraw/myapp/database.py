@@ -386,21 +386,24 @@ def save_project(room: str, payload: str, bg: str) -> bool:
 
 def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str, bg: str) -> bool:
     try:
-        summary = str(str(title)+". "+str(description))
-        tokenized = nltk.word_tokenize(summary)
-        tags = nltk.pos_tag(tokenized)
-        lemmatizer = WordNetLemmatizer()
-        result = []
-        for entry in tags:
-            word, word_type = entry[0], entry[1]
-            word = word.lower()
-            if word_type.startswith("NN"):
-                result.append(lemmatizer.lemmatize(word, "n"))
-            elif word_type.startswith("V"):
-                result.append(lemmatizer.lemmatize(word, "v"))
-            elif word_type.startswith("JJ"):
-                result.append(lemmatizer.lemmatize(word, "a"))
-        result = json.dumps(list(set(result)))
+        if type.lower() == "public":
+            summary = str(str(title)+". "+str(description))
+            tokenized = nltk.word_tokenize(summary)
+            tags = nltk.pos_tag(tokenized)
+            lemmatizer = WordNetLemmatizer()
+            result = []
+            for entry in tags:
+                word, word_type = entry[0], entry[1]
+                word = word.lower()
+                if word_type.startswith("NN"):
+                    result.append(lemmatizer.lemmatize(word, "n"))
+                elif word_type.startswith("V"):
+                    result.append(lemmatizer.lemmatize(word, "v"))
+                elif word_type.startswith("JJ"):
+                    result.append(lemmatizer.lemmatize(word, "a"))
+            result = json.dumps(list(set(result)))
+        else:
+            result = str(str(title)+". "+str(description))
         entry = models.Board.objects.create(
             owner=decode_user(owner),
             board=payload,
