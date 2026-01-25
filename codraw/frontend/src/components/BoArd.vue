@@ -415,7 +415,6 @@ const check_visitor=async()=>{
 	}catch(e){
 		console.error(e)
 	}
-  }
 }
 
 const togglePane=()=>{
