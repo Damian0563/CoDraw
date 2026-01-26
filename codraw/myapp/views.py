@@ -359,6 +359,15 @@ def save_new(request):
     return Response({'status': 400})
 
 
+@api_view(['POST'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def check_saved(request):
+    data = request.data
+    project = data['project']
+    owner = data['owner']
+    return Response({'saved': database.check_saved(project, owner)})
+
 @ api_view(['POST'])
 @ ensure_csrf_cookie
 @ratelimit(key='ip', rate='30/m', block=True)

@@ -28,6 +28,7 @@ urlpatterns = [
     path('signup', views.SignUp, name="SignUp"),
     path('verify', views.Verify, name="Verify"),
     path('signin', views.SignIn, name="SignIn"),
+    path('codraw/check_saved', views.check_saved, name="check_saved"),
     path('home', views.home, name="home"),
     path('codraw/', views.main, name="main"),
     path('log_out', views.logout, name='logout'),

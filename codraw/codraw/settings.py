@@ -15,7 +15,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20971520  # 20MB in bytes
 INSTALLED_APPS = [
     'daphne',
     'django_prometheus',

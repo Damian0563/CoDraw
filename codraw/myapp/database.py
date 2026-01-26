@@ -143,6 +143,14 @@ def edit(room: str, title: str, description: str, timezone: str) -> None:
         pass
 
 
+def check_saved(project: str, owner: str) -> bool:
+    try:
+        id = decode_user(owner)
+        board = models.Board.objects.get(room=project, owner=id)
+        return True
+    except models.Board.DoesNotExist:
+        return False
+
 def delete_board(room: str) -> bool:
     try:
         board = models.Board.objects.get(room=room)

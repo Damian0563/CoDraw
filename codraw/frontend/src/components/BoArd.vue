@@ -397,6 +397,7 @@ const stroke_history=ref([])
 const history_index=ref(0)
 const isBookmarked=ref(false);
 const paneToggler=ref(false)
+const room=ref(new URL(window.location.href).pathname.split('/')[3])
 
 const check_visitor=async()=>{
 	if(MODE==='demo'){
@@ -434,9 +435,8 @@ const togglePane=()=>{
 
 const toggleBookmark=async()=>{
   const me=new URL(window.location.href).pathname.split("/")[2]
-  const room=new URL(window.location.href).pathname.split("/")[3]
   try{
-    const data=await fetch(`${BASE_URL}/bookmark/${room}`,{
+    const data=await fetch(`${BASE_URL}/bookmark/${room.value}`,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -461,9 +461,8 @@ const toggleBookmark=async()=>{
 
 const check_book_mark=async()=>{
   const me=new URL(window.location.href).pathname.split("/")[2]
-  const room=new URL(window.location.href).pathname.split("/")[3]
   try{
-    const data=await fetch(`${BASE_URL}/is_bookmarked/${room}`,{
+    const data=await fetch(`${BASE_URL}/is_bookmarked/${room.value}`,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -489,13 +488,18 @@ const stageConfig = {
   draggable: false
 };
 
-const room=ref(new URL(window.location.href).pathname.split('/')[3])
 const ws=ref(null)
 if(MODE==='default'){
 	const rawUrl=WS_URL
 	const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 	const finalUrl = `${cleanBase}/${room.value}/`;
 	ws.value = new WebSocket(finalUrl)
+	ws.value.onopen = () {
+		ws.value.send(JSON.stringify({
+			type: "sync-request",
+			room: room.value
+		}))
+	}
 	ws.value.onmessage = async(event) => {
 		const data = JSON.parse(event.data);
 		if (!data || !data.type) return;
@@ -544,6 +548,15 @@ if(MODE==='default'){
 			history_index.value=data.index
 		}else if(data.type==="undo") await undo();
 		else if(data.type==="redo") redo();
+		else if(data.type==="sync-request"){
+			autosave()
+			ws.value.send(JSON.stringify({
+				type: "sync-response",
+				context: localStorage.getItem(room.value)
+			}))
+		}else if(data.type==="sync-response"){
+			await applyStateToLayer(data.context)
+		}
 	};
 }
 
@@ -583,7 +596,6 @@ const check_owner=async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
     const owner = parts[2]; // 'user_id'
-    const room = parts[3];  // 'room_id
     const data=await fetch(`${BASE_URL}/codraw/check_owner`,{
       method:"POST",
       headers:{
@@ -593,7 +605,7 @@ const check_owner=async()=>{
       credentials:"include",
       body:JSON.stringify({
         "owner":owner,
-        "room":room
+        "room":room.value
       })
     })
     const response=await data.json()
@@ -646,7 +658,6 @@ const save_definetely = async()=>{
   try{
     loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
-    const room = parts[3];
     if(!title.value){
       showPopup.value=true
       message.value="Please provide a title for your board."
@@ -663,7 +674,7 @@ const save_definetely = async()=>{
       method:"POST",
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
-        "project":room,
+        "project":room.value,
         "payload":JSON.stringify(stageRef.value.getStage().toJSON()),
         "title":title.value,
         "description":description.value,
@@ -730,7 +741,7 @@ function applyCrop(imgNode) {
 }
 
 
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 30;
 function addToHistory() {
   const layer = layerRef.value.getNode();
   if (!layer) return;
@@ -804,9 +815,7 @@ const redo=()=>{
 }
 
 const checkSaveStatus=async()=>{
-	const room=new URL(window.location.href).pathname.split('/')[3]
 	const owner=new URL(window.location.href).pathname.split('/')[2]
-	let isSaved=false
 	try{
 		const data=await fetch(`${BASE_URL}/codraw/check_saved`,{
 			method:"POST",
@@ -814,13 +823,14 @@ const checkSaveStatus=async()=>{
 				'Content-Type':'application/json',
 			},
 			body:JSON.stringify({
-				"project":room,
+				"project":room.value,
 				"owner":owner
 			})
 		})
 		const response=await data.json()
 		isSaved.value=response.saved
 	}catch(e){
+		console.error(e)
 		isSaved.value=false
 	}
 }
@@ -868,7 +878,7 @@ const handlePaste = (event) => {
 					y: konvaImg.y(),
 					width: konvaImg.width(),
 					height: konvaImg.height(),
-				})) //layer
+				}))
 			}
       addToHistory()
   }
@@ -887,13 +897,12 @@ const check_save = async (mode) => {
   try{
     loading.value=true
     const parts = new URL(window.location.href).pathname.split('/');
-    const room = parts[3];
     if(mode==='save'){
       const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
         headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
         body:JSON.stringify({
-          "project":room,
+          "project":room.value,
           "payload": JSON.stringify(stageRef.value.getStage().toJSON()),
           "bg":background.value
         }),
@@ -917,7 +926,7 @@ const check_save = async (mode) => {
           'Content-Type':'application/json',
         },
         body:JSON.stringify({
-          "project":room,
+          "project":room.value,
         }),
       })
       const response=await data.json()
@@ -1006,7 +1015,7 @@ const handleMouseDown = (e) => {
 		isDrawing.value = true;
 		const pos = getRelativePointerPosition(stage);
 		const newLine = new Konva.Line({
-			stroke: color.value,
+			stroke: tool.value === 'eraser' ? 'rgba(0,0,0,1)' : color.value,
 			strokeWidth: Number(width_slider.value),
 			globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
 			points: [pos.x, pos.y],
@@ -1175,14 +1184,13 @@ const get_details_and_load = async()=>{
 
 		if(MODE==='default'){
 			const parts = new URL(window.location.href).pathname.split('/');
-			const room = parts[3];
 			const data=await fetch(`${BASE_URL}/codraw/get_details`,{
 				method:"POST",
 				headers:{
 					'Content-Type':'application/json',
 				},
 				body:JSON.stringify({
-					"project":room
+					"project":room.value
 				})
 			})
 			const response=await data.json()
@@ -1193,7 +1201,7 @@ const get_details_and_load = async()=>{
 				background.value=bg
 				motiv.value = bg === "#ffffff"
 			}
-			const localData = localStorage.getItem(room);
+			const localData = localStorage.getItem(room.value);
 			if (localData) {
 				const parsedLocal = JSON.parse(localData);
 				if (parsedLocal && parsedLocal[0] && parsedLocal[0].id > last_access) {
@@ -1205,7 +1213,7 @@ const get_details_and_load = async()=>{
 				await applyStateToLayer(saved_json)
 			}
 		}else if(MODE==='demo'){
-			const localData = localStorage.getItem(room);
+			const localData = localStorage.getItem(room.value);
 			if (localData) {
 				const parsedLocal = JSON.parse(localData);
 				if (parsedLocal && parsedLocal[0]) {
@@ -1248,11 +1256,9 @@ onMounted(async()=>{
 	if(MODE==='demo'){
 		visitor.value=true;
 	}else{
-		// await check_owner()
-		// await check_visitor()
-		// await checkSaveStatus()
 		await Promise.all([check_owner(),check_visitor(),checkSaveStatus()])
 	}
+
   if(visitor.value && MODE!=='demo'){
     await check_book_mark();
   }
