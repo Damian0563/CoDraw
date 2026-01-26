@@ -494,7 +494,7 @@ if(MODE==='default'){
 	const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 	const finalUrl = `${cleanBase}/${room.value}/`;
 	ws.value = new WebSocket(finalUrl)
-	ws.value.onopen = () {
+	ws.value.onopen = function() {
 		ws.value.send(JSON.stringify({
 			type: "sync-request",
 			room: room.value
@@ -657,7 +657,6 @@ const load = async() => {
 const save_definetely = async()=>{
   try{
     loading.value=true
-    const parts = new URL(window.location.href).pathname.split('/');
     if(!title.value){
       showPopup.value=true
       message.value="Please provide a title for your board."
@@ -896,7 +895,6 @@ const handlePaste = (event) => {
 const check_save = async (mode) => {
   try{
     loading.value=true
-    const parts = new URL(window.location.href).pathname.split('/');
     if(mode==='save'){
       const data=await fetch(`${BASE_URL}/codraw/save_project`,{
         method:"POST",
@@ -1183,7 +1181,6 @@ const get_details_and_load = async()=>{
   try{
 
 		if(MODE==='default'){
-			const parts = new URL(window.location.href).pathname.split('/');
 			const data=await fetch(`${BASE_URL}/codraw/get_details`,{
 				method:"POST",
 				headers:{
