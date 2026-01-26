@@ -64,6 +64,7 @@
           <input type="checkbox" ref="ticked" @click="ticked=!ticked" id="rememberMe" style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
         </div>
         <button id="sign" type="submit" class="btn btn-success w-50 mt-2" style="background-color: yellow;color: black;">Sign In</button>
+				<div id="google-signin-button" class="g-signin2"></div>
       </form>
       <div class="text-center mt-2">
         <span class="text-secondary">Do not have an account?</span>
@@ -78,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
@@ -123,7 +124,7 @@ async function sendReset(event){
     message.value = 'An error occurred while sending reset email. Are you sure the email is correct?'
     loading.value=false;
   }finally{
-    invalid.value = true;
+    invalid.value = false;
     message.value="Recovery link sent, its validity is 5 minutes! Please check your email.";
     loading.value=false;
   }
@@ -184,7 +185,22 @@ async function status(){
     console.error(e);
   }
 }
-status();
+
+function handleCredentialResponse(response) {
+	console.log(response);
+}
+
+onMounted(() => {
+  window.google.accounts.id.initialize({
+    client_id: "373387543374-fsreaovr782e5faifv2f7128jq6ch4n3.apps.googleusercontent.com",
+    callback: handleCredentialResponse
+  });
+  window.google.accounts.id.renderButton(
+    document.getElementById("google-signin-button"),
+    { theme: "outline", size: "large" }
+  );
+	status();
+});
 </script>
 <style scoped>
 .fade-slide-enter-from,
