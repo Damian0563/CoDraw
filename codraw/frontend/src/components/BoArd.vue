@@ -495,7 +495,6 @@ if(MODE==='default'){
 	const finalUrl = `${cleanBase}/${room.value}/`;
 	ws.value = new WebSocket(finalUrl)
 	ws.value.onopen = function() {
-		console.log("Connected to websocket, sending sync-request")
 		ws.value.send(JSON.stringify({
 			type: "sync-request",
 			room: room.value
@@ -937,6 +936,10 @@ const check_save = async (mode) => {
       if(response.status===200){
         return true
       }
+			const autosaved=localStorage.getItem(room.value)
+			if(autosaved){
+				await applyStateToLayer(autosaved)
+			}
       return false
     }
   }catch(e){
@@ -1153,8 +1156,11 @@ const handleStageResize = () => {
   if (layer) layer.batchDraw();
 };
 const applyStateToLayer = async(jsonString) => {
-  const layer = layerRef.value.getNode();
-  if (!layer) return;
+  const layer = layerRef.value?.getNode();
+	if (!layer){
+		await nextTick();
+		return applyStateToLayer(jsonString)
+	}
   layer.destroyChildren();
 	const outerWrapper = JSON.parse(jsonString);
 	const stageData = JSON.parse(outerWrapper[0].image);
