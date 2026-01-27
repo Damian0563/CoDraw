@@ -495,6 +495,7 @@ if(MODE==='default'){
 	const finalUrl = `${cleanBase}/${room.value}/`;
 	ws.value = new WebSocket(finalUrl)
 	ws.value.onopen = function() {
+		console.log("Connected to websocket, sending sync-request")
 		ws.value.send(JSON.stringify({
 			type: "sync-request",
 			room: room.value
@@ -555,7 +556,12 @@ if(MODE==='default'){
 				context: localStorage.getItem(room.value)
 			}))
 		}else if(data.type==="sync-response"){
-			await applyStateToLayer(data.context)
+			if (!layerRef.value) {
+				await nextTick();
+			}
+			if (data.context && layerRef.value) {
+				await applyStateToLayer(data.context);
+			}
 		}
 	};
 }
@@ -1150,8 +1156,9 @@ const applyStateToLayer = async(jsonString) => {
   const layer = layerRef.value.getNode();
   if (!layer) return;
   layer.destroyChildren();
-  const parsed = JSON.parse(jsonString);
-  const children = parsed.children?.[0]?.children || [];
+	const outerWrapper = JSON.parse(jsonString);
+	const stageData = JSON.parse(outerWrapper[0].image);
+	const children = stageData.children?.[0]?.children || [];
   const imagePromises = children.map(shapeJson => {
     if (shapeJson.className === "Image" && shapeJson.attrs.src) {
       return new Promise((resolve) => {

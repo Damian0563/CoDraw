@@ -155,7 +155,7 @@ if os.environ.get("MODE") == "LOCAL":
     SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SAMESITE = 'None'  # Allow cross-site cookies
-    CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = True
 else:
     SECRET_KEY = 'django-insecure-zon^196xo$4xv-w^s2tb#i&gu^m1i@$re7z7to(8gun-shx7fc'
 
