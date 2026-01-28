@@ -839,6 +839,10 @@ const checkSaveStatus=async()=>{
 	}
 }
 
+const getPreviewPicture = ()=>{
+	...
+}
+
 const handlePaste = (event) => {
   event.preventDefault();
   const stage = stageRef.value?.getNode?.();

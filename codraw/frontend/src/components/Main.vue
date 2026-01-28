@@ -188,34 +188,39 @@ export default {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     padding: 0;
+		font-size: 0.4rem;
   }
 }
 
 @media (min-width: 640px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.1rem;
+		padding: 0;
+		font-size: 0.4rem;
   }
 }
 
 @media (min-width: 768px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.5rem;
+		padding: 0;
+		font-size: 0.9rem;
   }
 }
 
 @media (min-width: 1024px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-    gap: 1.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
   }
 }
 
 @media (min-width: 1280px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
   }
 }
 
@@ -277,11 +282,11 @@ export default {
   }
 }
 
-@media (min-width: 1024px) {
-  .project-card .card-body {
-    padding: 1.5rem;
-  }
-}
+ @media (min-width: 1024px) {
+   .project-card .card-body {
+     padding: 1.5rem;
+   }
+ }
 
 .project-card .card-title {
   font-size: 0.9375rem;
