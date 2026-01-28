@@ -75,8 +75,7 @@ def check_user(mail: str, password: str) -> bool:
         return (check_password_hash(user.password, password) and user.valid)
     except models.User.DoesNotExist:
         return False
-    except Exception as e:
-        print(f"Error checking user: {e}")
+    except Exception:
         return False
 
 
@@ -106,13 +105,22 @@ def get_code(mail: str) -> str:
         return entry.code
     except models.User.DoesNotExist:
         return ""
-    except Exception as e:
-        print(f"Error retrieving code: {e}")
+    except Exception:
         return ""
 
 
 def find_room(room: str, owner: str) -> bool:
     return models.Board.objects.filter(room=room)
+
+
+def google_user_exists(email: str, name: str, token: str) -> list:
+    try:
+        user = models.User.objects.get(mail=email)
+        if user.username == name and check_password_hash(user.password, token):
+            return [True, 1]
+        return [False, 1]
+    except models.User.DoesNotExist:
+        return [False, 0]
 
 
 def edit(room: str, title: str, description: str, timezone: str) -> None:
@@ -150,6 +158,7 @@ def check_saved(project: str, owner: str) -> bool:
         return True
     except models.Board.DoesNotExist:
         return False
+
 
 def delete_board(room: str) -> bool:
     try:

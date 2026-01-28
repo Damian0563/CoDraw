@@ -44,6 +44,31 @@ def SignUp(request):
 
 @api_view(['POST'])
 @ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def google_signup(request):
+    if request.method == 'POST':
+        data = request.data
+        token = data.get('token')
+        email = data.get('email')
+        name = data.get('name')
+        if database.add_user(name, email, token):
+            response = Response({"status": 200})
+            encoded = database.encode_user(email)
+            request.session['user_id'] = encoded
+            request.session.save()
+            response.set_cookie(
+                key='token',
+                value=encoded,
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+            )
+            return Response({"status": 300})
+        return Response({"status": 400})
+
+
+@api_view(['POST'])
+@ensure_csrf_cookie
 @ratelimit(key='ip', rate='3/m', block=True)
 def Verify(request):
     code = request.data.get('code')
@@ -96,6 +121,36 @@ def SignIn(request):
                 )
             Metrics.signup.inc()
             return response
+        return Response({"status": 400})
+
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def google_signin(request):
+    if request.method == 'POST':
+        data = request.data
+        token = data.get('token')
+        email = data.get('email')
+        name = data.get('name')
+        print(email, name, token)
+        print(database.google_user_exists(email, name, token))
+        if database.google_user_exists(email, name, token)[0]:
+            response = Response({"status": 200})
+            encoded = database.encode_user(email)
+            request.session['user_id'] = encoded
+            request.session.save()
+            response.set_cookie(
+                key='token',
+                value=encoded,
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+            )
+            Metrics.signin.inc()
+            return Response({"status": 200})
+        elif database.google_user_exists(email, name, token)[1] == 1:
+            return Response({"status": 401})
         return Response({"status": 400})
 
 
@@ -367,6 +422,7 @@ def check_saved(request):
     project = data['project']
     owner = data['owner']
     return Response({'saved': database.check_saved(project, owner)})
+
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie

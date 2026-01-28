@@ -64,7 +64,9 @@
           <input type="checkbox" ref="ticked" @click="ticked=!ticked" id="rememberMe" style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
         </div>
         <button id="sign" type="submit" class="btn btn-success w-50 mt-2" style="background-color: yellow;color: black;">Sign In</button>
-				<div id="google-signin-button" class="g-signin2"></div>
+				<div class="d-flex justify-content-center mt-2">
+					<div id="google-signin-button" class="g-signin2"></div>
+				</div>
       </form>
       <div class="text-center mt-2">
         <span class="text-secondary">Do not have an account?</span>
@@ -186,8 +188,42 @@ async function status(){
   }
 }
 
-function handleCredentialResponse(response) {
-	console.log(response);
+async function handleCredentialResponse(response) {
+  try {
+    loading.value = true;
+    const csrf = get_cookie('csrftoken');
+    // Decode the JWT token to get user info
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const data = await fetch(`${BASE_URL}/google-signin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        "token": response.credential,
+        "email": payload.email,
+        "name": payload.name,
+      })
+    });
+    const result = await data.json();
+		console.log(result.status);
+    if (result.status === 200) {
+      window.location.href = '/codraw';
+    } else if (result.status === 401) {
+      invalid.value = true;
+      message.value = 'Google sign-in failed, the following email is already registered. Did you forget your password?';
+    } else {
+      invalid.value = true;
+      message.value = 'Google sign-in failed. Please sign up first.';
+    }
+  } catch (e) {
+    invalid.value = true;
+    message.value = 'An error occurred during Google sign-in.';
+  } finally {
+    loading.value = false;
+  }
 }
 
 onMounted(() => {

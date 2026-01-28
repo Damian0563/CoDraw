@@ -1,5 +1,4 @@
 1.For a whiteboard, it is usually better to upload the image to S3/Django first, then broadcast only the URL
-2.Integrate google sign in
 3.Customized image transformer- resize, crop, delete
 4.Integrate github sign in
 5.Board preview when viewing a board

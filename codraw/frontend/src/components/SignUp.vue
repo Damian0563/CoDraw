@@ -24,6 +24,9 @@
       <button class="btn btn-primary w-100" @click="verifyCode">Verify</button>
     </div>
   </div>
+	<div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
+    <VueSpinnerTail size="60" color="orange" />
+  </div>
   <div class="d-flex justify-content-center pt-5 mb-5" style="background-color: black; min-height: 40vh;">
     <div class="card p-3 shadow-lg w-60 mx-5" style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign Up</h2>
@@ -51,6 +54,9 @@
         </div>
         <button id="sign" class="btn btn-success w-50 mt-2" type="submit" style="background-color: yellow;color: black;">Sign Up</button>
       </form>
+			<div class="d-flex justify-content-center mt-2">
+				<div id="google-signup-button" class="g-signup2"></div>
+			</div>
       <div class="text-center mt-2">
         <span class="text-secondary">Already have an account?</span>
         <RouterLink to="/signin" class="ms-2 text-info">Sign In</RouterLink>
@@ -60,14 +66,16 @@
   <FoOter/>
 </template>
 <script setup>
-import { ref,nextTick } from 'vue'
+import { ref,nextTick,onMounted } from 'vue'
 import { get_cookie } from '@/common'
+import {VueSpinnerTail} from 'vue3-spinners'
 import {BASE_URL} from '../common.js'
 import FoOter from './Footer.vue'
 let visible=ref(false)
 let formRef=ref(null)
 let invalid=ref(false)
 let message=ref('')
+const loading=ref(false);
 const username = ref('')
 const password = ref('')
 const mail = ref('')
@@ -130,7 +138,6 @@ async function SignUp(e) {
       invalid.value=true
       message.value="Account already registered under this email. Did you forget your password?"
     }
-
   } catch (e) {
     console.error(e)
   }
@@ -184,6 +191,55 @@ async function verifyCode(){
     message.value = "Invalid verification code. Please try again- new verification code has been sent.";
   }
 }
+async function handleCredentialResponse(response) {
+  try {
+    loading.value = true;
+    const csrf = get_cookie('csrftoken');
+    // Decode the JWT token to get user info
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const data = await fetch(`${BASE_URL}/google-signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        "token": response.credential,
+        "email": payload.email,
+        "name": payload.name,
+      })
+    });
+    const result = await data.json();
+    if ( result.status === 300) {
+      window.location.href = '/codraw';
+    } else {
+      invalid.value = true;
+      message.value = 'Google sign-up failed. An account with this email already exists. Did you forget your password?';
+    }
+  } catch (e) {
+    invalid.value = true;
+    message.value = 'An error occurred during Google sign-up.';
+  } finally {
+    loading.value = false;
+  }
+}
+onMounted(() => {
+	loading.value=true;
+  window.google.accounts.id.initialize({
+    client_id: "373387543374-fsreaovr782e5faifv2f7128jq6ch4n3.apps.googleusercontent.com",
+    callback: handleCredentialResponse
+  });
+  window.google.accounts.id.renderButton(
+    document.getElementById("google-signup-button"),
+    {
+      theme: "outline",
+      size: "large",
+      text: "signup"
+    }
+  );
+	loading.value=false;
+});
 </script>
 
 <style scoped>
