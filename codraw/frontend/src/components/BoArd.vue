@@ -648,15 +648,7 @@ const load = async() => {
 		data = localStorage.getItem(parts);
 	}
   if (data) {
-		try{
-      const parsedArray = JSON.parse(data);
-      const stageDataString = parsedArray[0].image;
-      if (stageDataString) {
-        await applyStateToLayer(stageDataString);
-      }
-		}catch(e){
-			console.error(e)
-		}
+    await applyStateToLayer(data);
 	}
 };
 const save_definetely = async()=>{
@@ -679,11 +671,15 @@ const save_definetely = async()=>{
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({
         "project":room.value,
-        "payload":JSON.stringify(stageRef.value.getStage().toJSON()),
         "title":title.value,
         "description":description.value,
         "type":type.value,
-        "bg":background.value
+        "bg":background.value,
+				"preview":getPreviewPicture(),
+				"payload":JSON.stringify([{
+					id:Date.now(),
+					image:stageRef.value.getStage().toJSON()
+				}])
       }),
       credentials:"include"
     })
@@ -840,7 +836,16 @@ const checkSaveStatus=async()=>{
 }
 
 const getPreviewPicture = ()=>{
-	...
+	const data=stageRef.value.getStage().toDataURL({
+		pixelRatio:2,
+	})
+	return data
+	// const link = document.createElement('a');
+	//  link.download = 'my-drawing.png';
+	//  link.href = data;
+	//  document.body.appendChild(link);
+	//  link.click();
+	//  document.body.removeChild(link);
 }
 
 const handlePaste = (event) => {
@@ -911,7 +916,8 @@ const check_save = async (mode) => {
         body:JSON.stringify({
           "project":room.value,
           "payload": JSON.stringify(stageRef.value.getStage().toJSON()),
-          "bg":background.value
+          "bg":background.value,
+					"preview":getPreviewPicture()
         }),
         credentials:"include"
       })
@@ -1159,39 +1165,53 @@ const handleStageResize = () => {
   const layer = image.getLayer();
   if (layer) layer.batchDraw();
 };
-const applyStateToLayer = async(jsonString) => {
+
+const applyStateToLayer = async (data) => {
+  if (!data) return;
   const layer = layerRef.value?.getNode();
-	if (!layer){
-		await nextTick();
-		return applyStateToLayer(jsonString)
+  if (!layer) {
+    await nextTick();
+    return applyStateToLayer(data);
+  }
+	const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+	let stageData = null;
+	if (Array.isArray(parsed) && parsed[0]?.image) {
+		stageData = typeof parsed[0].image === 'string' ? JSON.parse(parsed[0].image) : parsed[0].image;
+	} else if (parsed.image) {
+		stageData = typeof parsed.image === 'string' ? JSON.parse(parsed.image) : parsed.image;
+	} else if (parsed.className === 'Stage' || parsed.children) {
+		stageData = parsed;
 	}
-  layer.destroyChildren();
-	const outerWrapper = JSON.parse(jsonString);
-	const stageData = JSON.parse(outerWrapper[0].image);
-	const children = stageData.children?.[0]?.children || [];
-  const imagePromises = children.map(shapeJson => {
-    if (shapeJson.className === "Image" && shapeJson.attrs.src) {
-      return new Promise((resolve) => {
-        const img = new window.Image();
-        img.onload = () => {
-          shapeJson.attrs.image = img;
-          resolve();
-        };
-        img.onerror = resolve;
-        img.src = shapeJson.attrs.src;
-      });
-    }
-    return Promise.resolve();
-  });
-  await Promise.all(imagePromises);
-  children.forEach(shapeJson => {
-    const shape = Konva.Node.create(shapeJson);
-    layer.add(shape);
-    if (shape.className === 'Image') {
-      applyCrop(shape);
-    }
-  });
-  layer.batchDraw();
+	if (!stageData) {
+		return;
+	}
+	layer.destroyChildren();
+	const savedChildren = stageData.children?.[0]?.children || [];
+	const imagePromises = savedChildren.map(shapeJson => {
+		if (shapeJson.className === "Image" && shapeJson.attrs.src) {
+			return new Promise((resolve) => {
+				const img = new window.Image();
+				img.crossOrigin = "Anonymous";
+				img.onload = () => {
+					shapeJson.attrs.image = img;
+					resolve();
+				};
+				img.onerror = () => {
+					console.error("Failed to load image:", shapeJson.attrs.src);
+					resolve();
+				};
+				img.src = shapeJson.attrs.src;
+			});
+		}
+		return Promise.resolve();
+	});
+	await Promise.all(imagePromises);
+	savedChildren.forEach(shapeJson => {
+		const shape = Konva.Node.create(shapeJson);
+		layer.add(shape);
+		if (shape.className === 'Image') applyCrop(shape);
+	});
+	layer.batchDraw();
 };
 
 const get_details_and_load = async()=>{

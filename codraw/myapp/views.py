@@ -363,6 +363,7 @@ def save(request):
     if database.find_room(room, id):
         bg = data.get('bg')
         payload = data.get('payload')
+        preview = data.get('preview')
         if payload is not None:
             database.save_project(room, payload, bg)
             redis_client.delete(f"boards:{id}")
@@ -404,6 +405,7 @@ def save_new(request):
     description = data.get('description')
     type = data.get('type')
     background = data.get('bg')
+    preview = data.get('preview')
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         redis_client.delete(f"boards:{id}")
