@@ -836,16 +836,28 @@ const checkSaveStatus=async()=>{
 }
 
 const getPreviewPicture = ()=>{
-	const data=stageRef.value.getStage().toDataURL({
-		pixelRatio:2,
-	})
-	return data
+	const stage = stageRef.value.getStage();
+  const layer = layerRef.value.getNode();
+  const bgRect = new Konva.Rect({
+    x: -stage.x() / stage.scaleX(),
+    y: -stage.y() / stage.scaleY(),
+    width: stage.width() / stage.scaleX(),
+    height: stage.height() / stage.scaleY(),
+    fill: background.value,
+    listening: false,
+  });
+  layer.add(bgRect);
+  bgRect.moveToBottom();
+  const dataURL = stage.toDataURL({ pixelRatio: 2 });
+  bgRect.destroy();
+  layer.batchDraw();
 	// const link = document.createElement('a');
-	//  link.download = 'my-drawing.png';
-	//  link.href = data;
-	//  document.body.appendChild(link);
-	//  link.click();
-	//  document.body.removeChild(link);
+	// link.download = 'my-drawing.png';
+	// link.href = dataURL;
+	// document.body.appendChild(link);
+	// link.click();
+	// document.body.removeChild(link);
+  return dataURL;
 }
 
 const handlePaste = (event) => {
