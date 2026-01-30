@@ -11,9 +11,10 @@ from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 from .metrics import Metrics
+from .google import Bucket
 load_dotenv()
 redis_client = get_redis_client()
-
+bucket = Bucket()
 
 @api_view(['GET', 'POST'])
 @ensure_csrf_cookie
@@ -366,6 +367,8 @@ def save(request):
         preview = data.get('preview')
         if payload is not None:
             database.save_project(room, payload, bg)
+            if preview is not None:
+                bucket.save(room,preview)
             redis_client.delete(f"boards:{id}")
             redis_client.delete(f"board:{room}")
             redis_client.delete(f"bg:{room}")
@@ -406,6 +409,7 @@ def save_new(request):
     type = data.get('type')
     background = data.get('bg')
     preview = data.get('preview')
+    bucket.save(project,preview)
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         redis_client.delete(f"boards:{id}")

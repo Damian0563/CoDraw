@@ -2,3 +2,4 @@
 codraw/frontend/node_modules
 .env
 .env.prod
+credentials.json
