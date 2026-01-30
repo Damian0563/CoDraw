@@ -410,17 +410,17 @@ def boards_user(request, username):
 @ ensure_csrf_cookie
 @ratelimit(key='ip', rate='10/m', block=True)
 def save_new(request):
-    data = request.data
-    project = data.get('project')
-    payload = data.get('payload')
-    title = data.get('title')
-    description = data.get('description')
-    type = data.get('type')
-    background = data.get('bg')
-    preview = data.get('preview')
-    bucket.save(project, preview)
+    project = request.POST.get('project')
+    payload = request.POST.get('payload')
+    title = request.POST.get('title')
+    description = request.POST.get('description')
+    type = request.POST.get('type')
+    background = request.POST.get('bg')
+    preview = request.FILES.get('preview')
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
+        if preview is not None:
+            bucket.save(project, preview)
         redis_client.delete(f"boards:{id}")
         redis_client.delete(f"board:{project}")
         redis_client.delete(f"bg:{project}")

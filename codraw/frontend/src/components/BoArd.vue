@@ -666,23 +666,45 @@ const save_definetely = async()=>{
       showPopup.value=true
       message.value="The description length is to large, must be at most 100 characters."
     }
-    const data=await fetch(`${BASE_URL}/codraw/save_new`,{
-      method:"POST",
-      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
-      body:JSON.stringify({
-        "project":room.value,
-        "title":title.value,
-        "description":description.value,
-        "type":type.value,
-        "bg":background.value,
-				"preview":getPreviewPicture(),
-				"payload":JSON.stringify([{
-					id:Date.now(),
-					image:stageRef.value.getStage().toJSON()
-				}])
-      }),
-      credentials:"include"
-    })
+		const formData = new FormData();
+		formData.append("project", room.value);
+		formData.append("title", title.value);
+		formData.append("description", description.value);
+		formData.append(
+			"payload",
+			JSON.stringify([{
+				id:Date.now(),
+				image:stageRef.value.getStage().toJSON()
+			}])
+		);
+		formData.append("bg", background.value);
+		formData.append("preview", getPreviewPicture());
+		formData.append("type", type.value);
+		const data = await fetch(`${BASE_URL}/codraw/save_new`, {
+			method: "POST",
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			body: formData,
+			credentials: "include"
+		});
+    // const data=await fetch(`${BASE_URL}/codraw/save_new`,{
+    //   method:"POST",
+    //   headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+    //   body:JSON.stringify({
+    //     "project":room.value,
+    //     "title":title.value,
+    //     "description":description.value,
+    //     "type":type.value,
+    //     "bg":background.value,
+    // "preview":getPreviewPicture(),
+    // "payload":JSON.stringify([{
+    // 	id:Date.now(),
+    // 	image:stageRef.value.getStage().toJSON()
+    // }])
+    //   }),
+    //   credentials:"include"
+    // })
     const response=await data.json()
     let flag=true
     isVisible.value=false
@@ -868,8 +890,8 @@ const getPreviewPicture = ()=>{
 	// document.body.appendChild(link);
 	// link.click();
 	// document.body.removeChild(link);
-  //return dataURLtoBlob(dataURL);
-	return dataURL;
+  return dataURLtoBlob(dataURL);
+	//return dataURL;
 }
 
 const handlePaste = (event) => {
@@ -934,6 +956,11 @@ const check_save = async (mode) => {
   try{
     loading.value=true
     if(mode==='save'){
+			if(!isSaved.value){
+				loading.value=false
+				isVisible.value=true
+				return false
+			}
 			const formData = new FormData();
 			const previewBlob = dataURLtoBlob(getPreviewPicture());
 			formData.append("project", room.value);
