@@ -134,8 +134,6 @@ def google_signin(request):
         token = data.get('token')
         email = data.get('email')
         name = data.get('name')
-        print(email, name, token)
-        print(database.google_user_exists(email, name, token))
         if database.google_user_exists(email, name, token)[0]:
             response = Response({"status": 200})
             encoded = database.encode_user(email)

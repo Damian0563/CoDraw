@@ -202,7 +202,7 @@ async function handleCredentialResponse(response) {
       },
       credentials: 'include',
       body: JSON.stringify({
-        "token": response.credential,
+        "token": payload.sub,
         "email": payload.email,
         "name": payload.name,
       })
