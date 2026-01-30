@@ -12,4 +12,4 @@ class Bucket:
 
     def save(self, room, preview):
         blob = self.bucket.blob(f"{room}.webp")
-        blob.upload_from_string(preview)
+        blob.upload_from_file(preview)

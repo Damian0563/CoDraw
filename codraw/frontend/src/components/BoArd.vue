@@ -835,6 +835,17 @@ const checkSaveStatus=async()=>{
 	}
 }
 
+const dataURLtoBlob = (dataURL) => {
+  const byteString = atob(dataURL.split(',')[1]);
+  const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeString });
+};
+
 const getPreviewPicture = ()=>{
 	const stage = stageRef.value.getStage();
   const layer = layerRef.value.getNode();
@@ -857,7 +868,8 @@ const getPreviewPicture = ()=>{
 	// document.body.appendChild(link);
 	// link.click();
 	// document.body.removeChild(link);
-  return dataURL;
+  //return dataURLtoBlob(dataURL);
+	return dataURL;
 }
 
 const handlePaste = (event) => {
@@ -922,17 +934,20 @@ const check_save = async (mode) => {
   try{
     loading.value=true
     if(mode==='save'){
-      const data=await fetch(`${BASE_URL}/codraw/save_project`,{
-        method:"POST",
-        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
-        body:JSON.stringify({
-          "project":room.value,
-          "payload": JSON.stringify(stageRef.value.getStage().toJSON()),
-          "bg":background.value,
-					"preview":getPreviewPicture()
-        }),
-        credentials:"include"
-      })
+			const formData = new FormData();
+			const previewBlob = dataURLtoBlob(getPreviewPicture());
+			formData.append("project", room.value);
+			formData.append("payload", JSON.stringify(stageRef.value.getStage().toJSON()));
+			formData.append("bg", background.value);
+			formData.append("preview", previewBlob, `${room.value}.webp`);
+			const data = await fetch(`${BASE_URL}/codraw/save_project`, {
+				method: "POST",
+				headers: {
+					'X-CSRFToken': csrf
+				},
+				body: formData,
+				credentials: "include"
+			});
       const response=await data.json()
       let flag=true;
       if(response.status===200){
@@ -945,7 +960,7 @@ const check_save = async (mode) => {
         message.value="Board was successfully quick saved."
       }else isVisible.value=true
     }else if(mode==='load'){
-      const data=await fetch(`${BASE_URL}/codraw/save_project`,{
+      const data=await fetch(`${BASE_URL}/codraw/load_project`,{
         method:"POST",
         headers:{
           'Content-Type':'application/json',

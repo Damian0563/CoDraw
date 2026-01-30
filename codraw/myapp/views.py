@@ -16,6 +16,7 @@ load_dotenv()
 redis_client = get_redis_client()
 bucket = Bucket()
 
+
 @api_view(['GET', 'POST'])
 @ensure_csrf_cookie
 @ratelimit(key='ip', rate='30/m', block=True)
@@ -356,17 +357,16 @@ def board(request, id, room):
 @ api_view(['GET', 'POST'])
 @ratelimit(key='ip', rate='30/m', block=True)
 def save(request):
-    data = request.data
     id = helpers.validate_request(request)
-    room = data.get('project')
+    room = request.POST.get('project')
     if database.find_room(room, id):
-        bg = data.get('bg')
-        payload = data.get('payload')
-        preview = data.get('preview')
+        bg = request.POST.get('bg')
+        payload = request.POST.get('payload')
+        preview = request.FILES.get('preview')
         if payload is not None:
             database.save_project(room, payload, bg)
             if preview is not None:
-                bucket.save(room,preview)
+                bucket.save(room, preview)
             redis_client.delete(f"boards:{id}")
             redis_client.delete(f"board:{room}")
             redis_client.delete(f"bg:{room}")
@@ -374,6 +374,17 @@ def save(request):
         return Response({'status': 200})
     return Response({'status': 400})
 
+
+@api_view(['POST'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def load_project(request):
+    data = request.data
+    id = helpers.validate_request(request)
+    room = data.get('project')
+    if database.find_room(room, id):
+        return Response({'status': 200})
+    return Response({'status': 400})
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
@@ -407,7 +418,7 @@ def save_new(request):
     type = data.get('type')
     background = data.get('bg')
     preview = data.get('preview')
-    bucket.save(project,preview)
+    bucket.save(project, preview)
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         redis_client.delete(f"boards:{id}")
