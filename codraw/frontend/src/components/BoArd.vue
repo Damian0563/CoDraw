@@ -398,6 +398,8 @@ const history_index=ref(0)
 const isBookmarked=ref(false);
 const paneToggler=ref(false)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
+const origin = new URL(window.location.href).searchParams.get('origin')
+console.log(origin)
 
 const check_visitor=async()=>{
 	if(MODE==='demo'){
@@ -890,8 +892,8 @@ const getPreviewPicture = ()=>{
 	// document.body.appendChild(link);
 	// link.click();
 	// document.body.removeChild(link);
-  return dataURLtoBlob(dataURL);
-	//return dataURL;
+  //return dataURLtoBlob(dataURL);
+	return dataURL;
 }
 
 const handlePaste = (event) => {
@@ -1014,9 +1016,14 @@ const check_save = async (mode) => {
 function leave(){
 	const parts = new URL(window.location.href).pathname.split('/')[3];
   localStorage.removeItem(parts)
-  if(admin.value){
+  if(origin.value==='default'){
     window.location.href='/codraw'
-  }else{
+	}else if(origin.startsWith("search")){
+		window.location.href=`/codraw/${origin}`
+	}else if(origin.startsWith("account")){
+		window.location.href=`/codraw/${origin}`
+	}
+	else{
     window.location.href='/'
   }
 }

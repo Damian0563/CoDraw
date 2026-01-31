@@ -128,7 +128,7 @@ async function join(room){
     })
     const response=await data.json()
     if(response.status===200){
-      window.location.href=`${response.url}`
+      window.location.href=`${response.url}?origin=default`
     }
   }catch(e){
     console.error(e)

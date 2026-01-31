@@ -21,7 +21,7 @@
   <main class="main-layout">
 		<SiDebar/>
     <div class="container flex-grow-1 d-flex flex-column mt-5 align-items-start">
-      <h2 class="fw-bold mb-5 text-start">{{ username }}'s Boards</h2>
+      <h2 class="fw-bold mb-5 text-start" style="color:#ffc107">{{ username }}'s Boards</h2>
       <div class="boards-wrapper mt-2 justify-content-start">
         <div
           v-for="(board, index) in boards"
@@ -95,7 +95,7 @@
         </div>
       </div>
 			<div class="container mt-5" v-if="admin">
-				<h1 class="text-start">Bookmarks</h1>
+				<h1 class="text-start" style="color:#ffc107">Bookmarks</h1>
 				<div class="boards-wrapper mt-5 justify-content-start">
 					<div
 						v-for="(board, index) in bookmarks"
@@ -314,7 +314,7 @@ async function join(room){
     })
     const response=await data.json()
     if(response.status===200){
-      window.location.href=`${response.url}`
+      window.location.href=`${response.url}?origin=account/${username.value}`
     }
   }catch(e){
     console.error(e)
