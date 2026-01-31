@@ -334,6 +334,7 @@
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"
+					@wheel="handleMouseWheel"
           @touchstart="handleMouseDown"
           @touchmove="handleMouseMove"
           @touchend="handleMouseUp"
@@ -399,7 +400,6 @@ const isBookmarked=ref(false);
 const paneToggler=ref(false)
 const room=ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
-console.log(origin)
 
 const check_visitor=async()=>{
 	if(MODE==='demo'){
@@ -587,22 +587,29 @@ watch(color, (newColor) => {
   context.strokeStyle = newColor;
 });
 
+const scrolles=[50,75,100,125,150,175,200]
 function changeZoom(mode){
   const stage = stageRef.value.getNode();
-  const scaleBy = 1.25;
-  const oldScale = stage.scaleX();
-  const direction = mode==="up"? 1 : -1;
-  if(oldScale===1 && direction===-1) return;
-  const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+	const oldScale = stage.scaleX()*100;
+	const direction = mode==="up"? 1 : -1;
+	if((oldScale===50 && direction===-1) || (oldScale===200 && direction===1)) return;
+	console.log(oldScale,direction)
+	const newScale = scrolles[scrolles.indexOf(oldScale)+direction]/100;
+	console.log(newScale)
   zooming.value=newScale
   stage.scale({ x: newScale, y: newScale });
   stage.batchDraw();
 }
 
+const handleMouseWheel = (e) => {
+	e.evt.preventDefault();
+	changeZoom(e.evt.deltaY>0?"up":"down")
+}
+
 const check_owner=async()=>{
   try{
     const parts = new URL(window.location.href).pathname.split('/');
-    const owner = parts[2]; // 'user_id'
+    const owner = parts[2];
     const data=await fetch(`${BASE_URL}/codraw/check_owner`,{
       method:"POST",
       headers:{
@@ -690,23 +697,6 @@ const save_definetely = async()=>{
 			body: formData,
 			credentials: "include"
 		});
-    // const data=await fetch(`${BASE_URL}/codraw/save_new`,{
-    //   method:"POST",
-    //   headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
-    //   body:JSON.stringify({
-    //     "project":room.value,
-    //     "title":title.value,
-    //     "description":description.value,
-    //     "type":type.value,
-    //     "bg":background.value,
-    // "preview":getPreviewPicture(),
-    // "payload":JSON.stringify([{
-    // 	id:Date.now(),
-    // 	image:stageRef.value.getStage().toJSON()
-    // }])
-    //   }),
-    //   credentials:"include"
-    // })
     const response=await data.json()
     let flag=true
     isVisible.value=false
@@ -1016,7 +1006,7 @@ const check_save = async (mode) => {
 function leave(){
 	const parts = new URL(window.location.href).pathname.split('/')[3];
   localStorage.removeItem(parts)
-  if(origin.value==='default'){
+  if(origin==='default'){
     window.location.href='/codraw'
 	}else if(origin.startsWith("search")){
 		window.location.href=`/codraw/${origin}`
@@ -1084,6 +1074,7 @@ const handleMouseDown = (e) => {
 	if (!e.evt.touches || e.evt.touches.length==1){
 		const stage = e.target.getStage();
 		if (e.evt.button === 2 || paneToggler.value) {
+			stage.container().style.cursor = 'grab';
 			isPanning.value = true;
 			stage.draggable(true);
 			stage.startDrag();
@@ -1359,30 +1350,6 @@ onMounted(async()=>{
   }
 	autosaveInterval=setInterval(()=>autosave(),60000)
   window.addEventListener('keyup',keyhandler)
-  const stage=stageRef.value.getNode();
-  const scaleBy=1.25;
-  stage.on('wheel', (e) => {
-    e.evt.preventDefault();
-    const oldScale=stage.scaleX();
-    const pointer=stage.getPointerPosition();
-
-    const mousePointTo = {
-      x: (pointer.x - stage.x()) / oldScale,
-      y: (pointer.y - stage.y()) / oldScale,
-    };
-
-    const direction = e.evt.deltaY > 0 ? 1 : -1;
-    if(oldScale===1 && direction===-1) return;
-    const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    zooming.value=newScale
-    stage.scale({ x: newScale, y: newScale });
-    const newPos = {
-      x: pointer.x - mousePointTo.x * newScale,
-      y: pointer.y - mousePointTo.y * newScale,
-    };
-    stage.position(newPos);
-    stage.batchDraw();
-  })
   window.addEventListener('resize', handleStageResize);
   window.addEventListener('paste', handlePaste)
   const preview = document.createElement('div');
