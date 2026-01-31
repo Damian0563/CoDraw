@@ -40,20 +40,20 @@
 								v-for="(board, index) in popular"
 								:key="index"
 								:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-								class="card result-card text-center bg-dark"
-								style="height: 15rem; width: 15rem; cursor: pointer; position: relative;"
+								class="card result-card project-card text-center"
+								style="height: 20rem; width: 18rem; cursor: pointer; position: relative;"
 								@click="join(board.room)"
 							>
-								<div class="card-body d-flex flex-column txtcard" style="height: 100%;">
+								<div class="card-body d-flex flex-column" style="height: 100%;">
 									<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
 									<p class="card-text small">{{ board.description }}</p>
-									<footer
-										class="mt-auto py-2 px-2"
-										style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); border-top: 1px solid #ffc107;"
-									>
+									<footer class="card-footer">
+										<div class="text-start small">
+											<span>Visibility: <span>Public</span></span>
+										</div>
 										<div class="d-flex justify-content-between small">
-											<span>Views: <span class="txtcard">{{ board.views }}</span></span>
-											<span class="txtcard">{{ board.modified }}</span>
+											<span>Views: <span>{{ board.views }}</span></span>
+											<span>{{ board.modified }}</span>
 										</div>
 										<div class="text-start small">
 											Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop style="color:#ff4f4f !important;">{{ board.owner }}</a>
@@ -157,10 +157,41 @@ onMounted(async() => {
 
 
 <style scoped>
-.project-card, .result-card {
-  transition: 0.3s ease-in-out;
-  border: 1px solid #ffc10744;
+.project-card,
+.result-card {
+  height: 16rem;
+  min-height: 16rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #374151;
   border-radius: 0.75rem;
+  background: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .project-card,
+  .result-card {
+    height: 17rem;
+    min-height: 17rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .project-card,
+  .result-card {
+    height: 18rem;
+    min-height: 18rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-card,
+  .result-card {
+    height: 20rem;
+    min-height: 20rem;
+  }
 }
 .spinner-overlay {
   position: absolute;
@@ -175,8 +206,91 @@ onMounted(async() => {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-.txtcard{
-  color: #ffc107;
+.result-card .card-body {
+  height: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  color: #e5e7eb;
+}
+
+@media (min-width: 640px) {
+  .result-card .card-body {
+    padding: 1.25rem;
+  }
+}
+
+ @media (min-width: 1024px) {
+   .result-card .card-body {
+     padding: 1.5rem;
+   }
+ }
+
+.result-card .card-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #f9fafb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .result-card .card-title {
+    font-size: 1rem;
+  }
+}
+
+.result-card .card-text {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  line-height: 1.4;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .result-card .card-text {
+    font-size: 0.875rem;
+  }
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #374151;
+}
+
+@media (min-width: 640px) {
+  .card-footer {
+    padding-top: 1rem;
+  }
+}
+
+.card-footer span {
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+@media (min-width: 480px) {
+  .card-footer span {
+    font-size: 0.725rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .card-footer span {
+    font-size: 0.8125rem;
+  }
+}
+
+.card-footer span span {
+  color: #d1d5db;
+  font-weight: 500;
 }
 .main-layout {
   display: flex;
@@ -185,16 +299,8 @@ onMounted(async() => {
   background: #181818;
 }
 .result-card:hover{
-  background-color: white !important;
-  color: #000 !important;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-  border-color: black;
-  .txtcard{
-    color: black;
-  }
-  .card-title{
-    color: black;
-  }
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+  border-color: #ffc107;
 }
 </style>
