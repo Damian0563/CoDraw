@@ -23,6 +23,7 @@
             @click="join(board.room)"
           >
             <div class="card-body d-flex flex-column">
+							<font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']" class="text-start" style="font-size: 0.8rem;padding:0.5rem ;color: #ffc107;"/>
               <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
               <p class="card-text small">{{ board.description }}</p>
               <footer class="card-footer">
@@ -60,6 +61,7 @@ const hover=ref({})
 const csrf=get_cookie('csrftoken')
 const boards = ref([])
 const username = ref("")
+const images = ref({})
 async function get_username(){
   try{
     const data=await fetch(`${BASE_URL}/username`,{
@@ -107,6 +109,7 @@ const get_boards = async()=>{
     })
     const response=await data.json()
     boards.value=response.boards
+		images.value=response.images
     hover.value=response.boards.map(()=>false)
   }catch(e){
     console.error(e)

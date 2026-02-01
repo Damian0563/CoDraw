@@ -246,9 +246,11 @@ def my_projects(request):
             if redis_client.get(f"boards:{id}"):
                 boards = json.loads(redis_client.get(
                     f"boards:{id}"))
+                images = redis_client.get(f"images:{id}")
             else:
                 boards = database.get_boards(id, timezone)
-            return Response({'status': 200, "boards": boards})
+                images = bucket.get_images([board['room'] for board in boards])
+            return Response({'status': 200, "boards": boards, "images": images})
         return Response({'status': 400})
     except KeyError:
         return Response({'status': 500})
@@ -385,6 +387,7 @@ def load_project(request):
     if database.find_room(room, id):
         return Response({'status': 200})
     return Response({'status': 400})
+
 
 @ api_view(['POST'])
 @ ensure_csrf_cookie
