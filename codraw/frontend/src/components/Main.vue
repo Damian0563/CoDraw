@@ -22,12 +22,12 @@
             class="card project-card text-center"
             @click="join(board.room)"
           >
-            <div class="card-body d-flex flex-column">
-							<font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']" class="text-start" style="font-size: 0.8rem;padding:0.5rem ;color: #ffc107;"/>
+            <div class="card-body d-flex flex-column" v-if="!previewing[board.room]">
+              <font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']" class="preview-toggle text-start" @click="togglePreview($event,board.room)"/>
               <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
               <p class="card-text small">{{ board.description }}</p>
               <footer class="card-footer">
-								<div class="text-start small">
+                <div class="text-start small">
                   <span>Visibility: <span>{{ board.visibility }}</span></span>
                 </div>
                 <div class="d-flex justify-content-between small ">
@@ -37,6 +37,13 @@
                   <span>{{ board.modified }}</span>
                 </div>
               </footer>
+            </div>
+            <div v-else class="card-body d-flex flex-column card-preview-mode">
+              <font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']" class="preview-toggle preview-active text-start" @click="togglePreview($event,board.room)"/>
+              <h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+              <div class="preview-image-container">
+                <img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy" decoding="async"/>
+              </div>
             </div>
           </div>
         </div>
@@ -57,11 +64,11 @@ import {VueSpinnerTail} from 'vue3-spinners'
 import {DateTime} from 'luxon'
 
 const loading = ref(false)
-const hover=ref({})
 const csrf=get_cookie('csrftoken')
 const boards = ref([])
 const username = ref("")
 const images = ref({})
+const previewing=ref({})
 async function get_username(){
   try{
     const data=await fetch(`${BASE_URL}/username`,{
@@ -110,10 +117,15 @@ const get_boards = async()=>{
     const response=await data.json()
     boards.value=response.boards
 		images.value=response.images
-    hover.value=response.boards.map(()=>false)
+		previewing.value=response.boards.map(()=>false)
   }catch(e){
     console.error(e)
   }
+}
+
+const togglePreview=(event,room)=>{
+	event.stopPropagation()
+	previewing.value[room]=!previewing.value[room]
 }
 
 async function join(room){
@@ -183,6 +195,7 @@ export default {
   grid-template-columns: 1fr;
   gap: 1rem;
   width: 100%;
+  min-width: 0;
   padding: 0 0.5rem;
 }
 
@@ -206,7 +219,7 @@ export default {
 
 @media (min-width: 768px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fill, 15rem);
     gap: 0.5rem;
 		padding: 0;
 		font-size: 0.9rem;
@@ -215,22 +228,39 @@ export default {
 
 @media (min-width: 1024px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fill, 15rem);
     gap: 1rem;
   }
 }
 
 @media (min-width: 1280px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fill, 15rem);
     gap: 1rem;
   }
 }
+
+@media (min-width: 1600px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, 18rem);
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, 20rem);
+    gap: 1rem;
+  }
+}
+
 
 .project-card,
 .create-project-card {
   height: 12rem;
   min-height: 12rem;
+  min-width: 0;
+  max-width: 100%;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #374151;
@@ -238,6 +268,7 @@ export default {
   background: #1f2937;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   width: 100%;
+  overflow: hidden;
 }
 
 @media (min-width: 480px) {
@@ -441,6 +472,45 @@ export default {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+}
+
+.preview-toggle {
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  color: #ffc107;
+  cursor: pointer;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.preview-toggle.preview-active {
+  color: white;
+}
+
+.card-preview-mode {
+  overflow: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
+.preview-image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 0;
+  max-width: 100%;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 @media (min-width: 640px) {
