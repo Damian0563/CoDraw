@@ -20,8 +20,8 @@
   </Transition>
   <main class="main-layout">
 		<SiDebar/>
-    <div class="container flex-grow-1 d-flex flex-column mt-5 align-items-start">
-      <h2 class="fw-bold mb-5 text-start" style="color:#ffc107">{{ username }}'s Boards</h2>
+    <div class="container flex-grow-1 d-flex flex-column mt-4 mt-md-5 align-items-start">
+      <h2 class="fw-bold mb-4 mb-md-5 text-start" style="color:#ffc107">{{ username }}'s Boards</h2>
       <div class="boards-wrapper mt-2 justify-content-start">
         <div
           v-for="(board, index) in boards"
@@ -94,7 +94,7 @@
           </div>
         </div>
       </div>
-			<div class="container mt-5" v-if="admin">
+			<div class="container mt-4 mt-md-5" v-if="admin">
 				<h1 class="text-start" style="color:#ffc107">Bookmarks</h1>
 				<div class="boards-wrapper mt-5 justify-content-start">
 					<div
@@ -344,10 +344,11 @@ onMounted(async () => {
 }
 
 .boards-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  width: 100%;
+  padding: 0 1rem;
 }
 
 .fade-slide-enter-from,
@@ -361,6 +362,7 @@ onMounted(async () => {
   width: 100%;
   background: #181818;
 }
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
@@ -394,8 +396,9 @@ onMounted(async () => {
   background: #1f1f1f;
   border: 1px solid #333;
   border-radius: 1rem;
-  width: 400px;   /* fixed width */
-  height: 350px;  /* fixed height */
+  width: 100%;
+  min-height: 320px;
+  max-height: 400px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -405,6 +408,55 @@ onMounted(async () => {
 }
 .project-card:hover {
   box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .project-card {
+    min-height: 280px;
+    max-height: 350px;
+    padding: 0.75rem;
+  }
+
+  .boards-wrapper {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .container {
+    padding: 0 0.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-card {
+    min-height: 260px;
+    padding: 0.5rem;
+  }
+
+  .boards-wrapper {
+    gap: 0.75rem;
+  }
+
+  .form-control {
+    font-size: 0.875rem !important;
+  }
+
+  .btn {
+    font-size: 0.875rem !important;
+    padding: 0.375rem 0.75rem !important;
+  }
 }
 
 .spinner-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1000; background-color: rgba(0, 0, 0, 0.7); }
