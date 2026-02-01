@@ -363,6 +363,18 @@ onMounted(async () => {
   background: #181818;
 }
 
+/* Small screens - account for sidebar overlay */
+@media (max-width: 500px) {
+  .main-layout {
+    position: relative;
+  }
+  
+  /* Add padding to prevent content from being hidden when sidebar is open */
+  .main-layout.sidebar-open {
+    overflow: hidden;
+  }
+}
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;

@@ -1,10 +1,10 @@
 <template>
 	<aside
 		class="sidebar d-flex flex-column flex-shrink-0 p-3 text-bg-dark"
-		:class="{ 'sidebar-collapsed': !sidebarOpen }"
+		:class="{ 'sidebar-collapsed': !sidebarOpen, 'sidebar-overlay': isMobile && sidebarOpen }"
 	>
 		<div class="sidebar-header d-flex flex-column align-items-center mb-4">
-			<img loading="lazy" alt="sidebar" decoding="async" class="toggle mb-3 align-self-end" @click="sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
+			<img loading="lazy" alt="sidebar" decoding="async" class="toggle mb-3 align-self-end" @click="isMobile ? sidebarOpen = !sidebarOpen : sidebarOpen = !sidebarOpen" :class="{'align-self-center':!sidebarOpen}" :src="toggle" style="cursor: pointer; width: 2rem; height: 2rem;"/>
 			<img :src="url" alt="logo" loading="lazy" decoding="async" class="logo mb-4 img-fluid rounded rounded-circle" style="max-height: 20vh;"/>
 			<RouterLink :to="`/codraw`" class="nav-link rounded-3 p-3 account-link mb-3 text-center modern-tile" :class="{'active-tile': onPage['/codraw']}">
 				<font-awesome-icon class="mx-2 tile-icon" :icon="['fas','home']"></font-awesome-icon>
@@ -33,6 +33,7 @@ import { get_cookie } from '@/common';
 import {ref, onMounted} from 'vue'
 const csrf=get_cookie('csrftoken')
 const sidebarOpen = ref(false)
+const isMobile = ref(false)
 const username = ref("")
 const onPage={
 	'/codraw':false,
@@ -78,10 +79,29 @@ async function get_username(){
     console.error(e)
   }
 }
+function checkMobile() {
+	isMobile.value = window.innerWidth <= 500
+}
+
+function closeSidebarOnOverlayClick(event) {
+	if (isMobile.value && sidebarOpen.value) {
+		const sidebar = event.target.closest('.sidebar')
+		if (!sidebar) {
+			sidebarOpen.value = false
+		}
+	}
+}
+
 onMounted(async() => {
 	loading.value=true
 	checkCurrentPage()
+	checkMobile()
   await get_username()
+	
+	// Listen for window resize
+	window.addEventListener('resize', checkMobile)
+	// Close sidebar when clicking outside on mobile
+	window.addEventListener('click', closeSidebarOnOverlayClick)
 	loading.value=false
 })
 
@@ -98,6 +118,7 @@ onMounted(async() => {
   transition: width 0.3s, padding 0.3s, min-width 0.3s, max-width 0.3s;
   z-index: 10;
 }
+
 .sidebar-collapsed {
   min-width: 60px !important;
   max-width: 60px !important;
@@ -111,7 +132,6 @@ onMounted(async() => {
   max-width: 40px;
   opacity: 0.7;
 }
-/* Modern tile styles */
 .modern-tile {
   width: 100%;
   background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
@@ -182,11 +202,51 @@ onMounted(async() => {
   font-weight: 600;
 }
 
+/* Mobile overlay mode */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 1000;
+  transition: none !important;
+}
+
+.sidebar-overlay .sidebar-header {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Add overlay backdrop */
+.sidebar-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
 .sidebar-collapsed .nav-link,
 .sidebar-collapsed .btn,
 .sidebar-collapsed .settings-link,
 .sidebar-collapsed .account-link {
   display: none !important;
+}
+
+/* Close sidebar when clicking overlay on mobile */
+.sidebar-overlay::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 280px;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
 }
 
 #out{
