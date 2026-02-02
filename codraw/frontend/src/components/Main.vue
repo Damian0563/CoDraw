@@ -192,37 +192,54 @@ export default {
 <style scoped>
 #projects {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem;
   width: 100%;
   min-width: 0;
-  padding: 0 0.5rem;
+  padding: 0;
+  justify-items: stretch;
+  align-items: stretch;
+  contain: layout size;
+}
+
+@media (max-width: 479px) {
+  #projects {
+    padding: 0 0.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
 }
 
 @media (min-width: 480px) {
   #projects {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.875rem;
     padding: 0;
-		font-size: 0.4rem;
+    font-size: 0.4rem;
   }
 }
 
 @media (min-width: 640px) {
   #projects {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.1rem;
-		padding: 0;
-		font-size: 0.4rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+    padding: 0;
+    font-size: 0.4rem;
   }
 }
 
 @media (min-width: 768px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, 15rem);
-    gap: 0.5rem;
-		padding: 0;
-		font-size: 0.9rem;
+    grid-template-columns: repeat(auto-fill, 14rem);
+    gap: 0.75rem;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 992px) {
+  #projects {
+    grid-template-columns: repeat(auto-fill, 14rem);
+    gap: 0.75rem;
   }
 }
 
@@ -242,14 +259,14 @@ export default {
 
 @media (min-width: 1600px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, 18rem);
+    grid-template-columns: repeat(auto-fill, 17rem);
     gap: 1rem;
   }
 }
 
 @media (min-width: 1920px) {
   #projects {
-    grid-template-columns: repeat(auto-fill, 20rem);
+    grid-template-columns: repeat(auto-fill, 18rem);
     gap: 1rem;
   }
 }
@@ -257,41 +274,44 @@ export default {
 
 .project-card,
 .create-project-card {
-  height: 12rem;
-  min-height: 12rem;
+  height: 16rem;
+  min-height: 16rem;
   min-width: 0;
   max-width: 100%;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 1px solid #374151;
   border-radius: 0.75rem;
   background: #1f2937;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   width: 100%;
   overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  contain: layout style paint;
 }
 
 @media (min-width: 480px) {
   .project-card,
   .create-project-card {
-    height: 13rem;
-    min-height: 13rem;
+    height: 17rem;
+    min-height: 17rem;
   }
 }
 
 @media (min-width: 640px) {
   .project-card,
   .create-project-card {
-    height: 14rem;
-    min-height: 14rem;
+    height: 18rem;
+    min-height: 18rem;
   }
 }
 
 @media (min-width: 768px) {
   .project-card,
   .create-project-card {
-    height: 15rem;
-    min-height: 15rem;
+    height: 20rem;
+    min-height: 20rem;
   }
 }
 
@@ -308,6 +328,8 @@ export default {
   display: flex;
   flex-direction: column;
   color: #e5e7eb;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (min-width: 640px) {
@@ -472,6 +494,8 @@ export default {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .preview-toggle {
@@ -491,6 +515,12 @@ export default {
   overflow: hidden;
   max-width: 100%;
   width: 100%;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .preview-image-container {
@@ -503,14 +533,16 @@ export default {
   max-width: 100%;
   width: 100%;
   margin-top: 0.5rem;
+  box-sizing: border-box;
 }
 
 .preview-image {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100% - 3rem);
   width: 100%;
-  height: 100%;
+  height: auto;
   object-fit: contain;
+  flex-shrink: 1;
 }
 
 @media (min-width: 640px) {

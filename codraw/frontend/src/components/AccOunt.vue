@@ -31,6 +31,7 @@
           <div class="d-flex justify-content-end align-items-center gap-2">
             <div v-if="admin" class="w-100">
               <div class="d-flex justify-content-end align-items-center gap-2">
+								<button class="text-start btn btn-primary" @click="exportImg(previewing[board.room],board.title)">Export to png</button>
                 <button class="btn btn-success success" @click="join(board.room)">
                   Join room
                 </button>
@@ -159,6 +160,7 @@ const loading = ref(true)
 const edits=ref({})
 const bookmarks=ref([])
 const deletes=ref({})
+const previewing=ref({})
 
 const delete_board=async(room)=>{
   try{
@@ -293,10 +295,21 @@ const get_boards = async (username) => {
       original_title: b.title,
       original_description: b.description
     }))
+		previewing.value=response.images
+		console.log(response.images)
     edits.value=response.boards.map(()=>false)
   } catch (e) {
     console.error(e)
   }
+}
+
+const exportImg=(url,title)=>{
+	const link = document.createElement('a');
+	link.download = `${title}.png`;
+	link.href = url;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
 }
 
 async function join(room){
@@ -368,7 +381,7 @@ onMounted(async () => {
   .main-layout {
     position: relative;
   }
-  
+
   /* Add padding to prevent content from being hidden when sidebar is open */
   .main-layout.sidebar-open {
     overflow: hidden;

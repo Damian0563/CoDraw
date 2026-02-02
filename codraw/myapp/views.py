@@ -401,11 +401,13 @@ def boards_user(request, username):
         if redis_client.get(f"boards_user:{user_id}"):
             boards = json.loads(redis_client.get(
                 f"boards:{user_id}"))
+            images = bucket.get_images([board['room'] for board in boards])
         else:
             boards = database.get_boards_of_username(timezone, username)
+            images = bucket.get_images([board['room'] for board in boards])
             redis_client.setex(
                 f"boards:{user_id}", 60*5, json.dumps(boards))
-        return Response({'status': 200, "boards": boards})
+        return Response({'status': 200, "boards": boards, "images": images})
     return Response({'status': 400, 'boards': []})
 
 
