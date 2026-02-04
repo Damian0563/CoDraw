@@ -246,10 +246,14 @@ def my_projects(request):
             if redis_client.get(f"boards:{id}"):
                 boards = json.loads(redis_client.get(
                     f"boards:{id}"))
-                images = redis_client.get(f"images:{id}")
+                images = json.loads(redis_client.get(f"images:{id}"))
             else:
                 boards = database.get_boards(id, timezone)
                 images = bucket.get_images([board['room'] for board in boards])
+                redis_client.setex(
+                    f"images:{id}", 60*5, json.dumps(images))
+                redis_client.setex(
+                    f"boards:{id}", 60*5, json.dumps(boards))
             return Response({'status': 200, "boards": boards, "images": images})
         return Response({'status': 400})
     except KeyError:
@@ -274,6 +278,10 @@ def delete(request, room):
     if id is not None:
         if database.delete_board(room):
             redis_client.delete(f"boards:{id}")
+            redis_client.delete(f"images:{id}")
+            redis_client.delete(f"board:{room}")
+            redis_client.delete(f"bg:{room}")
+            redis_client.delete(f"last_access:{room}")
             return Response({'status': 200})
     return Response({'status': 400})
 
@@ -285,7 +293,7 @@ def restore_password(request, mail):
     if request.method == "GET":
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
             code = str(uuid4())[:20]
-            link = f"{os.getenv('FRONTEND_URL')}/recover/{code}"
+            link = f"https://codrawapp.com/recover/{code}"
             mailing.restore_password(mail, link)
             redis_client.setex(f"restore_password:{code}", 300, mail)
             return Response({'status': 200})
@@ -337,6 +345,11 @@ def edit(request, room):
         description = data['description']
         timezone = data['timezone']
         database.edit(room, title, description, timezone)
+        redis_client.delete(f"board:{room}")
+        redis_client.delete(f"boards:{id}")
+        redis_client.delete(f"boards_user:{id}")
+        redis_client.delete(f"images_user:{id}")
+        return Response({'status': 200})
     return Response({'status': 400})
 
 
@@ -369,7 +382,10 @@ def save(request):
             database.save_project(room, payload, bg)
             if preview is not None:
                 bucket.save(room, preview)
+            redis_client.delete(f"images:{id}")
+            redis_client.delete(f"images_user:{id}")
             redis_client.delete(f"boards:{id}")
+            redis_client.delete(f"boards_user:{id}")
             redis_client.delete(f"board:{room}")
             redis_client.delete(f"bg:{room}")
             redis_client.delete(f"last_access:{room}")
@@ -384,7 +400,15 @@ def load_project(request):
     data = request.data
     id = helpers.validate_request(request)
     room = data.get('project')
-    if database.find_room(room, id):
+    cache_key = f"board_found:{room}:{id}"
+    cached = redis_client.get(cache_key)
+    if cached:
+        found = json.loads(cached)
+    else:
+        found = database.find_room(room, id)
+        redis_client.setex(cache_key, 60*5, json.dumps(found))
+
+    if found:
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -398,15 +422,18 @@ def boards_user(request, username):
         data = request.data
         timezone = data['timezone']
         user_id = database.encode_user(database.get_mail_by_username(username))
-        if redis_client.get(f"boards_user:{user_id}"):
-            boards = json.loads(redis_client.get(
-                f"boards:{user_id}"))
-            images = bucket.get_images([board['room'] for board in boards])
+        boards_cache_key = f"boards_user:{user_id}"
+        images_cache_key = f"images_user:{user_id}"
+        cached_boards = redis_client.get(boards_cache_key)
+        cached_images = redis_client.get(images_cache_key)
+        if cached_boards and cached_images:
+            boards = json.loads(cached_boards)
+            images = json.loads(cached_images)
         else:
             boards = database.get_boards_of_username(timezone, username)
             images = bucket.get_images([board['room'] for board in boards])
-            redis_client.setex(
-                f"boards:{user_id}", 60*5, json.dumps(boards))
+            redis_client.setex(boards_cache_key, 60*5, json.dumps(boards))
+            redis_client.setex(images_cache_key, 60*5, json.dumps(images))
         return Response({'status': 200, "boards": boards, "images": images})
     return Response({'status': 400, 'boards': []})
 
@@ -426,6 +453,9 @@ def save_new(request):
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         if preview is not None:
             bucket.save(project, preview)
+        redis_client.delete(f"images:{id}")
+        redis_client.delete(f"images_user:{id}")
+        redis_client.delete(f"boards_user:{id}")
         redis_client.delete(f"boards:{id}")
         redis_client.delete(f"board:{project}")
         redis_client.delete(f"bg:{project}")
@@ -441,7 +471,14 @@ def check_saved(request):
     data = request.data
     project = data['project']
     owner = data['owner']
-    return Response({'saved': database.check_saved(project, owner)})
+    cache_key = f"saved:{project}:{owner}"
+    cached = redis_client.get(cache_key)
+    if cached:
+        saved = json.loads(cached)
+    else:
+        saved = database.check_saved(project, owner)
+        redis_client.setex(cache_key, 60*5, json.dumps(saved))
+    return Response({'saved': saved})
 
 
 @ api_view(['POST'])
