@@ -49,6 +49,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      - GOOGLE_BUCKET=codrawapp-preview-access
     env_file:
       - .env.prod
     networks:

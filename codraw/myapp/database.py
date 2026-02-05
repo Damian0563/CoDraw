@@ -154,19 +154,14 @@ def edit(room: str, title: str, description: str, timezone: str) -> None:
 def check_saved(project: str, owner: str) -> bool:
     try:
         id = decode_user(owner)
-        board = models.Board.objects.get(room=project, owner=id)
-        return True
+        return models.Board.objects.filter(room=project, owner=id).exists()
     except models.Board.DoesNotExist:
         return False
 
 
 def delete_board(room: str) -> bool:
-    try:
-        board = models.Board.objects.get(room=room)
-        board.delete()
-        return True
-    except models.Board.DoesNotExist:
-        return False
+    deleted_count, _ = models.Board.objects.filter(room=room).delete()
+    return deleted_count > 0
 
 
 def get_boards(id: str, timezone: str) -> List[Dict[str, str]]:
