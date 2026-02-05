@@ -464,13 +464,7 @@ def check_saved(request):
     data = request.data
     project = data['project']
     owner = data['owner']
-    cache_key = f"saved:{project}:{owner}"
-    cached = redis_client.get(cache_key)
-    if cached:
-        saved = json.loads(cached)
-    else:
-        saved = database.check_saved(project, owner)
-        redis_client.setex(cache_key, 60*5, json.dumps(saved))
+    saved = database.check_saved(project, owner)
     return Response({'saved': saved})
 
 

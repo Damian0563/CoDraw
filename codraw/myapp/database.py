@@ -154,13 +154,13 @@ def edit(room: str, title: str, description: str, timezone: str) -> None:
 def check_saved(project: str, owner: str) -> bool:
     try:
         id = decode_user(owner)
-        return models.Board.objects.filter(room=project, owner=id).exists()
+        return models.Board.objects.filter(room=project, owner=id).count() > 0
     except models.Board.DoesNotExist:
         return False
 
 
 def delete_board(room: str) -> bool:
-    deleted_count, _ = models.Board.objects.filter(room=room).delete()
+    deleted_count = models.Board.objects.filter(room=room).delete()
     return deleted_count > 0
 
 
