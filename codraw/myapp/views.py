@@ -400,13 +400,7 @@ def load_project(request):
     data = request.data
     id = helpers.validate_request(request)
     room = data.get('project')
-    cache_key = f"board_found:{room}:{id}"
-    cached = redis_client.get(cache_key)
-    if cached is not None:
-        found = cached
-    else:
-        found = database.find_room(room, id)
-        redis_client.setex(cache_key, 60*5, found)
+    found = database.find_room(room, id)
     if found:
         return Response({'status': 200})
     return Response({'status': 400})

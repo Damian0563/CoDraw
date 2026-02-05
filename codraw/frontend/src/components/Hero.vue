@@ -67,7 +67,7 @@
 
   <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
-		<router-link to="/demo" aria-label="Go to full demo">
+		<router-link to="/demo?origin=home" aria-label="Go to full demo">
 			<button class="demo-btn mt-4" aria-label="Try Full Demo">Try Full Demo</button>
 		</router-link>
   </section>
