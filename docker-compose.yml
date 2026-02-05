@@ -41,9 +41,14 @@ services:
     expose:
       - "8080"
     volumes:
-      - ./backend:/app
+      - ./codraw:/app
+      - /usr/local/lib/python3.12/site-packages
+      - ./credentials.json:/app/credentials.json
     depends_on:
       - db
+    environment:
+      - PYTHONPATH=/app
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
     env_file:
       - .env.prod
     networks:
@@ -60,7 +65,7 @@ services:
     expose:
       - "8000"
     volumes:
-      - ./frontend:/app
+      - /app/node_modules
     networks:
       - app-network
   prometheus:

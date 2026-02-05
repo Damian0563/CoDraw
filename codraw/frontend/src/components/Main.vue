@@ -162,7 +162,7 @@ async function create(){
     })
     const response= await data.json()
     if(response.status===200){
-      window.location.href=`${response.url}`
+      window.location.href=`${response.url}?origin=default`
     }
     else{
       console.log('error')

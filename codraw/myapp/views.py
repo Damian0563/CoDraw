@@ -11,7 +11,7 @@ from . import database
 from . import mail as mailing
 from dotenv import load_dotenv
 from .metrics import Metrics
-from .google import Bucket
+from .gcp import Bucket
 load_dotenv()
 redis_client = get_redis_client()
 bucket = Bucket()
@@ -402,12 +402,11 @@ def load_project(request):
     room = data.get('project')
     cache_key = f"board_found:{room}:{id}"
     cached = redis_client.get(cache_key)
-    if cached:
-        found = json.loads(cached)
+    if cached is not None:
+        found = cached
     else:
         found = database.find_room(room, id)
-        redis_client.setex(cache_key, 60*5, json.dumps(found))
-
+        redis_client.setex(cache_key, 60*5, found)
     if found:
         return Response({'status': 200})
     return Response({'status': 400})
