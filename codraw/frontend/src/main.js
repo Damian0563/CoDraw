@@ -39,4 +39,8 @@ const router = createRouter({
 	routes,
 })
 
+router.afterEach(() => {
+	window.scrollTo({ top: 0, behavior: 'instant' })
+})
+
 createApp(App).use(router).use(createGtag, { config: { "id": "G-QW19P198KB" }, router }).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')

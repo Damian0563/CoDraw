@@ -48,7 +48,7 @@
             <br /><br />
             Our mission is simple: empower creativity by connecting people through shared imagination.
           </p>
-          <router-link to="/learn-more" aria-label="Learn More">
+          <router-link to="/learn-more#learn-more" aria-label="Learn More">
             <button class="about-btn mt-3" aria-label="Learn More">Learn More</button>
           </router-link>
         </div>
