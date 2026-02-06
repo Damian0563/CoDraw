@@ -65,10 +65,7 @@
 				<option value="brush">Brush</option>
 				<option value="eraser">Eraser</option>
 			</select>
-			<label style="color: #fff; font-size: 1rem; ">
-				Line Width
-			</label>
-			<input type="range" v-model="width_slider" min="1" max="20" style="
+			<input type="range" v-model="width_slider" min="1" max="10" style="
           accent-color: #4f8cff;
           width: 60px;
         ">
@@ -258,7 +255,7 @@
 		<div class="board-wrapper" :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }">
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
 				@mouseup="handleMouseUp" @wheel="handleMouseWheel" @touchstart="handleMouseDown" @touchmove="handleMouseMove"
-				@touchend="handleMouseUp" @contextmenu="handleContextMenu"
+				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @transformend="handleTransformed"
 				style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
 				<v-layer ref="layerRef">
 					<v-image ref="imageRef" :config="imageConfig" />
@@ -316,6 +313,11 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
+const transformer = ref(null);
+const handleTransformed = (e) => {
+	console.log(e.target)
+	console.log(transformer.value)
+}
 
 const check_visitor = async () => {
 	if (MODE === 'demo') {
@@ -396,7 +398,6 @@ const check_book_mark = async () => {
 		else isBookmarked.value = false;
 	} catch (e) {
 		isBookmarked.value = false;
-		console.error(e)
 	}
 }
 const show_text = computed(() => windowWidth.value > 1300);
@@ -482,7 +483,6 @@ if (MODE === 'default') {
 		}
 	};
 }
-
 const handleContextMenu = (e) => {
 	e.evt.preventDefault();
 };
@@ -661,7 +661,6 @@ function getCrop(image, size) {
 function applyCrop(imgNode) {
 	const image = imgNode.image();
 	if (!image) return;
-
 	const crop = getCrop(image, {
 		width: imgNode.width(),
 		height: imgNode.height()
@@ -791,13 +790,6 @@ const getPreviewPicture = () => {
 	const dataURL = stage.toDataURL({ pixelRatio: 2 });
 	bgRect.destroy();
 	layer.batchDraw();
-	// const link = document.createElement('a');
-	// link.download = 'my-drawing.png';
-	// link.href = dataURL;
-	// document.body.appendChild(link);
-	// link.click();
-	// document.body.removeChild(link);
-	//return dataURLtoBlob(dataURL);
 	return dataURL;
 }
 
@@ -997,6 +989,7 @@ const handleMouseDown = (e) => {
 			return;
 		}
 		isDrawing.value = true;
+		stage.container().style.cursor = 'default';
 		const pos = getRelativePointerPosition(stage);
 		const newLine = new Konva.Line({
 			stroke: tool.value === 'eraser' ? 'rgba(0,0,0,1)' : color.value,
