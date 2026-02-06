@@ -5,9 +5,8 @@
       <font-awesome-icon :icon="['fa','paintbrush']" class="feature-icon secondary-floating-icon"/>
       <font-awesome-icon :icon="['fa','feather-pointed']" class="feature-icon hero-floating-icon"/>
       <p class="hero-subtitle mb-0 mx-2">
-        CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share,
-        and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates
-        as you bring your creative ideas to life!
+        <span ref="typewriterText" class="typewriter-text"></span>
+        <span class="cursor">|</span>
       </p>
       <font-awesome-icon :icon="['fa','pencil']" class="feature-icon hero-floating-icon"/>
       <font-awesome-icon :icon="['fa','paint-roller']" class="feature-icon secondary-floating-icon"/>
@@ -20,7 +19,7 @@
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-md-3 mb-3" v-for="(feature, i) in features" :key="i">
-          <div class="card feature-card h-100 bg-dark text-white shadow-lg">
+          <div class="card feature-card h-100 bg-dark text-white shadow-lg scroll-reveal" :style="{ transitionDelay: i * 150 + 'ms' }">
             <div class="card-body text-center">
               <font-awesome-icon :icon="feature.icon" class="feature-icon" />
               <h5 class="card-title mt-3">{{ feature.title }}</h5>
@@ -31,13 +30,13 @@
       </div>
     </div>
   </div>
-  <section class="about-sec container text-center my-5" aria-label="Our mission">
+  <section class="about-sec container text-center my-5 scroll-reveal" aria-label="Our mission">
     <text class="about-title">No subscriptions, no hidden fees</text><text class="about-text" style="font-size: 2.5rem;">- just free for everyone, forever with at most respect to privacy.</text>
   </section>
   <section id="about" href="#about" class="about-sec" aria-label="About codraw">
     <div class="container">
       <div class="row align-items-center">
-        <div class="col-md-6 about-text">
+        <div class="col-md-6 about-text scroll-reveal">
           <h2 class="about-title">About CoDraw</h2>
           <p>
             CoDraw was built for creators who believe in collaboration. Whether you're sketching concepts,
@@ -52,7 +51,7 @@
             <button class="about-btn mt-3" aria-label="Learn More">Learn More</button>
           </router-link>
         </div>
-        <div class="col-md-6 text-center about-visual">
+        <div class="col-md-6 text-center about-visual scroll-reveal" style="transition-delay: 200ms;">
           <img
             :src="logo"
             alt="Collaborative Drawing"
@@ -65,7 +64,7 @@
     </div>
   </section>
 
-  <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
+  <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center scroll-reveal" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
 		<router-link to="/demo?origin=home" aria-label="Go to full demo">
 			<button class="demo-btn mt-4" aria-label="Try Full Demo">Try Full Demo</button>
@@ -73,11 +72,11 @@
   </section>
   <section class="faq-section" aria-label="Frequently Asked Questions">
     <div class="container">
-      <h2 class="faq-title text-center mb-5">Frequently Asked Questions</h2>
+      <h2 class="faq-title text-center mb-5 scroll-reveal">Frequently Asked Questions</h2>
       <div class="row justify-content-center">
         <div class="col-lg-8">
           <div class="accordion" id="faqAccordion">
-            <div class="accordion-item faq-item" v-for="(faq, index) in faqs" :key="index">
+            <div class="accordion-item faq-item scroll-reveal" v-for="(faq, index) in faqs" :key="index" :style="{ transitionDelay: index * 100 + 'ms' }">
               <h2 class="accordion-header" :id="'heading' + index">
                 <button class="accordion-button faq-button" type="button" data-bs-toggle="collapse"
                         :data-bs-target="'#collapse' + index" :aria-expanded="index === 0 ? 'true' : 'false'"
@@ -115,6 +114,8 @@ export default {
   data() {
     return {
       logo,
+      fullText: "CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life!",
+      typewriterIndex: 0,
       features: [
         {
           title: "Modern and Slick",
@@ -158,6 +159,8 @@ export default {
   },
   mounted() {
     this.check();
+    this.startTypewriter();
+    this.initScrollReveal();
   },
   methods: {
     async check() {
@@ -178,6 +181,34 @@ export default {
       } catch (e) {
         console.error(e);
       }
+    },
+    startTypewriter() {
+      const typeNextChar = () => {
+        if (this.typewriterIndex < this.fullText.length) {
+          this.$refs.typewriterText.textContent += this.fullText.charAt(this.typewriterIndex);
+          this.typewriterIndex++;
+          setTimeout(typeNextChar, 30);
+        }
+      };
+      setTimeout(typeNextChar, 800);
+    },
+    initScrollReveal() {
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      const elements = document.querySelectorAll('.scroll-reveal');
+      elements.forEach(el => observer.observe(el));
     },
   }
 };
@@ -227,10 +258,23 @@ export default {
   line-height: 1.6;
   color: #e0e0e0;
   margin-bottom: 2rem;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 1s ease forwards;
-  animation-delay: 0.3s;
+  min-height: 100px;
+}
+
+.typewriter-text {
+  display: inline;
+}
+
+.cursor {
+  display: inline-block;
+  color: yellow;
+  font-weight: 100;
+  animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 @keyframes float {
@@ -269,6 +313,17 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .cta-btn {
