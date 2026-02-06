@@ -294,6 +294,7 @@ def restore_password(request, mail):
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
             code = str(uuid4())[:20]
             link = f"https://codrawapp.com/recover/{code}"
+            # link = f"http://localhost:8001/recover/{code}"
             mailing.restore_password(mail, link)
             redis_client.setex(f"restore_password:{code}", 300, mail)
             return Response({'status': 200})

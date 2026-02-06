@@ -1,5 +1,6 @@
 <template>
-    <div class="d-block justify-content-center align-items-center mt-4">
+    <div class="d-flex flex-column min-vh-100">
+        <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center mt-2 mb-3">
         <h1 class="my-4" style="color: yellow;">Password Restoration</h1>
         <Transition name="fade-slide">
             <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
@@ -46,8 +47,9 @@
                 </div>
             </div>
         </Transition>
+        </div>
+        <Footer />
     </div>
-
 </template>
 
 <script setup>
@@ -55,6 +57,7 @@ import { onMounted, ref } from 'vue'
 import {BASE_URL} from '../common.js'
 import { get_cookie } from '@/common'
 import {VueSpinnerTail} from 'vue3-spinners'
+import Footer from '@/components/Footer.vue'
 const message = ref('')
 const invalid = ref(false)
 const loading=ref(false);
