@@ -371,6 +371,7 @@ def get_matches(sentence: str, timezone: str) -> list:
                 "description": board.description,
                 "visibility": board.visibility,
                 "summary": board.summary,
+                "owner": get_username(board.owner),
                 "views": board.views,
                 "modified": (datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
@@ -391,8 +392,6 @@ def save_project(room: str, payload: str, bg: str) -> bool:
         entry.save()
         return True
     except Exception as e:
-        # print(payload)
-        print('quick save error: ', e)
         return False
 
 

@@ -15,7 +15,7 @@
 						<div class="input-group shadow-sm rounded mx-2">
 							<input
 								type="text"
-								class="form-control border-0 p-3"
+								class="form-control border-0 p-3 minput"
 								placeholder="Search public boards..."
 								aria-label="Search public boards"
 								v-model="input"
@@ -56,7 +56,7 @@
 											<span>{{ board.modified }}</span>
 										</div>
 										<div class="text-start small">
-											Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop style="color:#ff4f4f !important;">{{ board.owner }}</a>
+											<span>Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop style="color:#ff4f4f !important;">{{ board.owner }}</a></span>
 										</div>
 									</footer>
 								</div>
@@ -97,7 +97,8 @@ async function search(sentence){
       })
     })
     const response=await data.json()
-    if(response.status===200){
+		console.log(response)
+    if(response.status===200 && response.boards){
       popular.value=JSON.parse(response.boards)
     }
     loading.value=false
@@ -157,6 +158,11 @@ onMounted(async() => {
 
 
 <style scoped>
+.minput:focus{
+	outline: none;
+	box-shadow: none;
+}
+
 .project-card,
 .result-card {
   height: 16rem;
