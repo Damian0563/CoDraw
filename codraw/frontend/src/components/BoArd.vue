@@ -825,6 +825,19 @@ const handlePaste = (event) => {
 			applyCrop(konvaImg)
 			const layer = layerRef.value.getNode();
 			konvaImg.setAttr("src", e.target.result);
+			const tr=new Konva.Transformer({
+				nodes: [konvaImg],
+				borderStroke: "#ffc107",
+				borderDash: [5, 5],
+				borderStrokeWidth: 1,
+				borderDashOffset: 0,
+				borderJoinStyle: "round",
+				rotationEnabled: false,
+				scalingEnabled: true,
+				keepRatio: true,
+				keepRatioByExpanding: true,
+			});
+			layer.add(tr);
 			layer.add(konvaImg);
 			layer.draw();
 			if (MODE === 'default') {
@@ -840,12 +853,6 @@ const handlePaste = (event) => {
 			}
 			addToHistory()
 		}
-		reader.onloadstart = function () {
-			console.error('Starting');
-		};
-		reader.onerror = function (event) {
-			console.error('FileReader error:', event.target.error);
-		};
 	}
 	reader.readAsDataURL(file)
 }
