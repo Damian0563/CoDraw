@@ -255,7 +255,7 @@
 		<div class="board-wrapper" :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }">
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
 				@mouseup="handleMouseUp" @wheel="handleMouseWheel" @touchstart="handleMouseDown" @touchmove="handleMouseMove"
-				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @transformend="handleTransformed"
+				@touchend="handleMouseUp" @contextmenu="handleContextMenu"
 				style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
 				<v-layer ref="layerRef">
 					<v-image ref="imageRef" :config="imageConfig" />
@@ -313,10 +313,24 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
-const transformer = ref(null);
-const handleTransformed = (e) => {
-	console.log(e.target)
-	console.log(transformer.value)
+
+const handleDblClick = (e) => {
+	const konvaImg = e.target;
+	const layer = layerRef.value.getNode();
+	if (!layer || !konvaImg) return;
+	const tr = new Konva.Transformer({
+		nodes: [konvaImg],
+		borderStroke: "#ffc107",
+		borderDash: [5, 5],
+		borderStrokeWidth: 1,
+		borderDashOffset: 0,
+		borderJoinStyle: "round",
+		scalingEnabled: true,
+		keepRatio: true,
+		keepRatioByExpanding: true,
+	});
+	layer.add(tr);
+	layer.draw();
 }
 
 const check_visitor = async () => {
@@ -457,9 +471,10 @@ if (MODE === 'default') {
 					height: data.height,
 					draggable: false,
 				});
-				applyCrop(konvaImg);
-				layer.add(konvaImg);
-				layer.batchDraw();
+			applyCrop(konvaImg);
+			konvaImg.on('dblclick', handleDblClick);
+			layer.add(konvaImg);
+			layer.batchDraw();
 			};
 			img.onerror = () => console.error("Remote image failed to load", data.id);
 		} else if (data.type === "history_update" && data.history) {
@@ -729,6 +744,7 @@ const redo = () => {
 					});
 					applyCrop(konvaImg)
 					konvaImg.setAttr("src", history.attrs.src);
+					konvaImg.on('dblclick', handleDblClick);
 					layer.add(konvaImg);
 					layer.draw();
 				}
@@ -793,6 +809,7 @@ const getPreviewPicture = () => {
 	return dataURL;
 }
 
+
 const handlePaste = (event) => {
 	event.preventDefault();
 	const stage = stageRef.value?.getNode?.();
@@ -825,19 +842,7 @@ const handlePaste = (event) => {
 			applyCrop(konvaImg)
 			const layer = layerRef.value.getNode();
 			konvaImg.setAttr("src", e.target.result);
-			const tr=new Konva.Transformer({
-				nodes: [konvaImg],
-				borderStroke: "#ffc107",
-				borderDash: [5, 5],
-				borderStrokeWidth: 1,
-				borderDashOffset: 0,
-				borderJoinStyle: "round",
-				rotationEnabled: false,
-				scalingEnabled: true,
-				keepRatio: true,
-				keepRatioByExpanding: true,
-			});
-			layer.add(tr);
+			konvaImg.on('dblclick', handleDblClick);
 			layer.add(konvaImg);
 			layer.draw();
 			if (MODE === 'default') {
@@ -1176,7 +1181,10 @@ const applyStateToLayer = async (data) => {
 	savedChildren.forEach(shapeJson => {
 		const shape = Konva.Node.create(shapeJson);
 		layer.add(shape);
-		if (shape.className === 'Image') applyCrop(shape);
+		if (shape.className === 'Image') {
+			applyCrop(shape);
+			shape.on('dblclick', handleDblClick);
+		}
 	});
 	layer.batchDraw();
 };
