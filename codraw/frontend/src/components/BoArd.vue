@@ -314,6 +314,7 @@ const paneToggler = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
+const deleteButtons = []
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -335,17 +336,131 @@ const handleDblClick = (e) => {
 	for (const transformer of transformers) {
 		transformer.destroy();
 	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
 	transformers.length = 0;
+	deleteButtons.length = 0;
 	transformers.push(tr);
 	layer.add(tr);
+	
+	// Create delete button
+	const deleteGroup = new Konva.Group({
+		x: konvaImg.x() + konvaImg.width() - 15,
+		y: konvaImg.y() - 15,
+		opacity: 0,
+		listening: true
+	});
+	
+	const deleteCircle = new Konva.Circle({
+		radius: 12,
+		fill: '#ff4f4f',
+		stroke: '#fff',
+		strokeWidth: 2
+	});
+	
+	const deleteText = new Konva.Text({
+		text: '×',
+		fontSize: 16,
+		fontFamily: 'Arial',
+		fill: '#fff',
+		x: -5,
+		y: -8
+	});
+	
+	deleteGroup.add(deleteCircle);
+	deleteGroup.add(deleteText);
+	
+	deleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteImage(konvaImg, tr, deleteGroup);
+	});
+	
+	deleteGroup.on('mouseenter', () => {
+		deleteCircle.fill('#ff3333');
+		layer.batchDraw();
+	});
+	
+	deleteGroup.on('mouseleave', () => {
+		deleteCircle.fill('#ff4f4f');
+		layer.batchDraw();
+	});
+	
+	deleteButtons.push(deleteGroup);
+	layer.add(deleteGroup);
+	
+	// Fade-in animation
+	deleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	
+	// Hide delete button when resizing starts
+	tr.on('transformstart', () => {
+		deleteGroup.destroy();
+		const btnIndex = deleteButtons.indexOf(deleteGroup);
+		if (btnIndex > -1) {
+			deleteButtons.splice(btnIndex, 1);
+		}
+		layer.batchDraw();
+	});
+	
 	layer.draw();
+}
+
+const deleteImage = (imageNode, transformer, deleteBtn) => {
+	const layer = layerRef.value.getNode();
+	if (!layer) return;
+	
+	const imageId = imageNode.id();
+	
+	// Destroy the image
+	imageNode.destroy();
+	
+	// Destroy the transformer
+	if (transformer) {
+		transformer.destroy();
+	}
+	
+	// Destroy the delete button
+	if (deleteBtn) {
+		deleteBtn.destroy();
+	}
+	
+	// Remove from arrays
+	const trIndex = transformers.indexOf(transformer);
+	if (trIndex > -1) {
+		transformers.splice(trIndex, 1);
+	}
+	
+	const btnIndex = deleteButtons.indexOf(deleteBtn);
+	if (btnIndex > -1) {
+		deleteButtons.splice(btnIndex, 1);
+	}
+	
+	layer.batchDraw();
+	
+	// Send WebSocket message for multiplayer sync
+	if (MODE === 'default' && ws.value && ws.value.readyState === WebSocket.OPEN) {
+		ws.value.send(JSON.stringify({
+			type: "img_delete",
+			id: imageId
+		}));
+	}
+	
+	// Update history
+	addToHistory();
 }
 
 const disableTransformers = () => {
 	for (const transformer of transformers) {
 		transformer.destroy();
 	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
 	transformers.length = 0;
+	deleteButtons.length = 0;
 }
 
 const check_visitor = async () => {
@@ -492,6 +607,34 @@ if (MODE === 'default') {
 			layer.batchDraw();
 			};
 			img.onerror = () => console.error("Remote image failed to load", data.id);
+		} else if (data.type === "img_delete" && data.id) {
+			const imageToDelete = layer.findOne(`#${data.id}`);
+			if (imageToDelete) {
+				// Find associated transformer and delete button
+				const tr = transformers.find(t => t.nodes().includes(imageToDelete));
+				const btn = deleteButtons.find(b => {
+					// Check if button is near this image
+					const btnX = b.x();
+					const btnY = b.y();
+					const imgX = imageToDelete.x();
+					const imgY = imageToDelete.y();
+					const imgWidth = imageToDelete.width();
+					return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
+				});
+				
+				imageToDelete.destroy();
+				if (tr) {
+					tr.destroy();
+					const trIndex = transformers.indexOf(tr);
+					if (trIndex > -1) transformers.splice(trIndex, 1);
+				}
+				if (btn) {
+					btn.destroy();
+					const btnIndex = deleteButtons.indexOf(btn);
+					if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
+				}
+				layer.batchDraw();
+			}
 		} else if (data.type === "history_update" && data.history) {
 			stroke_history.value = data.history
 			history_index.value = data.index
@@ -734,7 +877,11 @@ const undo = async () => {
 	for (const transformer of transformers) {
 		transformer.destroy();
 	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
 	transformers.length = 0;
+	deleteButtons.length = 0;
 	history_index.value--;
 	layer.batchDraw();
 }
@@ -775,6 +922,14 @@ const redo = () => {
 
 		}
 	}
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
+	transformers.length = 0;
+	deleteButtons.length = 0;
 }
 
 const checkSaveStatus = async () => {
@@ -964,6 +1119,8 @@ function clearDefinetely() {
 	localStorage.removeItem(parts)
 	const layer = layerRef.value.getNode();
 	layer.destroyChildren();
+	transformers.length = 0;
+	deleteButtons.length = 0;
 	layer.batchDraw();
 	loading.value = false
 }
@@ -1177,6 +1334,8 @@ const applyStateToLayer = async (data) => {
 		return;
 	}
 	layer.destroyChildren();
+	transformers.length = 0;
+	deleteButtons.length = 0;
 	const savedChildren = stageData.children?.[0]?.children || [];
 	const imagePromises = savedChildren.map(shapeJson => {
 		if (shapeJson.className === "Image" && shapeJson.attrs.src) {
