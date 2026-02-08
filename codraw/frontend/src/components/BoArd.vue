@@ -68,8 +68,15 @@
 			<input type="range" v-model="width_slider" min="1" max="10" style="
           accent-color: #4f8cff;
           width: 60px;
-        ">
+      ">
 			<span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
+			<label aria-label="upload" title="upload image">
+        <svg xmlns="http://www.w3.org/2000/svg"  width="32" height="16" fill="#ffc107" class="bi bi-upload" viewBox="0 0 16 16">
+					<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+					<path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+				</svg>
+				<input type="file" style="display:none">
+			</label>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
           color: #fff;
@@ -328,7 +335,7 @@ const handleDblClick = (e) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
+		enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: false,
@@ -343,22 +350,19 @@ const handleDblClick = (e) => {
 	deleteButtons.length = 0;
 	transformers.push(tr);
 	layer.add(tr);
-	
-	// Create delete button
+
 	const deleteGroup = new Konva.Group({
 		x: konvaImg.x() + konvaImg.width() - 15,
 		y: konvaImg.y() - 15,
 		opacity: 0,
 		listening: true
 	});
-	
 	const deleteCircle = new Konva.Circle({
 		radius: 12,
 		fill: '#ff4f4f',
 		stroke: '#fff',
 		strokeWidth: 2
 	});
-	
 	const deleteText = new Konva.Text({
 		text: '×',
 		fontSize: 16,
@@ -367,34 +371,32 @@ const handleDblClick = (e) => {
 		x: -5,
 		y: -8
 	});
-	
 	deleteGroup.add(deleteCircle);
 	deleteGroup.add(deleteText);
-	
 	deleteGroup.on('click', (e) => {
 		e.evt.stopPropagation();
 		deleteImage(konvaImg, tr, deleteGroup);
 	});
-	
+
 	deleteGroup.on('mouseenter', () => {
 		deleteCircle.fill('#ff3333');
 		layer.batchDraw();
 	});
-	
+
 	deleteGroup.on('mouseleave', () => {
 		deleteCircle.fill('#ff4f4f');
 		layer.batchDraw();
 	});
-	
+
 	deleteButtons.push(deleteGroup);
 	layer.add(deleteGroup);
-	
+
 	// Fade-in animation
 	deleteGroup.to({
 		opacity: 1,
 		duration: 0.2
 	});
-	
+
 	// Hide delete button when resizing starts
 	tr.on('transformstart', () => {
 		deleteGroup.destroy();
@@ -404,42 +406,42 @@ const handleDblClick = (e) => {
 		}
 		layer.batchDraw();
 	});
-	
+
 	layer.draw();
 }
 
 const deleteImage = (imageNode, transformer, deleteBtn) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
-	
+
 	const imageId = imageNode.id();
-	
+
 	// Destroy the image
 	imageNode.destroy();
-	
+
 	// Destroy the transformer
 	if (transformer) {
 		transformer.destroy();
 	}
-	
+
 	// Destroy the delete button
 	if (deleteBtn) {
 		deleteBtn.destroy();
 	}
-	
+
 	// Remove from arrays
 	const trIndex = transformers.indexOf(transformer);
 	if (trIndex > -1) {
 		transformers.splice(trIndex, 1);
 	}
-	
+
 	const btnIndex = deleteButtons.indexOf(deleteBtn);
 	if (btnIndex > -1) {
 		deleteButtons.splice(btnIndex, 1);
 	}
-	
+
 	layer.batchDraw();
-	
+
 	// Send WebSocket message for multiplayer sync
 	if (MODE === 'default' && ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
@@ -447,7 +449,7 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 			id: imageId
 		}));
 	}
-	
+
 	// Update history
 	addToHistory();
 }
@@ -621,7 +623,7 @@ if (MODE === 'default') {
 					const imgWidth = imageToDelete.width();
 					return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
 				});
-				
+
 				imageToDelete.destroy();
 				if (tr) {
 					tr.destroy();
