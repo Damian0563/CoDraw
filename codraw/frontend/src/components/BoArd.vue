@@ -255,7 +255,7 @@
 		<div class="board-wrapper" :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }">
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
 				@mouseup="handleMouseUp" @wheel="handleMouseWheel" @touchstart="handleMouseDown" @touchmove="handleMouseMove"
-				@touchend="handleMouseUp" @contextmenu="handleContextMenu"
+				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @click="disableTransformers"
 				style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
 				<v-layer ref="layerRef">
 					<v-image ref="imageRef" :config="imageConfig" />
@@ -313,6 +313,7 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
+const transformers = []
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -326,11 +327,25 @@ const handleDblClick = (e) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
+		enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
+		rotateEnabled: false,
 	});
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	transformers.length = 0;
+	transformers.push(tr);
 	layer.add(tr);
 	layer.draw();
+}
+
+const disableTransformers = () => {
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	transformers.length = 0;
 }
 
 const check_visitor = async () => {
@@ -716,6 +731,10 @@ const undo = async () => {
 	const children = layer.children || [];
 	const lastChild = children[children.length - 1];
 	if (lastChild) lastChild.destroy();
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	transformers.length = 0;
 	history_index.value--;
 	layer.batchDraw();
 }

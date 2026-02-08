@@ -1,5 +1,4 @@
 export const BASE_URL = process.env.VUE_APP_BASE_URL;
-export const DEMO_URL = process.env.VUE_APP_DEMO_URL;
 export const WS_URL = process.env.VUE_APP_WS_URL;
 function get_cookie(name) {
 	let cookieValue = null;
