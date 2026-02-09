@@ -66,7 +66,7 @@
 
   <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center scroll-reveal" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
     Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
-		<router-link to="/demo?origin=home" aria-label="Go to full demo">
+		<router-link :to="getDemoPath()" aria-label="Go to full demo">
 			<button class="demo-btn mt-4" aria-label="Try Full Demo">Try Full Demo</button>
 		</router-link>
   </section>
@@ -102,6 +102,7 @@
 
 <script>
 import { get_cookie } from '@/common';
+import { v4 as uuidv4 } from 'uuid'
 import { BASE_URL } from '../common.js';
 import logo from '@/assets/logo.webp';
 import FoOter from './Footer.vue';
@@ -116,6 +117,7 @@ export default {
       logo,
       fullText: "CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life!",
       typewriterIndex: 0,
+      typewriterTimeout: null,
       features: [
         {
           title: "Modern and Slick",
@@ -162,6 +164,11 @@ export default {
     this.startTypewriter();
     this.initScrollReveal();
   },
+  beforeUnmount() {
+    if (this.typewriterTimeout) {
+      clearTimeout(this.typewriterTimeout);
+    }
+  },
   methods: {
     async check() {
       try {
@@ -182,15 +189,18 @@ export default {
         console.error(e);
       }
     },
+		getDemoPath(){
+			return `/demo/${uuidv4()}?origin=home`
+		},
     startTypewriter() {
       const typeNextChar = () => {
-        if (this.typewriterIndex < this.fullText.length) {
+        if (this.typewriterIndex < this.fullText.length && this.$refs.typewriterText) {
           this.$refs.typewriterText.textContent += this.fullText.charAt(this.typewriterIndex);
           this.typewriterIndex++;
-          setTimeout(typeNextChar, 30);
+          this.typewriterTimeout = setTimeout(typeNextChar, 30);
         }
       };
-      setTimeout(typeNextChar, 800);
+      this.typewriterTimeout = setTimeout(typeNextChar, 800);
     },
     initScrollReveal() {
       const observerOptions = {
