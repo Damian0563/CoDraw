@@ -70,12 +70,12 @@
           width: 60px;
       ">
 			<span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
-			<label aria-label="upload" title="upload image">
+			<label aria-label="upload" title="upload image" @click="uploadImage">
         <svg xmlns="http://www.w3.org/2000/svg"  width="32" height="16" fill="#ffc107" class="bi bi-upload" viewBox="0 0 16 16">
 					<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
 					<path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
 				</svg>
-				<input type="file" style="display:none">
+				<input type="file" id="upload" style="display:none">
 			</label>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
@@ -322,6 +322,8 @@ const room = ref(new URL(window.location.href).pathname.split('/')[3])
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
+
+
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -986,17 +988,7 @@ const getPreviewPicture = () => {
 }
 
 
-const handlePaste = (event) => {
-	event.preventDefault();
-	const stage = stageRef.value?.getNode?.();
-	if (!stage) return;
-	const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
-	const point = getRelativePointerPosition(stage, pointer);
-	const clipboardData = event.clipboardData;
-	if (!clipboardData || clipboardData.files.length === 0) {
-		return;
-	}
-	const file = clipboardData.files[0];
+const processImageFile = (file, x, y) => {
 	if (!file.type.startsWith('image/')) {
 		return;
 	}
@@ -1008,20 +1000,20 @@ const handlePaste = (event) => {
 			const konvaImg = new Konva.Image({
 				id: uuidv4(),
 				image: img,
-				x: point.x,
-				y: point.y,
+				x: x,
+				y: y,
 				width: img.width,
 				height: img.height,
 				draggable: false,
 				src: e.target.result
 			});
-			applyCrop(konvaImg)
+			applyCrop(konvaImg);
 			const layer = layerRef.value.getNode();
 			konvaImg.setAttr("src", e.target.result);
 			konvaImg.on('dblclick', handleDblClick);
 			layer.add(konvaImg);
 			layer.draw();
-			if (MODE === 'default') {
+			if (MODE === 'default' && ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
 					type: "img",
 					id: konvaImg.id(),
@@ -1030,13 +1022,36 @@ const handlePaste = (event) => {
 					y: konvaImg.y(),
 					width: konvaImg.width(),
 					height: konvaImg.height(),
-				}))
+				}));
 			}
-			addToHistory()
-		}
+			addToHistory();
+		};
+	};
+	reader.readAsDataURL(file);
+};
+
+const handlePaste = (event) => {
+	event.preventDefault();
+	const stage = stageRef.value?.getNode?.();
+	if (!stage) return;
+	const pointer = stage.getPointerPosition();
+	let point;
+	if (pointer) {
+		point = getRelativePointerPosition(stage);
+	} else {
+		const visibleWidth = window.innerWidth / stage.scaleX();
+		const visibleHeight = window.innerHeight / stage.scaleY();
+		const centerX = (-stage.x() / stage.scaleX()) + visibleWidth / 2;
+		const centerY = (-stage.y() / stage.scaleY()) + visibleHeight / 2;
+		point = { x: centerX, y: centerY };
 	}
-	reader.readAsDataURL(file)
-}
+	const clipboardData = event.clipboardData;
+	if (!clipboardData || clipboardData.files.length === 0) {
+		return;
+	}
+	const file = clipboardData.files[0];
+	processImageFile(file, point.x, point.y);
+};
 
 
 const check_save = async (mode) => {
@@ -1416,6 +1431,25 @@ const get_details_and_load = async () => {
 	}
 }
 
+const handleFiles=(event)=> {
+	const stage = stageRef.value?.getNode?.();
+	if (!stage) return;
+	const files = event.target.files;
+	if (!files || files.length === 0) return;
+	const visibleWidth = window.innerWidth / stage.scaleX();
+	const visibleHeight = window.innerHeight / stage.scaleY();
+	const centerX = (-stage.x() / stage.scaleX()) + visibleWidth / 2;
+	const centerY = (-stage.y() / stage.scaleY()) + visibleHeight / 2;
+	Array.from(files).forEach((file, index) => {
+		if (file.type.startsWith('image/')) {
+			const offsetX = (index % 3) * 30;
+			const offsetY = Math.floor(index / 3) * 30;
+			processImageFile(file, centerX + offsetX, centerY + offsetY);
+		}
+	});
+	event.target.value = '';
+}
+
 const keyhandler = (event) => {
 	if (event.ctrlKey && event.key === 'z') {
 		undo()
@@ -1455,6 +1489,9 @@ onMounted(async () => {
 	window.addEventListener('keyup', keyhandler)
 	window.addEventListener('resize', handleStageResize);
 	window.addEventListener('paste', handlePaste)
+	const inputElement = document.getElementById("upload");
+	inputElement.addEventListener("change", handleFiles);
+
 	const preview = document.createElement('div');
 	preview.id = 'preview';
 	preview.style.position = 'absolute';
@@ -1520,6 +1557,10 @@ onUnmounted(() => {
 	window.removeEventListener('paste', handlePaste)
 	window.removeEventListener("keyup", keyhandler)
 	window.removeEventListener("resize", handleStageResize)
+	const inputElement = document.getElementById("upload");
+	if (inputElement) {
+		inputElement.removeEventListener("change", handleFiles);
+	}
 })
 </script>
 
