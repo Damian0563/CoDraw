@@ -28,7 +28,7 @@ const routes = [
 	{ path: '/codraw/search', component: SeArch, meta: { showNav: false } },
 	{ path: '/codraw/account/:username', component: AccOunt, meta: { showNav: false } },
 	{ path: '/board/:id/:room', component: BoArd, meta: { showNav: false } },
-	{ path: '/demo', component: BoArd, meta: { showNav: false } },
+	{ path: '/demo/:room', component: BoArd, meta: { showNav: false } },
 	{ path: '/learn-more', component: LearnMore, meta: { showNav: true } },
 	{ path: '/recover/:code', component: RestorePassword, meta: { showNav: true } },
 	{ path: '/:pathMatch(.*)*', component: NotFound, meta: { showNav: true } }

@@ -31,7 +31,7 @@
           <div class="d-flex justify-content-end align-items-center gap-2">
             <div v-if="admin" class="w-100">
               <div class="d-flex justify-content-end align-items-center gap-2">
-								<button class="text-start btn btn-primary" @click="exportImg(previewing[board.room],board.title)">Export to png</button>
+								<button class="text-start btn btn-primary" @click="exportImg(previewing[board.room],board.title)">Export</button>
                 <button class="btn btn-success success" @click="join(board.room)">
                   Join room
                 </button>

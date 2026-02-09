@@ -97,7 +97,7 @@
         cursor: pointer;
         transition: ease-in-out 0.6s;
       ">Exit</button>
-			<button id="clearall" v-if="admin" style="
+			<button id="clearall" v-if="admin || MODE === 'demo'" style="
         background: #f68608;
         color: #fff;
         border: none;
@@ -126,7 +126,7 @@
 				<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark" style="width: 18px; height: 18px;" />
 				<span v-if="show_text">{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
 			</button>
-			<button id="inv" v-if="MODE === 'default'" @click="copyInvitationLink" style="
+			<button id="inv" @click="copyInvitationLink" style="
           display: flex;
           align-items: center;
           gap: 8px;
@@ -319,11 +319,12 @@ const history_index = ref(0)
 const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
+if(MODE === 'demo'){
+	room.value=new URL(window.location.href).pathname.split('/')[2]
+}
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
-
-
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -379,27 +380,20 @@ const handleDblClick = (e) => {
 		e.evt.stopPropagation();
 		deleteImage(konvaImg, tr, deleteGroup);
 	});
-
 	deleteGroup.on('mouseenter', () => {
 		deleteCircle.fill('#ff3333');
 		layer.batchDraw();
 	});
-
 	deleteGroup.on('mouseleave', () => {
 		deleteCircle.fill('#ff4f4f');
 		layer.batchDraw();
 	});
-
 	deleteButtons.push(deleteGroup);
 	layer.add(deleteGroup);
-
-	// Fade-in animation
 	deleteGroup.to({
 		opacity: 1,
 		duration: 0.2
 	});
-
-	// Hide delete button when resizing starts
 	tr.on('transformstart', () => {
 		deleteGroup.destroy();
 		const btnIndex = deleteButtons.indexOf(deleteGroup);
@@ -415,23 +409,14 @@ const handleDblClick = (e) => {
 const deleteImage = (imageNode, transformer, deleteBtn) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
-
 	const imageId = imageNode.id();
-
-	// Destroy the image
 	imageNode.destroy();
-
-	// Destroy the transformer
 	if (transformer) {
 		transformer.destroy();
 	}
-
-	// Destroy the delete button
 	if (deleteBtn) {
 		deleteBtn.destroy();
 	}
-
-	// Remove from arrays
 	const trIndex = transformers.indexOf(transformer);
 	if (trIndex > -1) {
 		transformers.splice(trIndex, 1);
@@ -441,18 +426,13 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 	if (btnIndex > -1) {
 		deleteButtons.splice(btnIndex, 1);
 	}
-
 	layer.batchDraw();
-
-	// Send WebSocket message for multiplayer sync
-	if (MODE === 'default' && ws.value && ws.value.readyState === WebSocket.OPEN) {
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
 			type: "img_delete",
 			id: imageId
 		}));
 	}
-
-	// Update history
 	addToHistory();
 }
 
@@ -556,110 +536,109 @@ const stageConfig = {
 };
 
 const ws = ref(null)
-if (MODE === 'default') {
-	const rawUrl = WS_URL
-	const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
-	const finalUrl = `${cleanBase}/${room.value}/`;
-	ws.value = new WebSocket(finalUrl)
-	ws.value.onopen = function () {
-		ws.value.send(JSON.stringify({
-			type: "sync-request",
-			room: room.value
-		}))
-	}
-	ws.value.onmessage = async (event) => {
-		const data = JSON.parse(event.data);
-		if (!data || !data.type) return;
-		const layer = layerRef.value.getNode();
-		if (data.type === "start") {
-			const newLine = new Konva.Line({
-				stroke: data.stroke,
-				strokeWidth: data.width,
-				globalCompositeOperation: data.operation,
-				points: data.points,
-				lineCap: "round",
-				lineJoin: "round",
-				tension: 0.3
+const rawUrl = WS_URL
+const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+const finalUrl = `${cleanBase}/${room.value}/`;
+ws.value = new WebSocket(finalUrl)
+ws.value.onopen = function () {
+	ws.value.send(JSON.stringify({
+		type: "sync-request",
+		room: room.value
+	}))
+}
+ws.value.onmessage = async (event) => {
+	const data = JSON.parse(event.data);
+	if (!data || !data.type) return;
+	const layer = layerRef.value.getNode();
+	if (data.type === "start") {
+		const newLine = new Konva.Line({
+			stroke: data.stroke,
+			strokeWidth: data.width,
+			globalCompositeOperation: data.operation,
+			points: data.points,
+			lineCap: "round",
+			lineJoin: "round",
+			tension: 0.3
+		});
+		newLine._remote = true;
+		layer.add(newLine);
+		currentLine.value = newLine;
+	} else if (data.type === "draw" && currentLine.value?._remote) {
+		const points = currentLine.value.points();
+		points.push(...data.points);
+		currentLine.value.points(points);
+		layer.batchDraw();
+	} else if (data.type === "bg" && data.bg) {
+		background.value = data.bg
+		motiv.value = data.bg === "#ffffff"
+	} else if (data.type == "img") {
+		const img = new window.Image();
+		img.src = data.src;
+		img.onload = () => {
+			const konvaImg = new Konva.Image({
+				id: data.id,
+				image: img,
+				x: data.x,
+				y: data.y,
+				width: data.width,
+				height: data.height,
+				draggable: false,
 			});
-			newLine._remote = true;
-			layer.add(newLine);
-			currentLine.value = newLine;
-		} else if (data.type === "draw" && currentLine.value?._remote) {
-			const points = currentLine.value.points();
-			points.push(...data.points);
-			currentLine.value.points(points);
-			layer.batchDraw();
-		} else if (data.type === "bg" && data.bg) {
-			background.value = data.bg
-			motiv.value = data.bg === "#ffffff"
-		} else if (data.type == "img") {
-			const img = new window.Image();
-			img.src = data.src;
-			img.onload = () => {
-				const konvaImg = new Konva.Image({
-					id: data.id,
-					image: img,
-					x: data.x,
-					y: data.y,
-					width: data.width,
-					height: data.height,
-					draggable: false,
-				});
-			applyCrop(konvaImg);
-			konvaImg.on('dblclick', handleDblClick);
-			layer.add(konvaImg);
-			layer.batchDraw();
-			};
-			img.onerror = () => console.error("Remote image failed to load", data.id);
-		} else if (data.type === "img_delete" && data.id) {
-			const imageToDelete = layer.findOne(`#${data.id}`);
-			if (imageToDelete) {
-				// Find associated transformer and delete button
-				const tr = transformers.find(t => t.nodes().includes(imageToDelete));
-				const btn = deleteButtons.find(b => {
-					// Check if button is near this image
-					const btnX = b.x();
-					const btnY = b.y();
-					const imgX = imageToDelete.x();
-					const imgY = imageToDelete.y();
-					const imgWidth = imageToDelete.width();
-					return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
-				});
+		applyCrop(konvaImg);
+		konvaImg.on('dblclick', handleDblClick);
+		layer.add(konvaImg);
+		layer.batchDraw();
+		};
+		img.onerror = () => console.error("Remote image failed to load", data.id);
+	} else if (data.type === "img_delete" && data.id) {
+		const imageToDelete = layer.findOne(`#${data.id}`);
+		if (imageToDelete) {
+			const tr = transformers.find(t => t.nodes().includes(imageToDelete));
+			const btn = deleteButtons.find(b => {
+				const btnX = b.x();
+				const btnY = b.y();
+				const imgX = imageToDelete.x();
+				const imgY = imageToDelete.y();
+				const imgWidth = imageToDelete.width();
+				return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
+			});
 
-				imageToDelete.destroy();
-				if (tr) {
-					tr.destroy();
-					const trIndex = transformers.indexOf(tr);
-					if (trIndex > -1) transformers.splice(trIndex, 1);
-				}
-				if (btn) {
-					btn.destroy();
-					const btnIndex = deleteButtons.indexOf(btn);
-					if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
-				}
-				layer.batchDraw();
+			imageToDelete.destroy();
+			if (tr) {
+				tr.destroy();
+				const trIndex = transformers.indexOf(tr);
+				if (trIndex > -1) transformers.splice(trIndex, 1);
 			}
-		} else if (data.type === "history_update" && data.history) {
-			stroke_history.value = data.history
-			history_index.value = data.index
-		} else if (data.type === "undo") await undo();
-		else if (data.type === "redo") redo();
-		else if (data.type === "sync-request") {
-			autosave()
+			if (btn) {
+				btn.destroy();
+				const btnIndex = deleteButtons.indexOf(btn);
+				if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
+			}
+			layer.batchDraw();
+		}
+	} else if (data.type === "history_update" && data.history) {
+		stroke_history.value = data.history
+		history_index.value = data.index
+	} else if (data.type === "undo") await undo();
+	else if (data.type === "redo") redo();
+	else if (data.type === "sync-request") {
+		autosave()
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			const storageKey = MODE === 'demo' ? 'demo' : room.value;
 			ws.value.send(JSON.stringify({
 				type: "sync-response",
-				context: localStorage.getItem(room.value)
+				context: localStorage.getItem(storageKey)
 			}))
-		} else if (data.type === "sync-response") {
-			if (!layerRef.value) {
-				await nextTick();
-			}
-			if (data.context && layerRef.value) {
-				await applyStateToLayer(data.context);
-			}
 		}
-	};
-}
+	} else if (data.type === "sync-response") {
+		if (!layerRef.value) {
+			await nextTick();
+		}
+		if (data.context && layerRef.value) {
+			await applyStateToLayer(data.context);
+		}
+	}
+};
 const handleContextMenu = (e) => {
 	e.evt.preventDefault();
 };
@@ -733,7 +712,6 @@ const copyInvitationLink = async () => {
 		showPopup.value = true;
 		message.value = "Invitation link copied to clipboard!";
 	} catch (err) {
-		console.error("Failed to copy: ", err);
 		showPopup.value = true;
 		message.value = "Failed to copy the link.";
 	}
@@ -863,7 +841,7 @@ function addToHistory() {
 		stroke_history.value.shift();
 		history_index.value = Math.max(0, history_index.value - 1);
 	}
-	if (MODE === 'default') {
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
 			type: "history_update",
 			history: stroke_history.value,
@@ -1013,7 +991,7 @@ const processImageFile = (file, x, y) => {
 			konvaImg.on('dblclick', handleDblClick);
 			layer.add(konvaImg);
 			layer.draw();
-			if (MODE === 'default' && ws.value && ws.value.readyState === WebSocket.OPEN) {
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
 					type: "img",
 					id: konvaImg.id(),
@@ -1132,8 +1110,12 @@ function clearDefinetely() {
 	showPopup.value = false
 	message.value = ""
 	loading.value = true
-	const parts = new URL(window.location.href).pathname.split('/')[3]
-	localStorage.removeItem(parts)
+	if (MODE === 'demo') {
+		localStorage.removeItem("demo")
+	} else {
+		const parts = new URL(window.location.href).pathname.split('/')[3]
+		localStorage.removeItem(parts)
+	}
 	const layer = layerRef.value.getNode();
 	layer.destroyChildren();
 	transformers.length = 0;
@@ -1143,7 +1125,7 @@ function clearDefinetely() {
 }
 
 function clear_all() {
-	if (admin.value) {
+	if (admin.value || MODE === 'demo') {
 		showPopup.value = true;
 		message.value = "Are you sure you would like to clear the board? This action is irreversible.";
 	} else {
@@ -1205,14 +1187,14 @@ const handleMouseDown = (e) => {
 			lineJoin: 'round',
 			tension: 0.3
 		});
-		if (MODE === 'default') {
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "start",
 				stroke: color.value,
 				width: Number(width_slider.value),
 				operation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
 				points: [pos.x, pos.y]
-			}))
+			}));
 		}
 		layerRef.value.getNode().add(newLine);
 		currentLine.value = newLine;
@@ -1262,7 +1244,7 @@ const handleMouseMove = (e) => {
 		points.push(point.x, point.y);
 		currentLine.value.points(points);
 		const now = Date.now();
-		if (now - lastWsSendTime >= 16 && MODE === 'default') {
+		if (now - lastWsSendTime >= 16 && ws.value && ws.value.readyState === WebSocket.OPEN) {
 			lastWsSendTime = now;
 			ws.value.send(JSON.stringify({
 				type: "draw",
@@ -1364,7 +1346,6 @@ const applyStateToLayer = async (data) => {
 					resolve();
 				};
 				img.onerror = () => {
-					console.error("Failed to load image:", shapeJson.attrs.src);
 					resolve();
 				};
 				img.src = shapeJson.attrs.src;
@@ -1453,7 +1434,7 @@ const handleFiles=(event)=> {
 const keyhandler = (event) => {
 	if (event.ctrlKey && event.key === 'z') {
 		undo()
-		if (MODE === 'default') {
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "undo"
 			}))
@@ -1461,7 +1442,7 @@ const keyhandler = (event) => {
 	}
 	else if (event.ctrlKey && event.key === 'y') {
 		redo()
-		if (MODE === 'default') {
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "redo"
 			}))
@@ -1525,7 +1506,7 @@ onMounted(async () => {
 		color.value = motiv.value ? "#000000" : "#ffffff"
 		previewBg.fill(background.value);
 		previewLayer.batchDraw();
-		if (MODE === 'default' && ws.value.readyState === WebSocket.OPEN) {
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "bg",
 				bg: background.value
