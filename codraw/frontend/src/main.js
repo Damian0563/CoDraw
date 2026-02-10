@@ -42,5 +42,4 @@ const router = createRouter({
 router.afterEach(() => {
 	window.scrollTo({ top: 0, behavior: 'instant' })
 })
-
-createApp(App).use(router).use(createGtag, { config: { "id": "G-QW19P198KB" }, router }).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
+createApp(App).use(router).use(createGtag({ config: { id: process.env.GTAG, appName: "CoDraw", debug: true, pageTrackerScreenviewEnabled: true, } })).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')

@@ -253,11 +253,11 @@
 			</div>
 		</Transition>
 		<div id="zoom">
-			<label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('up')">+</label>
+			<label style="font-size: small; cursor: pointer;width:1.5rem" @click="changeZoom('up')">+</label>
 			<img :src="zoom_ico" decoding="async" loading="lazy" alt="zoom" class="img-fluid"
-				style="width:1.2rem;height: 1.2rem;">
-			<input v-model="zoom" style="width: 60px; text-align: center;border-style: none;" disabled>
-			<label style="font-size: larger; cursor: pointer;width:2rem" @click="changeZoom('down')">-</label>
+				style="width:1rem;height: 1rem;">
+			<input v-model="zoom" style="width: 60px; text-align: center;border-style: none;font-size: 0.7rem;" disabled>
+			<label style="font-size:small; cursor: pointer;width:1.5rem" @click="changeZoom('down')">-</label>
 		</div>
 		<div class="board-wrapper" :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }">
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
