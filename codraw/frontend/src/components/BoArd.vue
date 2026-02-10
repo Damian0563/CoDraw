@@ -342,6 +342,12 @@ const handleDblClick = (e) => {
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: false,
+		boundBoxFunc: (oldBox, newBox) => {
+			if (newBox.width < 5 || newBox.height < 5) {
+				return oldBox;
+			}
+			return newBox;
+		},
 	});
 	for (const transformer of transformers) {
 		transformer.destroy();
@@ -354,9 +360,14 @@ const handleDblClick = (e) => {
 	transformers.push(tr);
 	layer.add(tr);
 
+	const getDeleteButtonPos = () => {
+		const scaleX = konvaImg.scaleX() || 1;
+		return { x: konvaImg.x() + konvaImg.width() * scaleX - 15, y: konvaImg.y() - 15 };
+	};
+	const initialPos = getDeleteButtonPos();
 	const deleteGroup = new Konva.Group({
-		x: konvaImg.x() + konvaImg.width() - 15,
-		y: konvaImg.y() - 15,
+		x: initialPos.x,
+		y: initialPos.y,
 		opacity: 0,
 		listening: true
 	});
@@ -368,7 +379,7 @@ const handleDblClick = (e) => {
 	});
 	const deleteText = new Konva.Text({
 		text: '×',
-		fontSize: 16,
+		fontSize: 12,
 		fontFamily: 'Arial',
 		fill: '#fff',
 		x: -5,
@@ -394,12 +405,14 @@ const handleDblClick = (e) => {
 		opacity: 1,
 		duration: 0.2
 	});
-	tr.on('transformstart', () => {
-		deleteGroup.destroy();
-		const btnIndex = deleteButtons.indexOf(deleteGroup);
-		if (btnIndex > -1) {
-			deleteButtons.splice(btnIndex, 1);
-		}
+	const updateDeleteButtonPosition = () => {
+		const pos = getDeleteButtonPos();
+		deleteGroup.x(pos.x);
+		deleteGroup.y(pos.y);
+	};
+
+	tr.on('transform', () => {
+		updateDeleteButtonPosition();
 		layer.batchDraw();
 	});
 
