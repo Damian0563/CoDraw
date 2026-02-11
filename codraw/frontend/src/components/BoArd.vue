@@ -414,6 +414,16 @@ const handleDblClick = (e) => {
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
 		layer.batchDraw();
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "img_resize",
+				id: konvaImg.id(),
+				x: konvaImg.x(),
+				y: konvaImg.y(),
+				width: konvaImg.width() * konvaImg.scaleX(),
+				height: konvaImg.height() * konvaImg.scaleY()
+			}));
+		}
 	});
 
 	layer.draw();
@@ -626,6 +636,33 @@ ws.value.onmessage = async (event) => {
 				btn.destroy();
 				const btnIndex = deleteButtons.indexOf(btn);
 				if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
+			}
+			layer.batchDraw();
+		}
+	} else if (data.type === "img_resize" && data.id) {
+		const imageToResize = layer.findOne(`#${data.id}`);
+		if (imageToResize) {
+			imageToResize.x(data.x);
+			imageToResize.y(data.y);
+			imageToResize.width(data.width);
+			imageToResize.height(data.height);
+			imageToResize.scaleX(1);
+			imageToResize.scaleY(1);
+			const tr = transformers.find(t => t.nodes().includes(imageToResize));
+			if (tr) {
+				tr.forceUpdate();
+			}
+			const btn = deleteButtons.find(b => {
+				const btnX = b.x();
+				const btnY = b.y();
+				const imgX = imageToResize.x();
+				const imgY = imageToResize.y();
+				const imgWidth = imageToResize.width();
+				return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
+			});
+			if (btn) {
+				btn.x(data.x + data.width - 15);
+				btn.y(data.y - 15);
 			}
 			layer.batchDraw();
 		}
