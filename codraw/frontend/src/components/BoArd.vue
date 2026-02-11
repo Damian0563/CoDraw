@@ -44,8 +44,8 @@
 				gap: 10px;
 				z-index: 10;
       ">
-			<font-awesome-icon :icon="['fas', 'undo']" class="feature-icon" @click="undo()"></font-awesome-icon>
-			<font-awesome-icon :icon="['fas', 'redo']" class="feature-icon" @click="redo()"></font-awesome-icon>
+			<font-awesome-icon :icon="['fas', 'undo']" class="feature-icon" @click="undoWithBroadcast()"></font-awesome-icon>
+			<font-awesome-icon :icon="['fas', 'redo']" class="feature-icon" @click="redoWithBroadcast()"></font-awesome-icon>
 			<button @click="motiv = !motiv" style="border-radius: 50%;padding: 1rem;border-color: #f68608;border-width: 5px;"
 				:style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }"></button>
 			<text style="color: white;">Brush Color</text>
@@ -669,8 +669,9 @@ ws.value.onmessage = async (event) => {
 	} else if (data.type === "history_update" && data.history) {
 		stroke_history.value = data.history
 		history_index.value = data.index
-	} else if (data.type === "undo") await undo();
-	else if (data.type === "redo") redo();
+	} else if (data.type === "undo") {
+		await undo();
+	}else if (data.type === "redo") redo();
 	else if (data.type === "sync-request") {
 		autosave()
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -962,6 +963,24 @@ const redo = () => {
 	}
 	transformers.length = 0;
 	deleteButtons.length = 0;
+}
+
+const undoWithBroadcast = async () => {
+	await undo();
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+		ws.value.send(JSON.stringify({
+			type: "undo"
+		}));
+	}
+}
+
+const redoWithBroadcast = () => {
+	redo();
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+		ws.value.send(JSON.stringify({
+			type: "redo"
+		}));
+	}
 }
 
 const checkSaveStatus = async () => {
@@ -1481,16 +1500,18 @@ const handleFiles=(event)=> {
 	event.target.value = '';
 }
 
-const keyhandler = (event) => {
-	if (event.ctrlKey && event.key === 'z') {
-		undo()
+const keyhandler = async(event) => {
+	if (event.ctrlKey && (event.key === 'z' || event.key === 'Z')) {
+		event.preventDefault();
+		await undo()
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "undo"
 			}))
 		}
 	}
-	else if (event.ctrlKey && event.key === 'y') {
+	else if (event.ctrlKey && (event.key === 'y' || event.key === 'Y')) {
+		event.preventDefault();
 		redo()
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
@@ -1517,7 +1538,7 @@ onMounted(async () => {
 		await check_book_mark();
 	}
 	autosaveInterval = setInterval(() => autosave(), 60000)
-	window.addEventListener('keyup', keyhandler)
+	window.addEventListener('keydown', keyhandler)
 	window.addEventListener('resize', handleStageResize);
 	window.addEventListener('paste', handlePaste)
 	const inputElement = document.getElementById("upload");
@@ -1586,7 +1607,7 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
 	clearInterval(autosaveInterval)
 	window.removeEventListener('paste', handlePaste)
-	window.removeEventListener("keyup", keyhandler)
+	window.removeEventListener("keydown", keyhandler)
 	window.removeEventListener("resize", handleStageResize)
 	const inputElement = document.getElementById("upload");
 	if (inputElement) {
