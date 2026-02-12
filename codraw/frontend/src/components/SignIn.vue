@@ -94,6 +94,7 @@
 import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common'
 import {BASE_URL} from '../common.js'
+import {GOOGLE_ID} from '../common.js'
 import {VueSpinnerTail} from 'vue3-spinners'
 import FoOter from './Footer.vue'
 
@@ -242,7 +243,7 @@ async function handleCredentialResponse(response) {
 
 onMounted(() => {
   window.google.accounts.id.initialize({
-    client_id: "373387543374-fsreaovr782e5faifv2f7128jq6ch4n3.apps.googleusercontent.com",
+    client_id: `${GOOGLE_ID}.apps.googleusercontent.com`,
     callback: handleCredentialResponse
   });
   window.google.accounts.id.renderButton(

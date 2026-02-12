@@ -1,5 +1,7 @@
 export const BASE_URL = process.env.VUE_APP_BASE_URL;
 export const WS_URL = process.env.VUE_APP_WS_URL;
+export const GTAG = process.env.VUE_APP_GTAG;
+export const GOOGLE_ID = process.env.VUE_APP_GOOGLE_ID;
 function get_cookie(name) {
 	let cookieValue = null;
 	if (document.cookie && document.cookie !== '') {

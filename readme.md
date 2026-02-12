@@ -54,7 +54,7 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 - **Docker** - Containerization for consistent deployment environments
 - **Nginx** - Reverse proxy and static file server
 - **Prometheus** - Metrics collection and monitoring
-- **Grafana** - Data visualization and dashboarding
+- **Google Analytics** - Tracking and analytics for website traffic
 - **Google Cloud Storage** - Cloud storage for project preview images
 
 ## How Technologies Communicate
@@ -115,7 +115,7 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 **5. Monitoring & Observability**
 - Django exposes metrics endpoints for Prometheus scraping
 - Prometheus collects metrics on request latency, errors, and system health
-- Grafana queries Prometheus and renders dashboards
+- Google Analytics tracks website traffic
 - Nginx logs are aggregated for traffic analysis
 - Alerts configured in Grafana for anomaly detection
 
@@ -130,4 +130,3 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 | Django ↔ GCS | HTTPS | Image storage and retrieval |
 | Nginx ↔ Django | HTTP/WSGI | Reverse proxy routing |
 | Prometheus ↔ Django | HTTP | Metrics scraping |
-| Grafana ↔ Prometheus | HTTP | Data visualization |
