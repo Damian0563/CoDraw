@@ -61,7 +61,9 @@ services:
       dockerfile: Dockerfile
       args:
         - VUE_APP_BASE_URL=https://codrawapp.com/api
-        - VUE_APP_WS_URL=wss://codrawapp.com/ws/
+        - VUE_APP_WS_URL=wss://codrawapp.com/ws/socket
+        - VUE_APP_GTAG=G-QW19P198KB
+        - VUE_APP_GOOGLE_ID=373387543374-fsreaovr782e5faifv2f7128jq6ch4n3
     container_name: vue_frontend
     expose:
       - "8000"

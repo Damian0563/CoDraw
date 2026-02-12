@@ -9,7 +9,7 @@ module.exports = defineConfig({
 		host: '0.0.0.0',
 		allowedHosts: ['codrawapp.com', 'www.codrawapp.com', '34.116.244.111'],
 		client: {
-			webSocketURL: 'wss://codrawapp.com/ws'
+			webSocketURL: 'wss://codrawapp.com/ws/'
 		},
 		headers: {
 			"Access-Control-Allow-Origin": "*"

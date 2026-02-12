@@ -44,20 +44,20 @@ router.afterEach(() => {
 })
 //createApp(App).use(router).use(createGtag({ config: { id: process.env.VUE_APP_GTAG, appName: "CoDraw", debug: true, pageTrackerScreenviewEnabled: true, }, router })).use(VueKonva).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
 createApp(App)
-  .use(router)
-  .use(
-    createGtag(
-      {
-        config: {
-          id: process.env.VUE_APP_GTAG,
-          params: { debug_mode: true }
-        },
-        appName: "CoDraw",
-        pageTrackerScreenviewEnabled: true
-      },
-      router
-    )
-  )
-  .use(VueKonva)
-  .component('font-awesome-icon', FontAwesomeIcon)
-  .mount('#app');
+	.use(router)
+	.use(
+		createGtag({
+			tagId: process.env.VUE_APP_GTAG,
+			config: {
+				params: { debug_mode: true }
+			},
+			pageTracker: {
+				router,
+				useScreenview: true
+			},
+			appName: "CoDraw"
+		})
+	)
+	.use(VueKonva)
+	.component('font-awesome-icon', FontAwesomeIcon)
+	.mount('#app');
