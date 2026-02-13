@@ -133,7 +133,7 @@
 							</div>
 						</div>
 					</div>
-					<div v-if="bookmarks.length===0" class="text-center mb-3" style="color:#ffc107">
+					<div v-if="bookmarks.length===0" class="text-center mb-3 fw-semibold" style="color:#ffc107;font-size: 1.2rem;">
             No bookmarks yet.
 					</div>
 				</div>

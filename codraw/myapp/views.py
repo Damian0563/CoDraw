@@ -234,6 +234,34 @@ def load_board(request):
             return Response({'status': 400})
 
 
+@api_view(['GET'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def status(request):
+    id = helpers.validate_request(request)
+    if id is not None and database.exists(id):
+        return Response({'status': 200, "user": True})
+    return Response({'status': 200, 'user': False})
+
+
+@api_view(['GET'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def delete(request, room):
+    id = helpers.validate_request(request)
+    if id is not None:
+        if database.delete_board(room):
+            redis_client.delete(f"boards:{id}")
+            redis_client.delete(f"images:{id}")
+            redis_client.delete(f"boards_user:{id}")
+            redis_client.delete(f"images_user:{id}")
+            redis_client.delete(f"board:{room}")
+            redis_client.delete(f"bg:{room}")
+            redis_client.delete(f"last_access:{room}")
+            return Response({'status': 200})
+    return Response({'status': 400})
+
+
 @ensure_csrf_cookie
 @api_view(['POST'])
 @ratelimit(key='ip', rate='30/m', block=True)
@@ -262,39 +290,12 @@ def my_projects(request):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
-@ratelimit(key='ip', rate='30/m', block=True)
-def status(request):
-    id = helpers.validate_request(request)
-    if id is not None and database.exists(id):
-        return Response({'status': 200, "user": True})
-    return Response({'status': 200, 'user': False})
-
-
-@api_view(['GET'])
-@ensure_csrf_cookie
-@ratelimit(key='ip', rate='30/m', block=True)
-def delete(request, room):
-    id = helpers.validate_request(request)
-    if id is not None:
-        if database.delete_board(room):
-            redis_client.delete(f"boards:{id}")
-            redis_client.delete(f"images:{id}")
-            redis_client.delete(f"board:{room}")
-            redis_client.delete(f"bg:{room}")
-            redis_client.delete(f"last_access:{room}")
-            return Response({'status': 200})
-    return Response({'status': 400})
-
-
-@api_view(['GET'])
-@ensure_csrf_cookie
 @ratelimit(key='ip', rate='5/m', block=True)
 def restore_password(request, mail):
     if request.method == "GET":
         if helpers.valid_email(mail) and database.get_user(mail) is not None:
             code = str(uuid4())[:20]
             link = f"https://codrawapp.com/recover/{code}"
-            # link = f"http://localhost:8001/recover/{code}"
             mailing.restore_password(mail, link)
             redis_client.setex(f"restore_password:{code}", 300, mail)
             return Response({'status': 200})
@@ -348,6 +349,7 @@ def edit(request, room):
         database.edit(room, title, description, timezone)
         redis_client.delete(f"board:{room}")
         redis_client.delete(f"boards:{id}")
+        redis_client.delete(f"images:{id}")
         redis_client.delete(f"boards_user:{id}")
         redis_client.delete(f"images_user:{id}")
         return Response({'status': 200})
