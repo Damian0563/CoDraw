@@ -133,6 +133,9 @@
 							</div>
 						</div>
 					</div>
+					<div v-if="bookmarks.length===0" class="text-center mb-3" style="color:#ffc107">
+            No bookmarks yet.
+					</div>
 				</div>
 			</div>
 		</div>
@@ -374,6 +377,7 @@ onMounted(async () => {
   min-height: 100vh;
   width: 100%;
   background: #181818;
+  overflow-y: auto;
 }
 
 /* Small screens - account for sidebar overlay */

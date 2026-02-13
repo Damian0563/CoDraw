@@ -11,9 +11,9 @@
       <font-awesome-icon :icon="['fa','pencil']" class="feature-icon hero-floating-icon"/>
       <font-awesome-icon :icon="['fa','paint-roller']" class="feature-icon secondary-floating-icon"/>
     </div>
-    <router-link to="/signup" aria-label="Go to sign up">
-      <button class="cta-btn mt-4" aria-label="Start drawing">Start Drawing Now</button>
-    </router-link>
+    <router-link :to="getDemoPath()" aria-label="Go to full demo">
+			<button class="demo-btn mt-4" aria-label="Try Full Demo">Start drawing now</button>
+		</router-link>
   </div>
   <div class="features-section">
     <div class="container">
@@ -63,13 +63,6 @@
       </div>
     </div>
   </section>
-
-  <section aria-label="Demo" class="my-3 d-flex flex-column justify-content-center text-center align-items-center scroll-reveal" style="color:yellow;font-size: 1.5rem;font-weight: 700;width:100%;overflow: hidden;">
-    Take a look at our minimalistic demo to experience CoDraw and its awesome capabilities in action!
-		<router-link :to="getDemoPath()" aria-label="Go to full demo">
-			<button class="demo-btn mt-4" aria-label="Try Full Demo">Try Full Demo</button>
-		</router-link>
-  </section>
   <section class="faq-section" aria-label="Frequently Asked Questions">
     <div class="container">
       <h2 class="faq-title text-center mb-5 scroll-reveal">Frequently Asked Questions</h2>
@@ -115,7 +108,7 @@ export default {
   data() {
     return {
       logo,
-      fullText: "CoDraw is a real-time collaborative drawing platform that lets you and your friends create, share, and edit artwork together from anywhere. Experience seamless teamwork, intuitive tools, and instant updates as you bring your creative ideas to life!",
+      fullText: "Tired of emailing screenshots back and forth? Stop struggling with clunky tools and endless feedback loops. CoDraw lets you create together in real-time—no downloads, no subscriptions, just instant collaboration. Draw, brainstorm, and bring ideas to life with your team right now.",
       typewriterIndex: 0,
       typewriterTimeout: null,
       features: [

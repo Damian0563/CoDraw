@@ -481,6 +481,7 @@ export default {
 	min-height: 100vh;
 	width: 100%;
 	background: #111827;
+	overflow-y: auto;
 }
 
 .main-content {

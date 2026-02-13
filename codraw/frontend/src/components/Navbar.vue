@@ -16,10 +16,10 @@
         <div class="offcanvas-body">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-column flex-lg-row align-items-center">
             <li class="nav-item my-2 my-lg-0 mx-2">
-              <RouterLink class="btn w-100" to="/signup" id="sign" style="border-color: yellow; color: yellow;">Sign up</RouterLink>
+              <RouterLink class="btn w-100" to="/signup" id="sign" style="border-color: yellow; color: yellow;" @click="navigateAndClose">Sign up</RouterLink>
             </li>
             <li class="nav-item my-2 my-lg-0 mx-2">
-              <RouterLink class="btn btn-outline-light w-100" id="sing" to="/signin">Sign in</RouterLink>
+              <RouterLink class="btn btn-outline-light w-100" id="sing" to="/signin" @click="navigateAndClose">Sign in</RouterLink>
             </li>
           </ul>
         </div>
@@ -29,6 +29,15 @@
 </template>
 <script setup>
 import imageUrl from '@/assets/logo.webp'
+
+const navigateAndClose = () => {
+  const offcanvas = document.getElementById('offcanvasNavbar')
+  // eslint-disable-next-line no-undef
+  const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas)
+  if (bsOffcanvas) {
+    bsOffcanvas.hide()
+  }
+}
 </script>
 <script>
 export default {

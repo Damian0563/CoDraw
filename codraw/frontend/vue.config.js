@@ -1,7 +1,7 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
 	transpileDependencies: ['vue3-spinners'],
-	devServer: process.env.MODE === "LOCAL" ? {
+	devServer: process.env.VUE_APP_MODE === "LOCAL" ? {
 		port: 8001,
 		host: '0.0.0.0'
 	} : {
