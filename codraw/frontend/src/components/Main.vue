@@ -3,9 +3,8 @@
 		<SiDebar />
 		<main class="main-content flex-grow-1">
 			<RouterView />
-			<h1 style="color:#ffc107">Welcome to CoDraw!</h1>
+			<h1 style="color:#ffc107" class="mb-4">Welcome to CoDraw!</h1>
 			<div class="mb-4">
-				<h2 class="mb-4 text-start" style="color:#ffc107">My Projects</h2>
 				<div id="projects" class="container">
 					<div class="card create-project-card my text-center" @click="create()">
 						<div class="card-body d-flex flex-column align-items-center justify-content-center">
@@ -15,30 +14,29 @@
 					</div>
 					<div v-for="(board, index) in boards" :key="index" class="card project-card text-center"
 						@click="join(board.room)">
-						<div class="card-body d-flex flex-column" v-if="!previewing[board.room]">
-							<font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']" class="preview-toggle text-start"
-								@click="togglePreview($event, board.room)" />
-							<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
-							<p class="card-text small">{{ board.description }}</p>
-							<footer class="card-footer">
-								<div class="text-start small">
-									<span>Visibility: <span>{{ board.visibility }}</span></span>
+						<div class="card-body d-flex flex-column card-with-preview">
+							<div class="preview-section" v-if="images[board.room] && !previewing[board.room]">
+								<div class="preview-image-container">
+									<img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy"
+										decoding="async" />
 								</div>
-								<div class="d-flex justify-content-between small ">
-									<span>Views: <span>{{ board.views }}</span></span>
-								</div>
-								<div class="text-start small">
-									<span>{{ board.modified }}</span>
-								</div>
-							</footer>
-						</div>
-						<div v-else class="card-body d-flex flex-column card-preview-mode">
-							<font-awesome-icon v-if="images[board.room]" :icon="['fas', 'eye']"
-								class="preview-toggle preview-active text-start" @click="togglePreview($event, board.room)" />
-							<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
-							<div class="preview-image-container">
-								<img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy"
-									decoding="async" />
+								<!-- <font-awesome-icon :icon="['fas', 'eye-slash']" class="preview-toggle text-start" -->
+								<!-- 	@click="togglePreview($event, board.room)" title="Hide preview" /> -->
+							</div>
+							<div class="content-section">
+								<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+								<p class="card-text small">{{ board.description }}</p>
+								<footer class="card-footer">
+									<div class="text-start small">
+										<span>Visibility: <span>{{ board.visibility }}</span></span>
+									</div>
+									<div class="d-flex justify-content-between small ">
+										<span>Views: <span>{{ board.views }}</span></span>
+									</div>
+									<div class="text-start small">
+										<span>{{ board.modified }}</span>
+									</div>
+								</footer>
 							</div>
 						</div>
 					</div>
@@ -113,16 +111,19 @@ const get_boards = async () => {
 		const response = await data.json()
 		boards.value = response.boards
 		images.value = response.images
-		previewing.value = response.boards.map(() => false)
+		previewing.value = response.boards.reduce((acc, board) => {
+			acc[board.room] = false
+			return acc
+		}, {})
 	} catch (e) {
 		console.error(e)
 	}
 }
-
-const togglePreview = (event, room) => {
-	event.stopPropagation()
-	previewing.value[room] = !previewing.value[room]
-}
+//
+// const togglePreview = (event, room) => {
+// 	event.stopPropagation()
+// 	previewing.value[room] = !previewing.value[room]
+// }
 
 async function join(room) {
 	try {
@@ -188,27 +189,26 @@ export default {
 <style scoped>
 #projects {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+	gap: 1.25rem;
 	width: 100%;
 	min-width: 0;
 	padding: 0;
 	justify-items: stretch;
 	align-items: stretch;
-	contain: layout size;
 }
 
 @media (max-width: 479px) {
 	#projects {
 		padding: 0 0.25rem;
-		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
 	}
 }
 
 @media (min-width: 480px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-		gap: 0.875rem;
+		grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+		gap: 1.25rem;
 		padding: 0;
 		font-size: 0.4rem;
 	}
@@ -216,62 +216,66 @@ export default {
 
 @media (min-width: 640px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-		gap: 0.75rem;
+		grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+		gap: 1.25rem;
 		padding: 0;
 		font-size: 0.4rem;
 	}
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 991px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 14rem);
-		gap: 0.75rem;
+		grid-template-columns: 1fr;
+		gap: 1.25rem;
 		padding: 0;
 		font-size: 0.9rem;
+		max-width: 28rem;
+		margin: 0 auto;
 	}
 }
 
 @media (min-width: 992px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 14rem);
-		gap: 0.75rem;
+		grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+		gap: 1.25rem;
+		padding: 0;
+		font-size: 0.9rem;
 	}
 }
 
 @media (min-width: 1024px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 15rem);
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, 24rem);
+		gap: 1.5rem;
 	}
 }
 
 @media (min-width: 1280px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 15rem);
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, 24rem);
+		gap: 1.5rem;
 	}
 }
 
 @media (min-width: 1600px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 17rem);
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, 26rem);
+		gap: 1.5rem;
 	}
 }
 
 @media (min-width: 1920px) {
 	#projects {
-		grid-template-columns: repeat(auto-fill, 18rem);
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, 28rem);
+		gap: 1.5rem;
 	}
 }
 
 
 .project-card,
 .create-project-card {
-	height: 16rem;
-	min-height: 16rem;
+	height: 22rem;
+	min-height: 22rem;
 	min-width: 0;
 	max-width: 100%;
 	cursor: pointer;
@@ -291,8 +295,8 @@ export default {
 
 	.project-card,
 	.create-project-card {
-		height: 17rem;
-		min-height: 17rem;
+		height: 23rem;
+		min-height: 23rem;
 	}
 }
 
@@ -300,8 +304,8 @@ export default {
 
 	.project-card,
 	.create-project-card {
-		height: 18rem;
-		min-height: 18rem;
+		height: 24rem;
+		min-height: 24rem;
 	}
 }
 
@@ -309,8 +313,8 @@ export default {
 
 	.project-card,
 	.create-project-card {
-		height: 20rem;
-		min-height: 20rem;
+		height: 25rem;
+		min-height: 25rem;
 	}
 }
 
@@ -319,61 +323,6 @@ export default {
 	transform: translateY(-2px);
 	box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
 	border-color: #ffc107;
-}
-
-.project-card .card-body {
-	height: 100%;
-	padding: 1rem;
-	display: flex;
-	flex-direction: column;
-	color: #e5e7eb;
-	box-sizing: border-box;
-	overflow: hidden;
-}
-
-@media (min-width: 640px) {
-	.project-card .card-body {
-		padding: 1.25rem;
-	}
-}
-
-@media (min-width: 1024px) {
-	.project-card .card-body {
-		padding: 1.5rem;
-	}
-}
-
-.project-card .card-title {
-	font-size: 0.9375rem;
-	font-weight: 600;
-	margin-bottom: 0.5rem;
-	color: #f9fafb;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-@media (min-width: 640px) {
-	.project-card .card-title {
-		font-size: 1rem;
-	}
-}
-
-.project-card .card-text {
-	font-size: 0.8125rem;
-	color: #9ca3af;
-	line-height: 1.4;
-	flex-grow: 1;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-}
-
-@media (min-width: 640px) {
-	.project-card .card-text {
-		font-size: 0.875rem;
-	}
 }
 
 .card-footer {
@@ -481,59 +430,19 @@ export default {
 	min-height: 100vh;
 	width: 100%;
 	background: #111827;
-	overflow-y: auto;
 }
 
 .main-content {
-	flex-grow: 1;
+	flex: 1;
 	background: #111827;
-	min-height: 0;
 	padding: 1.5rem 1rem;
-	display: flex;
-	position: relative;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: flex-start;
-	overflow-x: hidden;
 	overflow-y: auto;
 }
 
-.preview-toggle {
-	font-size: 0.8rem;
-	padding: 0.5rem;
-	color: #ffc107;
-	cursor: pointer;
-	z-index: 10;
-	flex-shrink: 0;
-}
+
 
 .preview-toggle.preview-active {
 	color: white;
-}
-
-.card-preview-mode {
-	overflow: hidden;
-	max-width: 100%;
-	width: 100%;
-	box-sizing: border-box;
-	flex: 1 1 auto;
-	min-height: 0;
-	padding: 1rem;
-	display: flex;
-	flex-direction: column;
-}
-
-.preview-image-container {
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	overflow: hidden;
-	min-height: 0;
-	max-width: 100%;
-	width: 100%;
-	margin-top: 0.5rem;
-	box-sizing: border-box;
 }
 
 .preview-image {
@@ -543,6 +452,87 @@ export default {
 	height: auto;
 	object-fit: contain;
 	flex-shrink: 1;
+}
+
+.card-with-preview {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 0;
+}
+
+.preview-section {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 0.25rem 0.5rem;
+	position: relative;
+}
+
+.preview-section .preview-image-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	min-height: 0;
+	width: 100%;
+}
+
+.preview-section .preview-image {
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.preview-section .preview-toggle {
+	position: absolute;
+	top: 0.25rem;
+	right: 0.25rem;
+	font-size: 0.75rem;
+	padding: 0.35rem;
+	color: #ffc107;
+	cursor: pointer;
+	z-index: 10;
+	background: rgba(31, 41, 55, 0.8);
+	border-radius: 0.25rem;
+}
+
+.content-section {
+	flex-shrink: 0;
+	padding: 0.75rem;
+	background: #1f2937;
+	border-top: 1px solid #374151;
+}
+
+.content-section .card-title {
+	font-size: 1rem;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+	color: #f9fafb;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.content-section .card-text {
+	font-size: 0.875rem;
+	color: #9ca3af;
+	line-height: 1.3;
+	margin-bottom: 0.5rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.content-section .card-footer {
+	margin-top: 0;
+	padding-top: 0.5rem;
+	border-top: 1px solid #374151;
 }
 
 @media (min-width: 640px) {
