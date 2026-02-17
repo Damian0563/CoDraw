@@ -198,6 +198,8 @@ else:
         "http://127.0.0.1:3000",
         "http://codrawapp.com",
         "https://codrawapp.com",
+        "http://www.codrawapp.com",
+        "https://www.codrawapp.com",
     ]
 
     CACHES = {

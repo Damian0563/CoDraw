@@ -66,9 +66,7 @@ services:
         - VUE_APP_GOOGLE_ID=373387543374-fsreaovr782e5faifv2f7128jq6ch4n3
     container_name: vue_frontend
     expose:
-      - "8000"
-    volumes:
-      - /app/node_modules
+      - "80"
     networks:
       - app-network
   prometheus:
