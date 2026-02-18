@@ -574,23 +574,43 @@ ws.value.onmessage = async (event) => {
 	if (!data || !data.type) return;
 	const layer = layerRef.value.getNode();
 	if (data.type === "start") {
-		const newLine = new Konva.Line({
+		const isEraserRemote = data.operation === 'destination-out';
+		const mainLineConfig = {
 			stroke: data.stroke,
 			strokeWidth: data.width,
 			globalCompositeOperation: data.operation,
 			points: data.points,
 			lineCap: "round",
 			lineJoin: "round",
-			tension: 0.3
-		});
-		newLine._remote = true;
-		layer.add(newLine);
-		currentLine.value = newLine;
+			tension: 0.5
+		};
+		const previewLineConfig = {
+			stroke: isEraserRemote ? background.value : data.stroke,
+			strokeWidth: data.width,
+			globalCompositeOperation: data.operation,
+			points: data.points,
+			lineCap: "round",
+			lineJoin: "round",
+			tension: 0.5
+		};
+		const mainLine = new Konva.Line(mainLineConfig);
+		const previewLine = new Konva.Line(previewLineConfig);
+		mainLine._remote = true;
+		previewLine._remote = true;
+		layer.add(mainLine);
+		mainLine.moveToTop();
+		previewLayer.add(previewLine);
+		previewLine.moveToTop();
+		currentLine.value = { main: mainLine, preview: previewLine, _remote: true };
 	} else if (data.type === "draw" && currentLine.value?._remote) {
-		const points = currentLine.value.points();
-		points.push(...data.points);
-		currentLine.value.points(points);
+		const mainPoints = currentLine.value.main.points();
+		mainPoints.push(...data.points);
+		currentLine.value.main.points(mainPoints);
+		const previewPoints = currentLine.value.preview.points();
+		previewPoints.push(...data.points);
+		currentLine.value.preview.points(previewPoints);
 		layer.batchDraw();
+		previewLayer.batchDraw();
 	} else if (data.type === "bg" && data.bg) {
 		background.value = data.bg
 		motiv.value = data.bg === "#ffffff"
@@ -712,7 +732,7 @@ preview.style.bottom = '5px';
 preview.style.left = '5px';
 preview.style.border = '5px solid #ffc107';
 preview.style.borderRadius = "5%"
-preview.style.backgroundColor = 'lightgrey';
+preview.style.backgroundColor = background.value;
 document.body.appendChild(preview);
 const previewStage = new Konva.Stage({
 	container: 'preview',
@@ -740,7 +760,9 @@ watch(color, (newColor) => {
 watch(motiv, () => {
 	background.value = motiv.value ? "#ffffff" : "#000000"
 	color.value = motiv.value ? "#000000" : "#ffffff"
+	// Update both the preview background rect and container
 	previewBg.fill(background.value);
+	preview.style.backgroundColor = background.value;
 	previewLayer.batchDraw();
 	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
@@ -1287,15 +1309,32 @@ const handleMouseDown = (e) => {
 		isDrawing.value = true;
 		stage.container().style.cursor = 'default';
 		const pos = getRelativePointerPosition(stage);
-		const newLine = new Konva.Line({
-			stroke: tool.value === 'eraser' ? 'rgba(0,0,0,1)' : color.value,
+		const isEraser = tool.value === 'eraser';
+		const mainStrokeColor = isEraser ? 'rgba(0,0,0,1)' : color.value;
+		// For preview, use destination-out for eraser to actually erase (transparent -> shows container bg)
+		const previewStrokeColor = isEraser ? 'rgba(0,0,0,1)' : color.value;
+		const mainLineConfig = {
+			stroke: mainStrokeColor,
 			strokeWidth: Number(width_slider.value),
-			globalCompositeOperation: tool.value === 'eraser' ? 'destination-out' : 'source-over',
+			globalCompositeOperation: isEraser ? 'destination-out' : 'source-over',
 			points: [pos.x, pos.y],
 			lineCap: 'round',
 			lineJoin: 'round',
-			tension: 0.3
-		});
+			tension: 0.5
+		};
+		const previewLineConfig = {
+			stroke: previewStrokeColor,
+			strokeWidth: Number(width_slider.value),
+			globalCompositeOperation: isEraser ? 'destination-out' : 'source-over',
+			points: [pos.x, pos.y],
+			lineCap: 'round',
+			lineJoin: 'round',
+			tension: 0.5
+		};
+		const mainLine = new Konva.Line(mainLineConfig);
+		const previewLine = new Konva.Line(previewLineConfig);
+		previewLayer.add(previewLine);
+		previewLine.moveToTop(); // Ensure preview line is on top
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "start",
@@ -1305,8 +1344,11 @@ const handleMouseDown = (e) => {
 				points: [pos.x, pos.y]
 			}));
 		}
-		layerRef.value.getNode().add(newLine);
-		currentLine.value = newLine;
+		const mainLayer = layerRef.value.getNode();
+		mainLayer.add(mainLine);
+		mainLine.moveToTop(); // Ensure main line is on top so it can erase below
+		previewLayer.draw()
+		currentLine.value = { main: mainLine, preview: previewLine };
 	} else if (e.evt.touches && e.evt.touches.length == 2) {
 		if (e.evt.cancelable) {
 			e.evt.preventDefault();
@@ -1341,6 +1383,7 @@ const handleMouseUp = (e) => {
 		cancelAnimationFrame(drawFrameId);
 		drawFrameId = null;
 		layerRef.value.getNode().batchDraw();
+		previewLayer.batchDraw();
 	}
 };
 
@@ -1349,9 +1392,13 @@ const handleMouseMove = (e) => {
 		if (!isDrawing.value || !currentLine.value) return;
 		const stage = e.target.getStage();
 		const point = getRelativePointerPosition(stage);
-		const points = currentLine.value.points();
-		points.push(point.x, point.y);
-		currentLine.value.points(points);
+		// Update both main and preview lines
+		const mainPoints = currentLine.value.main.points();
+		mainPoints.push(point.x, point.y);
+		currentLine.value.main.points(mainPoints);
+		const previewPoints = currentLine.value.preview.points();
+		previewPoints.push(point.x, point.y);
+		currentLine.value.preview.points(previewPoints);
 		const now = Date.now();
 		if (now - lastWsSendTime >= 16 && ws.value && ws.value.readyState === WebSocket.OPEN) {
 			lastWsSendTime = now;
@@ -1363,6 +1410,7 @@ const handleMouseMove = (e) => {
 		if (drawFrameId === null) {
 			drawFrameId = requestAnimationFrame(() => {
 				layerRef.value.getNode().batchDraw();
+				previewLayer.batchDraw();
 				drawFrameId = null;
 			});
 		}
