@@ -705,13 +705,53 @@ context.lineJoin = 'round';
 context.lineWidth = Number(width_slider.value);
 context.lineCap = 'round';
 context.lineJoin = 'round';
+const preview = document.createElement('div');
+preview.id = 'preview';
+preview.style.position = 'absolute';
+preview.style.bottom = '5px';
+preview.style.left = '5px';
+preview.style.border = '5px solid #ffc107';
+preview.style.borderRadius = "5%"
+preview.style.backgroundColor = 'lightgrey';
+document.body.appendChild(preview);
+const previewStage = new Konva.Stage({
+	container: 'preview',
+	width: window.innerWidth / 8,
+	height: window.innerHeight / 8,
+	scaleX: 1 / 32,
+	scaleY: 1 / 32,
+});
+
+let previewLayer = new Konva.Layer();
+const previewBg = new Konva.Rect({
+	x: 0,
+	y: 0,
+	width: previewStage.width() * 32,
+	height: previewStage.height() * 32,
+	fill: background.value,
+	listening: false,
+});
+previewStage.add(previewLayer);
+previewLayer.add(previewBg)
 
 watch(color, (newColor) => {
 	context.strokeStyle = newColor;
 });
+watch(motiv, () => {
+	background.value = motiv.value ? "#ffffff" : "#000000"
+	color.value = motiv.value ? "#000000" : "#ffffff"
+	previewBg.fill(background.value);
+	previewLayer.batchDraw();
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+		ws.value.send(JSON.stringify({
+			type: "bg",
+			bg: background.value
+		}))
+	}
+}, { immediate: true })
 
-const scrolles = [50, 75, 100, 125, 150, 175, 200]
 function changeZoom(mode) {
+	const scrolles = [50, 75, 100, 125, 150, 175, 200]
 	const stage = stageRef.value.getNode();
 	const oldScale = stage.scaleX() * 100;
 	const direction = mode === "up" ? 1 : -1;
@@ -1366,18 +1406,14 @@ const handleStageResize = () => {
 	const stage = stageRef.value?.getNode();
 	const image = imageRef.value?.getNode();
 	if (!stage || !image) return;
-
 	const newWidth = window.innerWidth;
 	const newHeight = window.innerHeight;
-
 	canvas.width = newWidth * 4;
 	canvas.height = newHeight * 4;
-
 	stage.width(canvas.width);
 	stage.height(canvas.height);
 	image.width(canvas.width);
 	image.height(canvas.height);
-
 	const layer = image.getLayer();
 	if (layer) layer.batchDraw();
 };
@@ -1424,13 +1460,16 @@ const applyStateToLayer = async (data) => {
 	});
 	await Promise.all(imagePromises);
 	savedChildren.forEach(shapeJson => {
-		const shape = Konva.Node.create(shapeJson);
-		layer.add(shape);
-		if (shape.className === 'Image') {
-			applyCrop(shape);
-			shape.on('dblclick', handleDblClick);
+		const previewShape = Konva.Node.create(shapeJson);
+		const mainShape = Konva.Node.create(shapeJson);
+		previewLayer.add(previewShape);
+		layer.add(mainShape);
+		if (mainShape.className === 'Image') {
+			applyCrop(mainShape);
+			mainShape.on('dblclick', handleDblClick);
 		}
 	});
+	previewLayer.batchDraw();
 	layer.batchDraw();
 };
 
@@ -1533,7 +1572,6 @@ onMounted(async () => {
 	} else {
 		await Promise.all([check_owner(), check_visitor(), checkSaveStatus()])
 	}
-
 	if (visitor.value && MODE !== 'demo') {
 		await check_book_mark();
 	}
@@ -1543,60 +1581,7 @@ onMounted(async () => {
 	window.addEventListener('paste', handlePaste)
 	const inputElement = document.getElementById("upload");
 	inputElement.addEventListener("change", handleFiles);
-
-	const preview = document.createElement('div');
-	preview.id = 'preview';
-	preview.style.position = 'absolute';
-	preview.style.bottom = '5px';
-	preview.style.left = '5px';
-	preview.style.border = '5px solid #ffc107';
-	preview.style.borderRadius = "5%"
-	preview.style.backgroundColor = 'lightgrey';
-	document.body.appendChild(preview);
-	const previewStage = new Konva.Stage({
-		container: 'preview',
-		width: window.innerWidth / 8,
-		height: window.innerHeight / 8,
-		scaleX: 1 / 32,
-		scaleY: 1 / 32,
-	});
-	let layer = layerRef.value.getNode()
-	let previewLayer = new Konva.Layer();
-	const previewBg = new Konva.Rect({
-		x: 0,
-		y: 0,
-		width: previewStage.width() * 32,
-		height: previewStage.height() * 32,
-		fill: background.value,
-		listening: false,
-	});
-	previewStage.add(previewLayer);
-	previewLayer.add(previewBg)
-	watch(motiv, () => {
-		background.value = motiv.value ? "#ffffff" : "#000000"
-		color.value = motiv.value ? "#000000" : "#ffffff"
-		previewBg.fill(background.value);
-		previewLayer.batchDraw();
-		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-			ws.value.send(JSON.stringify({
-				type: "bg",
-				bg: background.value
-			}))
-		}
-	}, { immediate: true })
-	function syncPreview() {
-		const parsed = JSON.parse(stageRef.value.getStage().toJSON());
-		previewLayer.destroyChildren();
-		previewLayer.add(previewBg);
-		parsed.children[0].children.forEach(shapeJson => {
-			const shape = Konva.Node.create(shapeJson);
-			previewLayer.add(shape);
-		});
-		previewLayer.draw();
-	}
 	loading.value = false;
-	layer.on('add destroy change', syncPreview)
-	syncPreview()
 })
 onBeforeUnmount(() => {
 	if (ws.value) {
