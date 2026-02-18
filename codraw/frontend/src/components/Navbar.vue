@@ -16,10 +16,10 @@
         <div class="offcanvas-body">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-column flex-lg-row align-items-center">
             <li class="nav-item my-2 my-lg-0 mx-2">
-              <RouterLink class="btn w-100" to="/signup" id="sign" style="border-color: yellow; color: yellow;" @click="navigateAndClose">Sign up</RouterLink>
+              <RouterLink class="btn btn-signup w-100" to="/signup" @click="navigateAndClose">Sign up</RouterLink>
             </li>
             <li class="nav-item my-2 my-lg-0 mx-2">
-              <RouterLink class="btn btn-outline-light w-100" id="sing" to="/signin" @click="navigateAndClose">Sign in</RouterLink>
+              <RouterLink class="btn btn-signin w-100" to="/signin" @click="navigateAndClose">Sign in</RouterLink>
             </li>
           </ul>
         </div>
@@ -57,16 +57,58 @@ export default {
     position: relative;
     overflow: hidden;
   }
-  #sign,#sing{
-    transition: ease-in-out 0.5s;
+  .btn-signup, .btn-signin {
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    border: 2px solid transparent;
   }
-  #sing:hover{
-    transform: scale(1.1);
+
+  .btn-signup {
+    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    color: #000;
+    border-color: #facc15;
+    box-shadow: 0 4px 14px rgba(250, 204, 21, 0.4);
   }
-  #sign:hover{
-    transform: scale(1.1);
-    color: black !important;
-    background-color: yellow !important;
-    border-color:white !important;
+
+  .btn-signup:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(250, 204, 21, 0.6);
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    border-color: #eab308;
+    color: #000;
+  }
+
+  .btn-signup:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.3);
+  }
+
+  .btn-signin {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-signin:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+
+  .btn-signin:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-signup:active, .btn-signin:active {
+    transform: translateY(0);
   }
 </style>
