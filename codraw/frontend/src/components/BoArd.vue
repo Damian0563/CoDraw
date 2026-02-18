@@ -969,6 +969,9 @@ const undo = async () => {
 	const children = layer.children || [];
 	const lastChild = children[children.length - 1];
 	if (lastChild) lastChild.destroy();
+	const previewChildren = previewLayer.children || [];
+	const lastPreviewChild = previewChildren[previewChildren.length - 1];
+	if (lastPreviewChild) lastPreviewChild.destroy();
 	for (const transformer of transformers) {
 		transformer.destroy();
 	}
@@ -978,6 +981,7 @@ const undo = async () => {
 	transformers.length = 0;
 	deleteButtons.length = 0;
 	history_index.value--;
+	previewLayer.batchDraw();
 	layer.batchDraw();
 }
 
@@ -1010,8 +1014,11 @@ const redo = () => {
 					layer.draw();
 				}
 			} else {
-				const KonvaNode = Konva.Node.create(history)
-				layer.add(KonvaNode)
+				const KonvaNodeMain = Konva.Node.create(history)
+				const KonvaNodePreview = Konva.Node.create(history)
+				layer.add(KonvaNodeMain)
+				previewLayer.add(KonvaNodePreview)
+				previewLayer.draw()
 				layer.draw()
 			}
 
