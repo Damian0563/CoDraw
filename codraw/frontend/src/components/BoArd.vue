@@ -33,8 +33,8 @@
 		</Transition>
 		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 800 }" style="
 				position: absolute;
-				top: 32px;
-				left: 5%;
+				top: 12px;
+				left: 3%;
 				background: rgba(30, 30, 30, 0.85);
 				border-radius: 16px;
 				box-shadow: 0 4px 24px rgba(0,0,0,0.18);
@@ -110,7 +110,7 @@
 				Clear all
 			</button>
 		</div>
-		<div id="inv_div" style="position: absolute; top: 32px; right: 1rem; z-index: 10;">
+		<div id="inv_div" style="position: absolute; top: 12px; right: 1rem; z-index: 10;">
 			<button v-if="visitor && MODE !== 'demo'" id="bookmark-btn" @click="toggleBookmark" class="mb-2" style="
         background: #4f8cff;
         color:#fff ;
