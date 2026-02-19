@@ -19,7 +19,7 @@
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-md-3 mb-3" v-for="(feature, i) in features" :key="i">
-          <div class="card feature-card h-100 bg-dark text-white shadow-lg scroll-reveal" :style="{ transitionDelay: i * 150 + 'ms' }">
+          <div class="card feature-card h-100 bg-dark text-white shadow-lg scroll-reveal" :style="{ transitionDelay: i * 250 + 'ms' }">
             <div class="card-body text-center">
               <font-awesome-icon :icon="feature.icon" class="feature-icon" />
               <h5 class="card-title mt-3">{{ feature.title }}</h5>
@@ -348,27 +348,70 @@ export default {
 }
 
 .features-section {
-  background: linear-gradient(135deg, #000000, #111111, #0a0a0a) !important;
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%) !important;
   padding: 4rem 1rem;
   overflow-x: hidden;
+  position: relative;
+}
+.features-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
 }
 .feature-card {
-  border: 2px solid rgba(255, 255, 0, 0.6);
+  border: 1px solid rgba(255, 215, 0, 0.15);
   border-radius: 1rem;
-  transition: all 0.4s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(145deg, rgba(20, 20, 25, 0.9), rgba(10, 10, 15, 0.95));
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(255, 200, 0, 0.02));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 .feature-card:hover {
-  box-shadow: 0 0 20px rgba(255, 255, 0, 0.4);
-  transform: translateY(-8px) scale(1.05);
-  border-color: yellow;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.25), 0 0 60px rgba(255, 215, 0, 0.1);
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+.feature-card:hover::before {
+  opacity: 1;
 }
 .feature-icon {
   font-size: 2.5rem;
-  color: yellow;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   transition: transform 0.3s ease;
 }
 .feature-card:hover .feature-icon {
-  transform: scale(1.2) rotate(5deg);
+  transform: scale(1.15) rotate(3deg);
+}
+.card-title {
+  color: #ffd700;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.card-text {
+  color: linear-gradient(90deg, yellow, gold);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .about-section {
