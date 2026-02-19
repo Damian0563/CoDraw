@@ -322,6 +322,7 @@ const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if(MODE === 'demo'){
 	room.value=new URL(window.location.href).pathname.split('/')[2]
 }
+const responded = ref(false)
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
@@ -444,12 +445,16 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 	if (trIndex > -1) {
 		transformers.splice(trIndex, 1);
 	}
-
 	const btnIndex = deleteButtons.indexOf(deleteBtn);
 	if (btnIndex > -1) {
 		deleteButtons.splice(btnIndex, 1);
 	}
 	layer.batchDraw();
+	const previewImage = previewLayer.findOne(`#${imageId}`);
+	if (previewImage) {
+		previewImage.destroy();
+		previewLayer.batchDraw();
+	}
 	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
 			type: "img_delete",
@@ -627,10 +632,10 @@ ws.value.onmessage = async (event) => {
 				height: data.height,
 				draggable: false,
 			});
-		applyCrop(konvaImg);
-		konvaImg.on('dblclick', handleDblClick);
-		layer.add(konvaImg);
-		layer.batchDraw();
+			applyCrop(konvaImg);
+			konvaImg.on('dblclick', handleDblClick);
+			layer.add(konvaImg);
+			layer.batchDraw();
 		};
 		img.onerror = () => console.error("Remote image failed to load", data.id);
 	} else if (data.type === "img_delete" && data.id) {
@@ -645,7 +650,10 @@ ws.value.onmessage = async (event) => {
 				const imgWidth = imageToDelete.width();
 				return Math.abs(btnX - (imgX + imgWidth - 15)) < 5 && Math.abs(btnY - (imgY - 15)) < 5;
 			});
-
+			const previewImage = previewLayer.findOne(`#${data.id}`);
+			if (previewImage) {
+				previewImage.destroy();
+			}
 			imageToDelete.destroy();
 			if (tr) {
 				tr.destroy();
@@ -658,6 +666,7 @@ ws.value.onmessage = async (event) => {
 				if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
 			}
 			layer.batchDraw();
+			previewLayer.draw();
 		}
 	} else if (data.type === "img_resize" && data.id) {
 		const imageToResize = layer.findOne(`#${data.id}`);
@@ -702,6 +711,7 @@ ws.value.onmessage = async (event) => {
 			}))
 		}
 	} else if (data.type === "sync-response") {
+		responded.value = true
 		if (!layerRef.value) {
 			await nextTick();
 		}
@@ -760,7 +770,6 @@ watch(color, (newColor) => {
 watch(motiv, () => {
 	background.value = motiv.value ? "#ffffff" : "#000000"
 	color.value = motiv.value ? "#000000" : "#ffffff"
-	// Update both the preview background rect and container
 	previewBg.fill(background.value);
 	preview.style.backgroundColor = background.value;
 	previewLayer.batchDraw();
@@ -1219,7 +1228,7 @@ const check_save = async (mode) => {
 				return true
 			}
 			const autosaved = localStorage.getItem(room.value)
-			if (autosaved) {
+			if (autosaved && !responded.value) {
 				await applyStateToLayer(autosaved)
 			}
 			return false
@@ -1318,7 +1327,6 @@ const handleMouseDown = (e) => {
 		const pos = getRelativePointerPosition(stage);
 		const isEraser = tool.value === 'eraser';
 		const mainStrokeColor = isEraser ? 'rgba(0,0,0,1)' : color.value;
-		// For preview, use destination-out for eraser to actually erase (transparent -> shows container bg)
 		const previewStrokeColor = isEraser ? 'rgba(0,0,0,1)' : color.value;
 		const mainLineConfig = {
 			stroke: mainStrokeColor,
@@ -1341,7 +1349,7 @@ const handleMouseDown = (e) => {
 		const mainLine = new Konva.Line(mainLineConfig);
 		const previewLine = new Konva.Line(previewLineConfig);
 		previewLayer.add(previewLine);
-		previewLine.moveToTop(); // Ensure preview line is on top
+		previewLine.moveToTop();
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "start",
@@ -1353,7 +1361,7 @@ const handleMouseDown = (e) => {
 		}
 		const mainLayer = layerRef.value.getNode();
 		mainLayer.add(mainLine);
-		mainLine.moveToTop(); // Ensure main line is on top so it can erase below
+		mainLine.moveToTop();
 		previewLayer.draw()
 		currentLine.value = { main: mainLine, preview: previewLine };
 	} else if (e.evt.touches && e.evt.touches.length == 2) {
@@ -1530,7 +1538,6 @@ const applyStateToLayer = async (data) => {
 
 const get_details_and_load = async () => {
 	try {
-
 		if (MODE === 'default') {
 			const data = await fetch(`${BASE_URL}/codraw/get_details`, {
 				method: "POST",
@@ -1616,9 +1623,21 @@ const keyhandler = async(event) => {
 }
 
 let autosaveInterval = null;
+
+const waitForSync = () => new Promise(resolve => {
+  const check = setInterval(() => {
+    if (responded.value) {
+      clearInterval(check);
+      resolve();
+    }
+  }, 100);
+  setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+});
+
 onMounted(async () => {
 	loading.value = true
 	await nextTick();
+	await waitForSync();
 	if (await check_save('load')) {
 		setTimeout(() => get_details_and_load(), 100)
 	}
