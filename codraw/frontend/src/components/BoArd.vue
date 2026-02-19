@@ -1407,7 +1407,6 @@ const handleMouseMove = (e) => {
 		if (!isDrawing.value || !currentLine.value) return;
 		const stage = e.target.getStage();
 		const point = getRelativePointerPosition(stage);
-		// Update both main and preview lines
 		const mainPoints = currentLine.value.main.points();
 		mainPoints.push(point.x, point.y);
 		currentLine.value.main.points(mainPoints);
@@ -1639,7 +1638,9 @@ onMounted(async () => {
 	await nextTick();
 	await waitForSync();
 	if (await check_save('load')) {
-		setTimeout(() => get_details_and_load(), 100)
+		if (!responded.value) {
+			get_details_and_load()
+		}
 	}
 	if (MODE === 'demo') {
 		visitor.value = true;
