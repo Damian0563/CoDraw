@@ -1576,7 +1576,7 @@ const get_details_and_load = async () => {
 				motiv.value = bg === "#ffffff"
 			}
 			const localData = localStorage.getItem(room.value);
-			if (localData) {
+			if (localData && localData.length > saved_json.length) {
 				const parsedLocal = JSON.parse(localData);
 				if (parsedLocal && parsedLocal[0] && parsedLocal[0].id > last_access) {
 					await load();
