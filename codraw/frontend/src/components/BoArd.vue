@@ -1234,6 +1234,13 @@ const check_save = async (mode) => {
 				message.value = "Board was successfully quick saved."
 			} else isVisible.value = true
 		} else if (mode === 'load') {
+			if (MODE === 'demo') {
+				const autosaved = localStorage.getItem("demo")
+				if (autosaved && !responded.value) {
+					await applyStateToLayer(autosaved)
+				}
+				return false
+			}
 			const data = await fetch(`${BASE_URL}/codraw/load_project`, {
 				method: "POST",
 				headers: {
@@ -1247,7 +1254,7 @@ const check_save = async (mode) => {
 			if (response.status === 200) {
 				return true
 			}
-			const autosaved = localStorage.getItem(room.value)
+			const autosaved = localStorage.getItem(MODE === 'demo' ? 'demo' : room.value)
 			if (autosaved && !responded.value) {
 				await applyStateToLayer(autosaved)
 			}
