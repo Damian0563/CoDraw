@@ -635,6 +635,16 @@ ws.value.onmessage = async (event) => {
 			applyCrop(konvaImg);
 			konvaImg.on('dblclick', handleDblClick);
 			layer.add(konvaImg);
+			const previewImg = new Konva.Image({
+				id: data.id,
+				image: img,
+				x: data.x,
+				y: data.y,
+				width: data.width,
+				height: data.height,
+			});
+			previewLayer.add(previewImg);
+			previewLayer.batchDraw();
 			layer.batchDraw();
 		};
 		img.onerror = () => console.error("Remote image failed to load", data.id);
@@ -1137,6 +1147,16 @@ const processImageFile = (file, x, y) => {
 			konvaImg.setAttr("src", e.target.result);
 			konvaImg.on('dblclick', handleDblClick);
 			layer.add(konvaImg);
+			const previewImg = new Konva.Image({
+				id: konvaImg.id(),
+				image: img,
+				x: x,
+				y: y,
+				width: img.width,
+				height: img.height,
+			});
+			previewLayer.add(previewImg);
+			previewLayer.batchDraw();
 			layer.draw();
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
