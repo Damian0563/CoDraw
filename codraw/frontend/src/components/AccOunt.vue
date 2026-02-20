@@ -289,6 +289,7 @@ const get_boards = async (username) => {
       },
       body: JSON.stringify({
         "timezone": DateTime.local().zoneName,
+				"mode":admin.value?"admin":"user"
       }),
       credentials: "include"
     })
@@ -299,7 +300,6 @@ const get_boards = async (username) => {
       original_description: b.description
     }))
 		previewing.value=response.images
-		console.log(response.images)
     edits.value=response.boards.map(()=>false)
   } catch (e) {
     console.error(e)
@@ -342,8 +342,9 @@ onMounted(async () => {
   const pathParts = window.location.pathname.split('/');
   username.value = pathParts[pathParts.length - 1];
   admin.value=await get_status(username.value);
-  await get_boards(username.value);
-  await get_bookmarks(username.value)
+  // await get_boards(username.value);
+  // await get_bookmarks(username.value)
+	await Promise.all[get_boards(username.value),get_bookmarks(username.value)]
   loading.value = false;
 })
 </script>

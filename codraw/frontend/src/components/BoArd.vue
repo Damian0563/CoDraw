@@ -24,7 +24,7 @@
 						Close
 					</button>
 					<button v-if="message === 'Are you sure you would like to clear the board? This action is irreversible.'"
-						@click="clearDefinetely()" id="confirm_clear"
+						@click="clearDefinetely(true)" id="confirm_clear"
 						style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
 						Confirm
 					</button>
@@ -747,6 +747,8 @@ ws.value.onmessage = async (event) => {
 		if (data.context && layerRef.value) {
 			await applyStateToLayer(data.context);
 		}
+	}else if (data.type === "clearall") {
+		clearDefinetely(false) //prevent recursive ws calls
 	}
 };
 const handleContextMenu = (e) => {
@@ -1309,7 +1311,7 @@ function leave() {
 	}
 }
 
-function clearDefinetely() {
+function clearDefinetely(native) {
 	showPopup.value = false
 	message.value = ""
 	loading.value = true
@@ -1321,9 +1323,22 @@ function clearDefinetely() {
 	}
 	const layer = layerRef.value.getNode();
 	layer.destroyChildren();
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
+	previewLayer.destroyChildren();
 	transformers.length = 0;
 	deleteButtons.length = 0;
 	layer.batchDraw();
+	previewLayer.batchDraw();
+	if (ws.value && ws.value.readyState === WebSocket.OPEN && native) {
+		ws.value.send(JSON.stringify({
+			type: "clearall"
+		}));
+	}
 	loading.value = false
 }
 

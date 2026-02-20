@@ -241,11 +241,12 @@ def get_bookmarks(username: str, timezone: str) -> list[dict]:
         return []
 
 
-def get_boards_of_username(timezone: str, username: str) -> list[dict]:
+def get_boards_of_username(mode:str,timezone: str, username: str) -> list[dict]:
     try:
         client_tz = ZoneInfo(timezone)
         mail = get_mail_by_username(username)
-        entries = models.Board.objects.filter(owner=mail)
+        if mode=="admin": entries = models.Board.objects.filter(owner=mail)
+        else: entries=models.Board.objects.filter(owner=mail,visibility="Public")
         res = [
             {
                 "room": entry.room,

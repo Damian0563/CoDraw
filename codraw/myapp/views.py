@@ -253,8 +253,10 @@ def delete(request, room):
         if database.delete_board(room):
             redis_client.delete(f"boards:{id}")
             redis_client.delete(f"images:{id}")
-            redis_client.delete(f"boards_user:{id}")
-            redis_client.delete(f"images_user:{id}")
+            redis_client.delete(f"boards_user:{id}:admin")
+            redis_client.delete(f"boards_user:{id}:user")
+            redis_client.delete(f"images_user:{id}:admin")
+            redis_client.delete(f"images_user:{id}:user")
             redis_client.delete(f"board:{room}")
             redis_client.delete(f"bg:{room}")
             redis_client.delete(f"last_access:{room}")
@@ -350,8 +352,10 @@ def edit(request, room):
         redis_client.delete(f"board:{room}")
         redis_client.delete(f"boards:{id}")
         redis_client.delete(f"images:{id}")
-        redis_client.delete(f"boards_user:{id}")
-        redis_client.delete(f"images_user:{id}")
+        redis_client.delete(f"boards_user:{id}:admin")
+        redis_client.delete(f"boards_user:{id}:user")
+        redis_client.delete(f"images_user:{id}:admin")
+        redis_client.delete(f"images_user:{id}:user")
         return Response({'status': 200})
     return Response({'status': 400})
 
@@ -386,9 +390,11 @@ def save(request):
             if preview is not None:
                 bucket.save(room, preview)
             redis_client.delete(f"images:{id}")
-            redis_client.delete(f"images_user:{id}")
+            redis_client.delete(f"images_user:{id}:admin")
+            redis_client.delete(f"images_user:{id}:user")
             redis_client.delete(f"boards:{id}")
-            redis_client.delete(f"boards_user:{id}")
+            redis_client.delete(f"boards_user:{id}:admin")
+            redis_client.delete(f"boards_user:{id}:user")
             redis_client.delete(f"board:{room}")
             redis_client.delete(f"bg:{room}")
             redis_client.delete(f"last_access:{room}")
@@ -417,16 +423,17 @@ def boards_user(request, username):
     if id is not None:
         data = request.data
         timezone = data['timezone']
+        mode = data['mode']
         user_id = database.encode_user(database.get_mail_by_username(username))
-        boards_cache_key = f"boards_user:{user_id}"
-        images_cache_key = f"images_user:{user_id}"
+        boards_cache_key = f"boards_user:{user_id}:{mode}"
+        images_cache_key = f"images_user:{user_id}:{mode}"
         cached_boards = redis_client.get(boards_cache_key)
         cached_images = redis_client.get(images_cache_key)
         if cached_boards and cached_images:
             boards = json.loads(cached_boards)
             images = json.loads(cached_images)
         else:
-            boards = database.get_boards_of_username(timezone, username)
+            boards = database.get_boards_of_username(mode,timezone, username)
             images = bucket.get_images([board['room'] for board in boards])
             redis_client.setex(boards_cache_key, 60*5, json.dumps(boards))
             redis_client.setex(images_cache_key, 60*5, json.dumps(images))
@@ -450,8 +457,10 @@ def save_new(request):
         if preview is not None:
             bucket.save(project, preview)
         redis_client.delete(f"images:{id}")
-        redis_client.delete(f"images_user:{id}")
-        redis_client.delete(f"boards_user:{id}")
+        redis_client.delete(f"images_user:{id}:admin")
+        redis_client.delete(f"images_user:{id}:user")
+        redis_client.delete(f"boards_user:{id}:admin")
+        redis_client.delete(f"boards_user:{id}:user")
         redis_client.delete(f"boards:{id}")
         redis_client.delete(f"board:{project}")
         redis_client.delete(f"bg:{project}")

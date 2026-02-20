@@ -1,10 +1,11 @@
+from typing import Union
 from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
 import os
 load_dotenv()
-from typing import Union
+
 
 def account_creation(mail: str, code: Union[str, int]) -> None:
     html = f"""\
@@ -43,7 +44,6 @@ def account_creation(mail: str, code: Union[str, int]) -> None:
     server.login('codraw.io@gmail.com', os.getenv('GMAIL_PASS'))
     server.sendmail(msg["From"], msg["To"], msg.as_string())
     server.quit()
-    #print(f"Email sent to {mail} with code {code}")
 
 
 def restore_password(mail: str, link: str) -> None:
