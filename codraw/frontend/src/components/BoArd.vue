@@ -1021,7 +1021,7 @@ const undo = async () => {
 }
 
 const redo = () => {
-	if (history_index.value == MAX_HISTORY - 1) return
+	if (history_index.value >= stroke_history.value.length - 1) return;
 	else {
 		history_index.value++;
 		const layer = layerRef.value.getNode()
@@ -1057,6 +1057,9 @@ const redo = () => {
 					previewLayer.add(previewImg);
 					previewLayer.batchDraw();
 					layer.draw();
+				}
+				image.onerror = () => {
+					console.error("Failed to load image for redo");
 				}
 			} else {
 				const KonvaNodeMain = Konva.Node.create(history)
