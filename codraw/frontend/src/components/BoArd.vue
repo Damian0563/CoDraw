@@ -436,7 +436,6 @@ const handleDblClick = (e) => {
 			}));
 		}
 	});
-
 	layer.draw();
 }
 
@@ -1034,12 +1033,12 @@ const redo = () => {
 				image.src = history.attrs.src
 				image.onload = () => {
 					const konvaImg = new Konva.Image({
-						id: uuidv4(),
+						id: history.attrs.id || uuidv4(),
 						image: image,
 						x: history.attrs.x,
 						y: history.attrs.y,
-						width: image.width,
-						height: image.height,
+						width: history.attrs.width || image.width,
+						height: history.attrs.height || image.height,
 						draggable: false,
 						src: history.attrs.src
 					});
@@ -1047,6 +1046,16 @@ const redo = () => {
 					konvaImg.setAttr("src", history.attrs.src);
 					konvaImg.on('dblclick', handleDblClick);
 					layer.add(konvaImg);
+					const previewImg = new Konva.Image({
+						id: konvaImg.id(),
+						image: image,
+						x: history.attrs.x,
+						y: history.attrs.y,
+						width: history.attrs.width || image.width,
+						height: history.attrs.height || image.height,
+					});
+					previewLayer.add(previewImg);
+					previewLayer.batchDraw();
 					layer.draw();
 				}
 			} else {
