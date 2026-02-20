@@ -37,7 +37,7 @@ export default {
 </script>
 <style scoped>
 .footer-section {
-  background: linear-gradient(135deg, #000000, #0b0b0b, #111111);
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
   color: #d9d9d9;
   padding: 4rem 1rem 2rem 1rem;
   border-top: 2px solid rgba(255, 255, 0, 0.2);

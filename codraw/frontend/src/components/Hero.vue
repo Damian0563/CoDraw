@@ -223,9 +223,7 @@ export default {
 	box-shadow: none;
 }
 .hero-background {
-  background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
-  background-size: 400% 400%;
-  animation: gradientMove 12s ease infinite;
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%) !important;
   width: 100%;
   min-height: 50vh;
   display: flex;
@@ -237,12 +235,6 @@ export default {
   text-align: center;
   position: relative;
   overflow: hidden;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 .hero-title {
@@ -348,7 +340,6 @@ export default {
 }
 
 .features-section {
-  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%) !important;
   padding: 4rem 1rem;
   overflow-x: hidden;
   position: relative;
@@ -395,6 +386,7 @@ export default {
 .feature-icon {
   font-size: 2.5rem;
   background: linear-gradient(135deg, #ffd700, #ffaa00);
+	color: yellow;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -404,7 +396,7 @@ export default {
   transform: scale(1.15) rotate(3deg);
 }
 .card-title {
-  color: #ffd700;
+  color: yellow;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -412,14 +404,6 @@ export default {
   color: linear-gradient(90deg, yellow, gold);
   font-size: 0.95rem;
   line-height: 1.6;
-}
-
-.about-section {
-  background: radial-gradient(circle at top left, #111, #000);
-  color: white;
-  padding: 6rem 1.5rem;
-  overflow: hidden;
-  position: relative;
 }
 
 .about-sec {
@@ -486,7 +470,6 @@ export default {
 }
 
 .faq-section {
-  background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
   padding: 6rem 1.5rem;
   color: white;
 }
@@ -546,9 +529,6 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .about-section {
-    text-align: center;
-  }
   .about-image {
     margin-top: 2rem;
   }

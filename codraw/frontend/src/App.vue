@@ -32,7 +32,7 @@ body {
 html, body, #app {
   height: 100%;
   min-height: 100vh;
-  background: black;
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
   overflow-y: auto !important;
   scrollbar-width: thin !important;
 }

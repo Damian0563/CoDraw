@@ -27,9 +27,7 @@ export default {
 
 <style scoped>
 .not-found-background {
-  background: linear-gradient(135deg, #000000, #111111, #0a0a0a);
-  background-size: 400% 400%;
-  animation: gradientMove 12s ease infinite;
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
   width: 100%;
   min-height: 55vh;
   display: flex;
@@ -41,12 +39,6 @@ export default {
   text-align: center;
   position: relative;
   overflow: hidden;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 .not-found-content {

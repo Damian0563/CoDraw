@@ -50,12 +50,19 @@ export default {
 
 <style scoped>
   .hero-background {
-    background: linear-gradient(135deg, #000000, #111111, #0a0a0a) !important;
-    background-size: 400% 400%;
-    animation: gradientMove 12s ease infinite;
+    background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%) !important;
     text-align: center;
     position: relative;
     overflow: hidden;
+  }
+  .hero-background::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.3));
   }
   .btn-signup, .btn-signin {
     padding: 0.6rem 1.5rem;

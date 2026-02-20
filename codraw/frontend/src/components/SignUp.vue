@@ -27,7 +27,7 @@
 	<div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
     <VueSpinnerTail size="60" color="orange" />
   </div>
-  <div class="d-flex justify-content-center pt-5 mb-5" style="background-color: black; min-height: 40vh;">
+  <div class="d-flex justify-content-center pt-5 mb-5 hero-background">
     <div class="card p-3 shadow-lg w-60 mx-5" style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
       <h2 class="text-center mb-3 text-black">Sign Up</h2>
       <form ref="formRef" @submit="SignUp" class="needs-validation" novalidate>
@@ -372,5 +372,11 @@ input::placeholder {
   background: #007bff !important;
   color: #fff !important;
   transform: scale(1.05);
+}
+
+.hero-background {
+  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
+  min-height: 50vh;
+  width: 100%;
 }
 </style>
