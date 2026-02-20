@@ -415,6 +415,16 @@ const handleDblClick = (e) => {
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
 		layer.batchDraw();
+		const previewImageToResize = previewLayer.findOne(`#${konvaImg.id()}`);
+		if (previewImageToResize) {
+			previewImageToResize.x(konvaImg.x());
+			previewImageToResize.y(konvaImg.y());
+			previewImageToResize.width(konvaImg.width() * konvaImg.scaleX());
+			previewImageToResize.height(konvaImg.height() * konvaImg.scaleY());
+			previewImageToResize.scaleX(1);
+			previewImageToResize.scaleY(1);
+			previewLayer.draw();
+		}
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
 				type: "img_resize",
@@ -680,6 +690,7 @@ ws.value.onmessage = async (event) => {
 		}
 	} else if (data.type === "img_resize" && data.id) {
 		const imageToResize = layer.findOne(`#${data.id}`);
+		const previewImageToResize = previewLayer.findOne(`#${data.id}`);
 		if (imageToResize) {
 			imageToResize.x(data.x);
 			imageToResize.y(data.y);
@@ -704,6 +715,15 @@ ws.value.onmessage = async (event) => {
 				btn.y(data.y - 15);
 			}
 			layer.batchDraw();
+		}
+		if (previewImageToResize) {
+			previewImageToResize.x(data.x);
+			previewImageToResize.y(data.y);
+			previewImageToResize.width(data.width);
+			previewImageToResize.height(data.height);
+			previewImageToResize.scaleX(1);
+			previewImageToResize.scaleY(1);
+			previewLayer.draw();
 		}
 	} else if (data.type === "history_update" && data.history) {
 		stroke_history.value = data.history
@@ -836,9 +856,6 @@ const check_owner = async () => {
 
 const copyInvitationLink = async () => {
 	try {
-		if (isSaved.value) {
-			await check_save('save')
-		}
 		const link = window.location.href;
 		await navigator.clipboard.writeText(link);
 		showPopup.value = true;
