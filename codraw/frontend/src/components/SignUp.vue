@@ -12,7 +12,7 @@
   </Transition>
   <div v-if="visible" class="overlay">
     <div class="popup-card">
-      <button @click="visible=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: red;color: white;">&times;</button><br><br>
+      <button @click="visible=false" aria-label="Close" class="float-end" style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
       <h4 class="mb-3">Enter Verification Code</h4>
       <div class="d-flex justify-content-center mb-3">
         <input maxlength="1" id="1" @keyup="handleInput($event,2)" ref="ZeroInput" v-model="zero" class="code-input" type="text" pattern="[0-9]*" inputmode="numeric"/>
@@ -326,12 +326,13 @@ input::placeholder {
   z-index: 9999;
 }
 .popup-card {
+  position: relative;
   background: linear-gradient(135deg, #181818 80%, #222 100%);
   color: #fff;
   padding: 2.5rem 2rem 2rem 2rem;
   border-radius: 1.5rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(255,255,0,0.10);
-  min-width: 320px;
+  min-width: 400px;
   max-width: 90vw;
   text-align: center;
   border: 2px solid #ffc107;

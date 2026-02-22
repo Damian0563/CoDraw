@@ -13,7 +13,7 @@
     <div v-if="recoverySuccess" class="alert alert-success text-center custom-alert p-2"
        role="alert"
        style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(40,167,69,0.10); background: #222; border: 1.5px solid #28a745;">
-    <button @click="recoverySuccess=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #28a745; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
+    <button @click="recoverySuccess=false" class="float-end" style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
     <div class="alert-content" style="padding-top: 0.2rem;">
       <strong style="color: #28a745; font-size: 1rem;">{{ message }}</strong>
     </div>
@@ -24,7 +24,7 @@
   </div>
   <Transition name="fade-slide">
     <div v-if="recovery" class="recovery-container" role="alert">
-      <button @click="recovery=false" class="close-btn rounded-circle float-end" aria-label="Close">&times;</button>
+      <button @click="recovery=false" class="float-end" style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
       <h2 class="recovery-title">Input your email, recovery link will be sent to you!</h2>
       <form
         class="mb-3 needs-validation"
@@ -327,6 +327,7 @@ input::placeholder {
 .recovery-container {
   max-width: 80vw;
   width: 500px;
+	min-width: 400px;
   position: fixed;
   top: 8rem;
   left: 50%;

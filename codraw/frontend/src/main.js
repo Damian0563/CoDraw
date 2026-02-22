@@ -16,9 +16,9 @@ import SeArch from './components/SeArch.vue'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { createGtag } from "vue-gtag"
-import { faPalette, faHome, faBolt, faLightbulb, faUndo, faRedo, faSearch, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faHand, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
+import { faTextHeight, faCircle, faSquare, faArrowUpLong, faPalette, faHome, faBolt, faLightbulb, faUndo, faRedo, faSearch, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faHand, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
-library.add(faPalette, faHome, faBolt, faLightbulb, faUndo, faRedo, faSearch, faExclamationTriangle, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand)
+library.add(faPalette, faCircle, faTextHeight, faArrowUpLong, faSquare, faHome, faBolt, faLightbulb, faUndo, faRedo, faSearch, faExclamationTriangle, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand)
 
 const routes = [
 	{ path: '/', component: HeRo, meta: { showNav: true } },

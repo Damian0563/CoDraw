@@ -70,14 +70,14 @@
           width: 60px;
       ">
 			<span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
-			<label aria-label="upload" title="upload image" @click="uploadImage">
+			<label aria-label="upload" title="upload image" @click="uploadImage" style="cursor: pointer;">
         <svg xmlns="http://www.w3.org/2000/svg"  width="32" height="16" fill="#ffc107" class="bi bi-upload" viewBox="0 0 16 16">
 					<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
 					<path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
 				</svg>
 				<input type="file" id="upload" style="display:none">
 			</label>
-			<div style="display: flex; align-items: center;">
+			<div style="display: flex; align-items: center;cursor: pointer;">
 				<img width="24" height="24" loading="async" decoding="lazy" @click="toggleShapeSelector" src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png" alt="external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo"/>
 			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
@@ -116,12 +116,23 @@
 		<Transition name="fade-slide">
 			<div v-if="showShapeSelector" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
 				<div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-					<button @click="showShapeSelector = false" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+					<button @click="showShapeSelector = false" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">
 						✕
 					</button>
 					<p>Select a Shape</p>
-					<div>
-
+					<div class="row">
+						<div class="col-3">
+							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"></font-awesome-icon>
+						</div>
+						<div class="col-3">
+							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"></font-awesome-icon>
+						</div>
+						<div class="col-3">
+							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"></font-awesome-icon>
+						</div>
+						<div class="col-3">
+							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"></font-awesome-icon>
+						</div>
 					</div>
 				</div>
 			</div>
