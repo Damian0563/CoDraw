@@ -77,6 +77,9 @@
 				</svg>
 				<input type="file" id="upload" style="display:none">
 			</label>
+			<div style="display: flex; align-items: center;">
+				<img width="24" height="24" loading="async" decoding="lazy" @click="toggleShapeSelector" src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png" alt="external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo"/>
+			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
           color: #fff;
@@ -110,6 +113,19 @@
 				Clear all
 			</button>
 		</div>
+		<Transition name="fade-slide">
+			<div v-if="showShapeSelector" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+				<div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
+					<button @click="showShapeSelector = false" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
+						✕
+					</button>
+					<p>Select a Shape</p>
+					<div>
+
+					</div>
+				</div>
+			</div>
+		</Transition>
 		<div id="inv_div" style="position: absolute; top: 12px; right: 1rem; z-index: 10;">
 			<button v-if="visitor && MODE !== 'demo'" id="bookmark-btn" @click="toggleBookmark" class="mb-2" style="
         background: #4f8cff;
@@ -318,6 +334,7 @@ const stroke_history = ref([])
 const history_index = ref(0)
 const isBookmarked = ref(false);
 const paneToggler = ref(false)
+const showShapeSelector = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if(MODE === 'demo'){
 	room.value=new URL(window.location.href).pathname.split('/')[2]
@@ -516,6 +533,10 @@ const togglePane = () => {
 		stage.draggable(false);
 		stage.container().style.cursor = 'default';
 	}
+}
+
+const toggleShapeSelector = () => {
+	showShapeSelector.value = !showShapeSelector.value;
 }
 
 const toggleBookmark = async () => {

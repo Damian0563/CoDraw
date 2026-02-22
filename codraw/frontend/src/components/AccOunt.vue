@@ -202,6 +202,9 @@ const delete_bookmark=async(room)=>{
 
 const get_bookmarks=async(username)=>{
   try{
+		if(!admin.value){
+			return
+		}
     const data=await fetch(`${BASE_URL}/get_bookmarks/${username}`,{
       method:"POST",
       headers:{
@@ -342,8 +345,6 @@ onMounted(async () => {
   const pathParts = window.location.pathname.split('/');
   username.value = pathParts[pathParts.length - 1];
   admin.value=await get_status(username.value);
-  // await get_boards(username.value);
-  // await get_bookmarks(username.value)
 	await Promise.all[get_boards(username.value),get_bookmarks(username.value)]
   loading.value = false;
 })
