@@ -122,16 +122,16 @@
 					<p>Select a Shape</p>
 					<div class="row">
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text" @click="createShape('text')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow" @click="createShape('arrow')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle" @click="createShape('circle')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square" @click="createShape('square')"></font-awesome-icon>
 						</div>
 					</div>
 				</div>
@@ -354,6 +354,79 @@ const responded = ref(false)
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
+
+const createShape = (shapeName) => {
+	const fill = color.value
+	switch (shapeName) {
+		case 'text': {
+			const text = new Konva.Text({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				width: 400,
+				height: 100,
+				fill: fill,
+				fontSize: 32,
+				fontFamily: 'System UI',
+				text: 'Write text here',
+				align: 'center',
+				verticalAlign: 'middle',
+				draggable: true,
+			});
+			layerRef.value.getNode().add(text);
+			text.moveToTop();
+			break;
+		}
+		case 'arrow': {
+			const arrow = new Konva.Arrow({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				points: [200, 200, 0,0],
+				stroke: fill,
+				strokeWidth: width_slider.value,
+				pointerLength: 20,
+				pointerWidth: 20,
+				fill: fill,
+				draggable: true,
+			});
+			layerRef.value.getNode().add(arrow);
+			arrow.moveToTop();
+			break;
+		}
+		case 'circle': {
+			const circle = new Konva.Circle({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				radius: 100,
+				fill: fill,
+				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				strokeWidth: width_slider.value,
+				draggable: true,
+			});
+			layerRef.value.getNode().add(circle);
+			circle.moveToTop();
+			break;
+		}
+		case 'square': {
+			const square = new Konva.Rect({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				width: 100,
+				height: 100,
+				fill: fill,
+				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				strokeWidth: width_slider.value,
+				draggable: true,
+			});
+			layerRef.value.getNode().add(square);
+			square.moveToTop();
+			break;
+		}
+		default:
+			break;
+	}
+	showShapeSelector.value = false
+}
+
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -1423,6 +1496,9 @@ const handleMouseDown = (e) => {
 			stage.draggable(true);
 			stage.startDrag();
 			lastPos.value = stage.getPointerPosition();
+			return;
+		}
+		if (e.target !== stage && (e.target.draggable() || e.target.getParent()?.draggable())) {
 			return;
 		}
 		isDrawing.value = true;
