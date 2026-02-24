@@ -359,7 +359,7 @@ const createShape = (shapeName) => {
 	const fill = color.value
 	switch (shapeName) {
 		case 'text': {
-			const text = new Konva.Text({
+			const maintext = new Konva.Text({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
 				width: 400,
@@ -372,8 +372,31 @@ const createShape = (shapeName) => {
 				verticalAlign: 'middle',
 				draggable: true,
 			});
-			layerRef.value.getNode().add(text);
-			text.moveToTop();
+			const previewtext = new Konva.Text({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				width: 400,
+				height: 100,
+				fill: fill,
+				fontSize: 32,
+				fontFamily: 'System UI',
+				text: 'Write text here',
+				align: 'center',
+				verticalAlign: 'middle',
+				draggable: true,
+			});
+			maintext.on('dragmove', () => {
+				previewtext.position(maintext.position());
+				previewLayer.batchDraw();
+			});
+			previewtext.on('dragmove', () => {
+				maintext.position(previewtext.position());
+				layerRef.value.getNode().batchDraw();
+			});
+			layerRef.value.getNode().add(maintext);
+			previewLayer.add(previewtext);
+			previewtext.moveToTop();
+			maintext.moveToTop();
 			break;
 		}
 		case 'arrow': {
@@ -388,8 +411,29 @@ const createShape = (shapeName) => {
 				fill: fill,
 				draggable: true,
 			});
+			const previewArrow = new Konva.Arrow({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				points: [200, 200, 0,0],
+				stroke: fill,
+				strokeWidth: width_slider.value,
+				pointerLength: 20,
+				pointerWidth: 20,
+				fill: fill,
+				draggable: true,
+			});
+			arrow.on('dragmove', () => {
+				previewArrow.position(arrow.position());
+				previewLayer.batchDraw();
+			});
+			previewArrow.on('dragmove', () => {
+				arrow.position(previewArrow.position());
+				layerRef.value.getNode().batchDraw();
+			});
 			layerRef.value.getNode().add(arrow);
+			previewLayer.add(previewArrow);
 			arrow.moveToTop();
+			previewArrow.moveToTop();
 			break;
 		}
 		case 'circle': {
@@ -402,8 +446,27 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
+			const previewCircle = new Konva.Circle({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				radius: 100,
+				fill: fill,
+				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				strokeWidth: width_slider.value,
+				draggable: true,
+			});
+			circle.on('dragmove', () => {
+				previewCircle.position(circle.position());
+				previewLayer.batchDraw();
+			});
+			previewCircle.on('dragmove', () => {
+				circle.position(previewCircle.position());
+				layerRef.value.getNode().batchDraw();
+			});
 			layerRef.value.getNode().add(circle);
+			previewLayer.add(previewCircle);
 			circle.moveToTop();
+			previewCircle.moveToTop();
 			break;
 		}
 		case 'square': {
@@ -417,8 +480,28 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
+			const previewSquare = new Konva.Rect({
+				x: window.innerWidth/2,
+				y: window.innerHeight/2,
+				width: 100,
+				height: 100,
+				fill: fill,
+				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				strokeWidth: width_slider.value,
+				draggable: true,
+			});
+			square.on('dragmove', () => {
+				previewSquare.position(square.position());
+				previewLayer.batchDraw();
+			});
+			previewSquare.on('dragmove', () => {
+				square.position(previewSquare.position());
+				layerRef.value.getNode().batchDraw();
+			});
 			layerRef.value.getNode().add(square);
+			previewLayer.add(previewSquare);
 			square.moveToTop();
+			previewSquare.moveToTop();
 			break;
 		}
 		default:
