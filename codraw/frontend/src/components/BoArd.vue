@@ -373,6 +373,25 @@ const deleteButtons = []
 				verticalAlign: 'middle',
 				draggable: true,
 			});
+			const transformer=new Konva.Transformer({
+				nodes: [maintext],
+				borderStroke: "#ffc107",
+				borderDash: [5, 5],
+				borderStrokeWidth: 1,
+				borderDashOffset: 0,
+				borderJoinStyle: "round",
+				scalingEnabled: true,
+				enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+				keepRatio: true,
+				keepRatioByExpanding: true,
+				rotateEnabled: false,
+				boundBoxFunc: (oldBox, newBox) => {
+					if (newBox.width < 5 || newBox.height < 5) {
+						return oldBox;
+					}
+					return newBox;
+				},
+			});
 			const previewtext = new Konva.Text({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
@@ -387,30 +406,32 @@ const deleteButtons = []
 				verticalAlign: 'middle',
 				draggable: true,
 			});
-		maintext.on('dragmove', () => {
-			previewtext.position(maintext.position());
-			previewLayer.batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "text",
-					newpos: maintext.position(),
-					id: maintext.id(),
-				}));
-			}
-		});
-		previewtext.on('dragmove', () => {
-			maintext.position(previewtext.position());
-			layerRef.value.getNode().batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "text",
-					newpos: previewtext.position(),
-					id: previewtext.id(),
-				}));
-			}
-		});
+			transformers.push(transformer);
+			layerRef.value.getNode().add(transformer);
+			maintext.on('dragmove', () => {
+				previewtext.position(maintext.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "text",
+						newpos: maintext.position(),
+						id: maintext.id(),
+					}));
+				}
+			});
+			previewtext.on('dragmove', () => {
+				maintext.position(previewtext.position());
+				layerRef.value.getNode().batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "text",
+						newpos: previewtext.position(),
+						id: previewtext.id(),
+					}));
+				}
+			});
 			layerRef.value.getNode().add(maintext);
 			previewLayer.add(previewtext);
 			previewtext.moveToTop();
