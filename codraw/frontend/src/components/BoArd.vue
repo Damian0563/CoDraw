@@ -289,7 +289,7 @@
 		<div class="board-wrapper" :style="{ backgroundColor: motiv ? '#ffffff' : '#000000' }">
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
 				@mouseup="handleMouseUp" @wheel="handleMouseWheel" @touchstart="handleMouseDown" @touchmove="handleMouseMove"
-				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @click="disableTransformers"
+				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @click="(e) => handleStageClick(e)"
 				style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
 				<v-layer ref="layerRef">
 					<v-image ref="imageRef" :config="imageConfig" />
@@ -355,7 +355,7 @@ const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
 
-	const createShape = (shapeName) => {
+const createShape = (shapeName) => {
 	const fill = color.value
 	switch (shapeName) {
 		case 'text': {
@@ -363,8 +363,8 @@ const deleteButtons = []
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
 				id: uuidv4(),
-				width: 400,
-				height: 100,
+				width: 220,
+				height: 80,
 				fill: fill,
 				fontSize: 32,
 				fontFamily: 'System UI',
@@ -372,25 +372,6 @@ const deleteButtons = []
 				align: 'center',
 				verticalAlign: 'middle',
 				draggable: true,
-			});
-			const transformer=new Konva.Transformer({
-				nodes: [maintext],
-				borderStroke: "#ffc107",
-				borderDash: [5, 5],
-				borderStrokeWidth: 1,
-				borderDashOffset: 0,
-				borderJoinStyle: "round",
-				scalingEnabled: true,
-				enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
-				keepRatio: true,
-				keepRatioByExpanding: true,
-				rotateEnabled: false,
-				boundBoxFunc: (oldBox, newBox) => {
-					if (newBox.width < 5 || newBox.height < 5) {
-						return oldBox;
-					}
-					return newBox;
-				},
 			});
 			const previewtext = new Konva.Text({
 				x: window.innerWidth/2,
@@ -406,8 +387,6 @@ const deleteButtons = []
 				verticalAlign: 'middle',
 				draggable: true,
 			});
-			transformers.push(transformer);
-			layerRef.value.getNode().add(transformer);
 			maintext.on('dragmove', () => {
 				previewtext.position(maintext.position());
 				previewLayer.batchDraw();
@@ -420,6 +399,11 @@ const deleteButtons = []
 					}));
 				}
 			});
+			maintext.on("dblclick",(e)=>{
+				e.evt.stopPropagation();
+				handleTextClick(e.target);
+				maintext.draggable(true);
+			})
 			previewtext.on('dragmove', () => {
 				maintext.position(previewtext.position());
 				layerRef.value.getNode().batchDraw();
@@ -431,6 +415,11 @@ const deleteButtons = []
 						id: previewtext.id(),
 					}));
 				}
+			});
+			previewtext.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				handleTextClick(maintext);
+				previewtext.draggable(true);
 			});
 			layerRef.value.getNode().add(maintext);
 			previewLayer.add(previewtext);
@@ -654,6 +643,42 @@ const deleteButtons = []
 	showShapeSelector.value = false
 }
 
+const handleTextClick = (konvaText) => {
+	const layer = layerRef.value.getNode();
+	if (!layer || !konvaText) return;
+	konvaText.draggable(false);
+	const tr = new Konva.Transformer({
+		nodes: [konvaText],
+		borderStroke: "#ffc107",
+		borderDash: [5, 5],
+		borderStrokeWidth: 1,
+		borderDashOffset: 0,
+		borderJoinStyle: "round",
+		scalingEnabled: true,
+		enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+		keepRatio: true,
+		keepRatioByExpanding: true,
+		rotateEnabled: true,
+		boundBoxFunc: (oldBox, newBox) => {
+			if (newBox.width < 5 || newBox.height < 5) {
+				return oldBox;
+			}
+			return newBox;
+		},
+	});
+	for (const transformer of transformers) {
+		transformer.destroy();
+	}
+	for (const btn of deleteButtons) {
+		btn.destroy();
+	}
+	transformers.length = 0;
+	deleteButtons.length = 0;
+	transformers.push(tr);
+	layer.add(tr);
+	layer.batchDraw();
+};
+
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -810,6 +835,14 @@ const disableTransformers = () => {
 	}
 	transformers.length = 0;
 	deleteButtons.length = 0;
+}
+
+const handleStageClick = (e) => {
+	const target = e.target;
+	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
+		return;
+	}
+	disableTransformers();
 }
 
 const check_visitor = async () => {
@@ -1127,6 +1160,14 @@ ws.value.onmessage = async (event) => {
 						id: previewShape.id(),
 					}));
 				}
+			});
+			shape.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				handleTextClick(shape);
+			});
+			previewShape.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				handleTextClick(shape);
 			});
 		} else if (data.shapeType === 'arrow') {
 			Object.assign(shapeConfig, {
