@@ -355,13 +355,14 @@ const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
 
-const createShape = (shapeName) => {
+	const createShape = (shapeName) => {
 	const fill = color.value
 	switch (shapeName) {
 		case 'text': {
 			const maintext = new Konva.Text({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: uuidv4(),
 				width: 400,
 				height: 100,
 				fill: fill,
@@ -375,6 +376,7 @@ const createShape = (shapeName) => {
 			const previewtext = new Konva.Text({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: maintext.id(),
 				width: 400,
 				height: 100,
 				fill: fill,
@@ -385,24 +387,58 @@ const createShape = (shapeName) => {
 				verticalAlign: 'middle',
 				draggable: true,
 			});
-			maintext.on('dragmove', () => {
-				previewtext.position(maintext.position());
-				previewLayer.batchDraw();
-			});
-			previewtext.on('dragmove', () => {
-				maintext.position(previewtext.position());
-				layerRef.value.getNode().batchDraw();
-			});
+		maintext.on('dragmove', () => {
+			previewtext.position(maintext.position());
+			previewLayer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "text",
+					newpos: maintext.position(),
+					id: maintext.id(),
+				}));
+			}
+		});
+		previewtext.on('dragmove', () => {
+			maintext.position(previewtext.position());
+			layerRef.value.getNode().batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "text",
+					newpos: previewtext.position(),
+					id: previewtext.id(),
+				}));
+			}
+		});
 			layerRef.value.getNode().add(maintext);
 			previewLayer.add(previewtext);
 			previewtext.moveToTop();
 			maintext.moveToTop();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape",
+					shapeType: "text",
+					id: maintext.id(),
+					x: maintext.x(),
+					y: maintext.y(),
+					width: maintext.width(),
+					height: maintext.height(),
+					fill: maintext.fill(),
+					text: maintext.text(),
+					fontSize: maintext.fontSize(),
+					fontFamily: maintext.fontFamily(),
+					align: maintext.align(),
+					verticalAlign: maintext.verticalAlign()
+				}));
+			}
 			break;
 		}
 		case 'arrow': {
 			const arrow = new Konva.Arrow({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: uuidv4(),
 				points: [200, 200, 0,0],
 				stroke: fill,
 				strokeWidth: width_slider.value,
@@ -414,6 +450,7 @@ const createShape = (shapeName) => {
 			const previewArrow = new Konva.Arrow({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: arrow.id(),
 				points: [200, 200, 0,0],
 				stroke: fill,
 				strokeWidth: width_slider.value,
@@ -422,24 +459,56 @@ const createShape = (shapeName) => {
 				fill: fill,
 				draggable: true,
 			});
-			arrow.on('dragmove', () => {
-				previewArrow.position(arrow.position());
-				previewLayer.batchDraw();
-			});
-			previewArrow.on('dragmove', () => {
-				arrow.position(previewArrow.position());
-				layerRef.value.getNode().batchDraw();
-			});
+		arrow.on('dragmove', () => {
+			previewArrow.position(arrow.position());
+			previewLayer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "arrow",
+					newpos: arrow.position(),
+					id: arrow.id(),
+				}));
+			}
+		});
+		previewArrow.on('dragmove', () => {
+			arrow.position(previewArrow.position());
+			layerRef.value.getNode().batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "arrow",
+					newpos: previewArrow.position(),
+					id: previewArrow.id(),
+				}));
+			}
+		});
 			layerRef.value.getNode().add(arrow);
 			previewLayer.add(previewArrow);
 			arrow.moveToTop();
 			previewArrow.moveToTop();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape",
+					shapeType: "arrow",
+					id: arrow.id(),
+					x: arrow.x(),
+					y: arrow.y(),
+					points: arrow.points(),
+					stroke: arrow.stroke(),
+					strokeWidth: arrow.strokeWidth(),
+					pointerLength: arrow.pointerLength(),
+					pointerWidth: arrow.pointerWidth(),
+					fill: arrow.fill()
+				}));
+			}
 			break;
 		}
 		case 'circle': {
 			const circle = new Konva.Circle({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: uuidv4(),
 				radius: 100,
 				fill: fill,
 				stroke: motiv.value==='#000000' ? 'white' : 'black',
@@ -449,30 +518,61 @@ const createShape = (shapeName) => {
 			const previewCircle = new Konva.Circle({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: circle.id(),
 				radius: 100,
 				fill: fill,
 				stroke: motiv.value==='#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
-			circle.on('dragmove', () => {
-				previewCircle.position(circle.position());
-				previewLayer.batchDraw();
-			});
-			previewCircle.on('dragmove', () => {
-				circle.position(previewCircle.position());
-				layerRef.value.getNode().batchDraw();
-			});
+		circle.on('dragmove', () => {
+			previewCircle.position(circle.position());
+			previewLayer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "circle",
+					newpos: circle.position(),
+					id: circle.id(),
+				}));
+			}
+		});
+		previewCircle.on('dragmove', () => {
+			circle.position(previewCircle.position());
+			layerRef.value.getNode().batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "circle",
+					newpos: previewCircle.position(),
+					id: previewCircle.id(),
+				}));
+			}
+		});
 			layerRef.value.getNode().add(circle);
 			previewLayer.add(previewCircle);
 			circle.moveToTop();
 			previewCircle.moveToTop();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape",
+					shapeType: "circle",
+					id: circle.id(),
+					x: circle.x(),
+					y: circle.y(),
+					radius: circle.radius(),
+					fill: circle.fill(),
+					stroke: circle.stroke(),
+					strokeWidth: circle.strokeWidth()
+				}));
+			}
 			break;
 		}
 		case 'square': {
 			const square = new Konva.Rect({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: uuidv4(),
 				width: 100,
 				height: 100,
 				fill: fill,
@@ -483,6 +583,7 @@ const createShape = (shapeName) => {
 			const previewSquare = new Konva.Rect({
 				x: window.innerWidth/2,
 				y: window.innerHeight/2,
+				id: square.id(),
 				width: 100,
 				height: 100,
 				fill: fill,
@@ -493,16 +594,38 @@ const createShape = (shapeName) => {
 			square.on('dragmove', () => {
 				previewSquare.position(square.position());
 				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "square",
+						newpos: square.position(),
+						id: square.id(),
+					}));
+				}
 			});
-			previewSquare.on('dragmove', () => {
-				square.position(previewSquare.position());
-				layerRef.value.getNode().batchDraw();
-			});
-			layerRef.value.getNode().add(square);
-			previewLayer.add(previewSquare);
-			square.moveToTop();
-			previewSquare.moveToTop();
-			break;
+		previewSquare.on('dragmove', () => {
+			square.position(previewSquare.position());
+			layerRef.value.getNode().batchDraw();
+		});
+		layerRef.value.getNode().add(square);
+		previewLayer.add(previewSquare);
+		square.moveToTop();
+		previewSquare.moveToTop();
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "shape",
+				shapeType: "square",
+				id: square.id(),
+				x: square.x(),
+				y: square.y(),
+				width: square.width(),
+				height: square.height(),
+				fill: square.fill(),
+				stroke: square.stroke(),
+				strokeWidth: square.strokeWidth()
+			}));
+		}
+		break;
 		}
 		default:
 			break;
@@ -937,6 +1060,176 @@ ws.value.onmessage = async (event) => {
 		}
 	}else if (data.type === "clearall") {
 		clearDefinetely(false) //prevent recursive ws calls
+	} else if (data.type === "shape" && data.shapeType) {
+		const layer = layerRef.value.getNode();
+		let shape;
+		let previewShape;
+		const shapeConfig = {
+			id: data.id,
+			x: data.x,
+			y: data.y,
+			draggable: true,
+		};
+		if (data.shapeType === 'text') {
+			Object.assign(shapeConfig, {
+				width: data.width,
+				height: data.height,
+				fill: data.fill,
+				fontSize: data.fontSize,
+				fontFamily: data.fontFamily,
+				text: data.text,
+				align: data.align,
+				verticalAlign: data.verticalAlign,
+			});
+			shape = new Konva.Text(shapeConfig);
+			previewShape = new Konva.Text({ ...shapeConfig });
+			shape.on('dragmove', () => {
+				previewShape.position(shape.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "text",
+						newpos: shape.position(),
+						id: shape.id(),
+					}));
+				}
+			});
+			previewShape.on('dragmove', () => {
+				shape.position(previewShape.position());
+				layer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "text",
+						newpos: previewShape.position(),
+						id: previewShape.id(),
+					}));
+				}
+			});
+		} else if (data.shapeType === 'arrow') {
+			Object.assign(shapeConfig, {
+				points: data.points,
+				stroke: data.stroke,
+				strokeWidth: data.strokeWidth,
+				pointerLength: data.pointerLength,
+				pointerWidth: data.pointerWidth,
+				fill: data.fill,
+			});
+			shape = new Konva.Arrow(shapeConfig);
+			previewShape = new Konva.Arrow({ ...shapeConfig });
+			shape.on('dragmove', () => {
+				previewShape.position(shape.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "arrow",
+						newpos: shape.position(),
+						id: shape.id(),
+					}));
+				}
+			});
+			previewShape.on('dragmove', () => {
+				shape.position(previewShape.position());
+				layer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "arrow",
+						newpos: previewShape.position(),
+						id: previewShape.id(),
+					}));
+				}
+			});
+		} else if (data.shapeType === 'circle') {
+			Object.assign(shapeConfig, {
+				radius: data.radius,
+				fill: data.fill,
+				stroke: data.stroke,
+				strokeWidth: data.strokeWidth,
+			});
+			shape = new Konva.Circle(shapeConfig);
+			previewShape = new Konva.Circle({ ...shapeConfig });
+			shape.on('dragmove', () => {
+				previewShape.position(shape.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "circle",
+						newpos: shape.position(),
+						id: shape.id(),
+					}));
+				}
+			});
+			previewShape.on('dragmove', () => {
+				shape.position(previewShape.position());
+				layer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "circle",
+						newpos: previewShape.position(),
+						id: previewShape.id(),
+					}));
+				}
+			});
+		} else if (data.shapeType === 'square') {
+			Object.assign(shapeConfig, {
+				width: data.width,
+				height: data.height,
+				fill: data.fill,
+				stroke: data.stroke,
+				strokeWidth: data.strokeWidth,
+			});
+			shape = new Konva.Rect(shapeConfig);
+			previewShape = new Konva.Rect({ ...shapeConfig });
+			shape.on('dragmove', () => {
+				previewShape.position(shape.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "square",
+						newpos: shape.position(),
+						id: shape.id(),
+					}));
+				}
+			});
+			previewShape.on('dragmove', () => {
+				shape.position(previewShape.position());
+				layer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "square",
+						newpos: previewShape.position(),
+						id: previewShape.id(),
+					}));
+				}
+			});
+		}
+		if (shape && previewShape) {
+			layer.add(shape);
+			previewLayer.add(previewShape);
+			shape.moveToTop();
+			previewShape.moveToTop();
+			layer.batchDraw();
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "shape-drag" && data.shapeType && data.id) {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.position(data.newpos);
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.position(data.newpos);
+			previewLayer.batchDraw();
+		}
 	}
 };
 const handleContextMenu = (e) => {
