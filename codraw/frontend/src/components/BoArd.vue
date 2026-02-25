@@ -71,14 +71,19 @@
       ">
 			<span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
 			<label aria-label="upload" title="upload image" @click="uploadImage" style="cursor: pointer;">
-        <svg xmlns="http://www.w3.org/2000/svg"  width="32" height="16" fill="#ffc107" class="bi bi-upload" viewBox="0 0 16 16">
-					<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-					<path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" fill="#ffc107" class="bi bi-upload"
+					viewBox="0 0 16 16">
+					<path
+						d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+					<path
+						d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z" />
 				</svg>
 				<input type="file" id="upload" style="display:none">
 			</label>
 			<div style="display: flex; align-items: center;cursor: pointer;">
-				<img width="24" height="24" loading="async" decoding="lazy" @click="toggleShapeSelector" src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png" alt="external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo"/>
+				<img width="24" height="24" loading="async" decoding="lazy" @click="toggleShapeSelector"
+					src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png"
+					alt="external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo" />
 			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
@@ -114,24 +119,31 @@
 			</button>
 		</div>
 		<Transition name="fade-slide">
-			<div v-if="showShapeSelector" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
-				<div style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-					<button @click="showShapeSelector = false" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">
+			<div v-if="showShapeSelector"
+				style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
+				<div
+					style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
+					<button @click="showShapeSelector = false"
+						style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">
 						✕
 					</button>
 					<p>Select a Shape</p>
 					<div class="row">
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text" @click="createShape('text')"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
+								@click="createShape('text')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow" @click="createShape('arrow')"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
+								@click="createShape('arrow')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle" @click="createShape('circle')"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"
+								@click="createShape('circle')"></font-awesome-icon>
 						</div>
 						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square" @click="createShape('square')"></font-awesome-icon>
+							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
+								@click="createShape('square')"></font-awesome-icon>
 						</div>
 					</div>
 				</div>
@@ -347,8 +359,8 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const showShapeSelector = ref(false)
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
-if(MODE === 'demo'){
-	room.value=new URL(window.location.href).pathname.split('/')[2]
+if (MODE === 'demo') {
+	room.value = new URL(window.location.href).pathname.split('/')[2]
 }
 const responded = ref(false)
 const origin = new URL(window.location.href).searchParams.get('origin')
@@ -360,8 +372,8 @@ const createShape = (shapeName) => {
 	switch (shapeName) {
 		case 'text': {
 			const maintext = new Konva.Text({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: uuidv4(),
 				width: 220,
 				height: 80,
@@ -374,8 +386,8 @@ const createShape = (shapeName) => {
 				draggable: true,
 			});
 			const previewtext = new Konva.Text({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: maintext.id(),
 				width: 400,
 				height: 100,
@@ -399,7 +411,7 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
-			maintext.on("dblclick",(e)=>{
+			maintext.on("dblclick", (e) => {
 				e.evt.stopPropagation();
 				handleTextClick(e.target);
 				maintext.draggable(true);
@@ -446,10 +458,10 @@ const createShape = (shapeName) => {
 		}
 		case 'arrow': {
 			const arrow = new Konva.Arrow({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: uuidv4(),
-				points: [200, 200, 0,0],
+				points: [200, 200, 0, 0],
 				stroke: fill,
 				strokeWidth: width_slider.value,
 				pointerLength: 20,
@@ -458,10 +470,10 @@ const createShape = (shapeName) => {
 				draggable: true,
 			});
 			const previewArrow = new Konva.Arrow({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: arrow.id(),
-				points: [200, 200, 0,0],
+				points: [200, 200, 0, 0],
 				stroke: fill,
 				strokeWidth: width_slider.value,
 				pointerLength: 20,
@@ -469,30 +481,30 @@ const createShape = (shapeName) => {
 				fill: fill,
 				draggable: true,
 			});
-		arrow.on('dragmove', () => {
-			previewArrow.position(arrow.position());
-			previewLayer.batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "arrow",
-					newpos: arrow.position(),
-					id: arrow.id(),
-				}));
-			}
-		});
-		previewArrow.on('dragmove', () => {
-			arrow.position(previewArrow.position());
-			layerRef.value.getNode().batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "arrow",
-					newpos: previewArrow.position(),
-					id: previewArrow.id(),
-				}));
-			}
-		});
+			arrow.on('dragmove', () => {
+				previewArrow.position(arrow.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "arrow",
+						newpos: arrow.position(),
+						id: arrow.id(),
+					}));
+				}
+			});
+			previewArrow.on('dragmove', () => {
+				arrow.position(previewArrow.position());
+				layerRef.value.getNode().batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "arrow",
+						newpos: previewArrow.position(),
+						id: previewArrow.id(),
+					}));
+				}
+			});
 			layerRef.value.getNode().add(arrow);
 			previewLayer.add(previewArrow);
 			arrow.moveToTop();
@@ -516,49 +528,49 @@ const createShape = (shapeName) => {
 		}
 		case 'circle': {
 			const circle = new Konva.Circle({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: uuidv4(),
 				radius: 100,
 				fill: fill,
-				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
 			const previewCircle = new Konva.Circle({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: circle.id(),
 				radius: 100,
 				fill: fill,
-				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
-		circle.on('dragmove', () => {
-			previewCircle.position(circle.position());
-			previewLayer.batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "circle",
-					newpos: circle.position(),
-					id: circle.id(),
-				}));
-			}
-		});
-		previewCircle.on('dragmove', () => {
-			circle.position(previewCircle.position());
-			layerRef.value.getNode().batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "circle",
-					newpos: previewCircle.position(),
-					id: previewCircle.id(),
-				}));
-			}
-		});
+			circle.on('dragmove', () => {
+				previewCircle.position(circle.position());
+				previewLayer.batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "circle",
+						newpos: circle.position(),
+						id: circle.id(),
+					}));
+				}
+			});
+			previewCircle.on('dragmove', () => {
+				circle.position(previewCircle.position());
+				layerRef.value.getNode().batchDraw();
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-drag",
+						shapeType: "circle",
+						newpos: previewCircle.position(),
+						id: previewCircle.id(),
+					}));
+				}
+			});
 			layerRef.value.getNode().add(circle);
 			previewLayer.add(previewCircle);
 			circle.moveToTop();
@@ -580,24 +592,24 @@ const createShape = (shapeName) => {
 		}
 		case 'square': {
 			const square = new Konva.Rect({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: uuidv4(),
 				width: 100,
 				height: 100,
 				fill: fill,
-				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
 			const previewSquare = new Konva.Rect({
-				x: window.innerWidth/2,
-				y: window.innerHeight/2,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
 				id: square.id(),
 				width: 100,
 				height: 100,
 				fill: fill,
-				stroke: motiv.value==='#000000' ? 'white' : 'black',
+				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
@@ -613,29 +625,29 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
-		previewSquare.on('dragmove', () => {
-			square.position(previewSquare.position());
-			layerRef.value.getNode().batchDraw();
-		});
-		layerRef.value.getNode().add(square);
-		previewLayer.add(previewSquare);
-		square.moveToTop();
-		previewSquare.moveToTop();
-		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-			ws.value.send(JSON.stringify({
-				type: "shape",
-				shapeType: "square",
-				id: square.id(),
-				x: square.x(),
-				y: square.y(),
-				width: square.width(),
-				height: square.height(),
-				fill: square.fill(),
-				stroke: square.stroke(),
-				strokeWidth: square.strokeWidth()
-			}));
-		}
-		break;
+			previewSquare.on('dragmove', () => {
+				square.position(previewSquare.position());
+				layerRef.value.getNode().batchDraw();
+			});
+			layerRef.value.getNode().add(square);
+			previewLayer.add(previewSquare);
+			square.moveToTop();
+			previewSquare.moveToTop();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape",
+					shapeType: "square",
+					id: square.id(),
+					x: square.x(),
+					y: square.y(),
+					width: square.width(),
+					height: square.height(),
+					fill: square.fill(),
+					stroke: square.stroke(),
+					strokeWidth: square.strokeWidth()
+				}));
+			}
+			break;
 		}
 		default:
 			break;
@@ -655,7 +667,7 @@ const handleTextClick = (konvaText) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+		enabledAnchors: ["top-left", "middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: true,
@@ -666,17 +678,66 @@ const handleTextClick = (konvaText) => {
 			return newBox;
 		},
 	});
-	for (const transformer of transformers) {
-		transformer.destroy();
-	}
-	for (const btn of deleteButtons) {
-		btn.destroy();
-	}
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 	transformers.push(tr);
 	layer.add(tr);
 	layer.batchDraw();
+	const getDeleteButtonPos = () => {
+		const scaleX = konvaText.scaleX() || 1;
+		return { x: konvaText.x() + konvaText.width() * scaleX - 15, y: konvaText.y() - 15 };
+	};
+	const initialPos = getDeleteButtonPos();
+	const deleteGroup = new Konva.Group({
+		x: initialPos.x,
+		y: initialPos.y,
+		opacity: 0,
+		listening: true
+	});
+	const deleteCircle = new Konva.Circle({
+		radius: 12,
+		fill: '#ff4f4f',
+		stroke: '#fff',
+		strokeWidth: 2
+	});
+	const deleteText = new Konva.Text({
+		text: '×',
+		fontSize: 12,
+		fontFamily: 'Arial',
+		fill: '#fff',
+		x: -5,
+		y: -8
+	});
+	deleteGroup.add(deleteCircle);
+	deleteGroup.add(deleteText);
+	deleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteImage(konvaText, tr, deleteGroup);
+	});
+	deleteGroup.on('mouseenter', () => {
+		deleteCircle.fill('#ff3333');
+		layer.batchDraw();
+	});
+	deleteGroup.on('mouseleave', () => {
+		deleteCircle.fill('#ff4f4f');
+		layer.batchDraw();
+	});
+	deleteButtons.push(deleteGroup);
+	layer.add(deleteGroup);
+	deleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	const updateDeleteButtonPosition = () => {
+		const pos = getDeleteButtonPos();
+		deleteGroup.x(pos.x);
+		deleteGroup.y(pos.y);
+	};
+
+	tr.on('transform', () => {
+		updateDeleteButtonPosition();
+		//layer.batchDraw();
+	})
+	layer.draw();
 };
 
 
@@ -692,7 +753,7 @@ const handleDblClick = (e) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left","middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+		enabledAnchors: ["top-left", "middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: false,
@@ -703,17 +764,9 @@ const handleDblClick = (e) => {
 			return newBox;
 		},
 	});
-	for (const transformer of transformers) {
-		transformer.destroy();
-	}
-	for (const btn of deleteButtons) {
-		btn.destroy();
-	}
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 	transformers.push(tr);
 	layer.add(tr);
-
 	const getDeleteButtonPos = () => {
 		const scaleX = konvaImg.scaleX() || 1;
 		return { x: konvaImg.x() + konvaImg.width() * scaleX - 15, y: konvaImg.y() - 15 };
@@ -1094,7 +1147,7 @@ ws.value.onmessage = async (event) => {
 		history_index.value = data.index
 	} else if (data.type === "undo") {
 		await undo();
-	}else if (data.type === "redo") redo();
+	} else if (data.type === "redo") redo();
 	else if (data.type === "sync-request") {
 		autosave()
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -1112,7 +1165,7 @@ ws.value.onmessage = async (event) => {
 		if (data.context && layerRef.value) {
 			await applyStateToLayer(data.context);
 		}
-	}else if (data.type === "clearall") {
+	} else if (data.type === "clearall") {
 		clearDefinetely(false) //prevent recursive ws calls
 	} else if (data.type === "shape" && data.shapeType) {
 		const layer = layerRef.value.getNode();
@@ -1552,14 +1605,7 @@ const undo = async () => {
 	const previewChildren = previewLayer.children || [];
 	const lastPreviewChild = previewChildren[previewChildren.length - 1];
 	if (lastPreviewChild) lastPreviewChild.destroy();
-	for (const transformer of transformers) {
-		transformer.destroy();
-	}
-	for (const btn of deleteButtons) {
-		btn.destroy();
-	}
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 	history_index.value--;
 	previewLayer.batchDraw();
 	layer.batchDraw();
@@ -1617,14 +1663,7 @@ const redo = () => {
 
 		}
 	}
-	for (const transformer of transformers) {
-		transformer.destroy();
-	}
-	for (const btn of deleteButtons) {
-		btn.destroy();
-	}
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 }
 
 const undoWithBroadcast = async () => {
@@ -1866,15 +1905,8 @@ function clearDefinetely(native) {
 	}
 	const layer = layerRef.value.getNode();
 	layer.destroyChildren();
-	for (const transformer of transformers) {
-		transformer.destroy();
-	}
-	for (const btn of deleteButtons) {
-		btn.destroy();
-	}
 	previewLayer.destroyChildren();
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 	layer.batchDraw();
 	previewLayer.batchDraw();
 	if (ws.value && ws.value.readyState === WebSocket.OPEN && native) {
@@ -2117,8 +2149,7 @@ const applyStateToLayer = async (data) => {
 		return;
 	}
 	layer.destroyChildren();
-	transformers.length = 0;
-	deleteButtons.length = 0;
+	disableTransformers();
 	const savedChildren = stageData.children?.[0]?.children || [];
 	const imagePromises = savedChildren.map(shapeJson => {
 		if (shapeJson.className === "Image" && shapeJson.attrs.src) {
@@ -2198,7 +2229,7 @@ const get_details_and_load = async () => {
 	}
 }
 
-const handleFiles=(event)=> {
+const handleFiles = (event) => {
 	const stage = stageRef.value?.getNode?.();
 	if (!stage) return;
 	const files = event.target.files;
@@ -2217,7 +2248,7 @@ const handleFiles=(event)=> {
 	event.target.value = '';
 }
 
-const keyhandler = async(event) => {
+const keyhandler = async (event) => {
 	if (event.ctrlKey && (event.key === 'z' || event.key === 'Z')) {
 		event.preventDefault();
 		await undo()
@@ -2241,13 +2272,13 @@ const keyhandler = async(event) => {
 let autosaveInterval = null;
 
 const waitForSync = () => new Promise(resolve => {
-  const check = setInterval(() => {
-    if (responded.value) {
-      clearInterval(check);
-      resolve();
-    }
-  }, 100);
-  setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+	const check = setInterval(() => {
+		if (responded.value) {
+			clearInterval(check);
+			resolve();
+		}
+	}, 100);
+	setTimeout(() => { clearInterval(check); resolve(); }, 5000);
 });
 
 onMounted(async () => {
