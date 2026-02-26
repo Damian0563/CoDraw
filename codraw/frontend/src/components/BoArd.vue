@@ -358,6 +358,7 @@ const history_index = ref(0)
 const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const showShapeSelector = ref(false)
+const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if (MODE === 'demo') {
 	room.value = new URL(window.location.href).pathname.split('/')[2]
@@ -386,6 +387,7 @@ const createShape = (shapeName) => {
 				draggable: true,
 				name: 'mainText',
 			});
+			texts.push(maintext.id())
 			maintext.setAttr('originalFontSize', 32);
 			maintext.setAttr('originalWidth', 220);
 			maintext.setAttr('originalHeight', 80);
@@ -664,6 +666,7 @@ const createShape = (shapeName) => {
 const handleTextClick = (konvaText) => {
 	const layer = layerRef.value.getNode();
 	if (!layer || !konvaText) return;
+	konvaText.draggable(false);
 	const tr = new Konva.Transformer({
 		nodes: [konvaText],
 		borderStroke: "#ffc107",
@@ -930,6 +933,7 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
 	const imageId = imageNode.id();
+	if (texts.contains(imageId)) texts.splice(texts.indexOf(imageId), 1)
 	imageNode.destroy();
 	if (transformer) {
 		transformer.destroy();
@@ -973,6 +977,9 @@ const disableTransformers = () => {
 
 const handleStageClick = (e) => {
 	const target = e.target;
+	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
+	const layer = layerRef.getNode().value
+	texts.forEach(konvaTextId => layer.find(`#${konvaTextId}`).draggable(true))
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
