@@ -384,13 +384,17 @@ const createShape = (shapeName) => {
 				align: 'center',
 				verticalAlign: 'middle',
 				draggable: true,
+				name: 'mainText',
 			});
+			maintext.setAttr('originalFontSize', 32);
+			maintext.setAttr('originalWidth', 220);
+			maintext.setAttr('originalHeight', 80);
 			const previewtext = new Konva.Text({
 				x: window.innerWidth / 2,
 				y: window.innerHeight / 2,
 				id: maintext.id(),
-				width: 400,
-				height: 100,
+				width: 220,
+				height: 80,
 				fill: fill,
 				fontSize: 32,
 				fontFamily: 'System UI',
@@ -399,6 +403,9 @@ const createShape = (shapeName) => {
 				verticalAlign: 'middle',
 				draggable: true,
 			});
+			previewtext.setAttr('originalFontSize', 32);
+			previewtext.setAttr('originalWidth', 220);
+			previewtext.setAttr('originalHeight', 80);
 			maintext.on('dragmove', () => {
 				previewtext.position(maintext.position());
 				previewLayer.batchDraw();
@@ -414,7 +421,6 @@ const createShape = (shapeName) => {
 			maintext.on("dblclick", (e) => {
 				e.evt.stopPropagation();
 				handleTextClick(e.target);
-				maintext.draggable(true);
 			})
 			previewtext.on('dragmove', () => {
 				maintext.position(previewtext.position());
@@ -431,7 +437,6 @@ const createShape = (shapeName) => {
 			previewtext.on('dblclick', (e) => {
 				e.evt.stopPropagation();
 				handleTextClick(maintext);
-				previewtext.draggable(true);
 			});
 			layerRef.value.getNode().add(maintext);
 			previewLayer.add(previewtext);
@@ -658,7 +663,6 @@ const createShape = (shapeName) => {
 const handleTextClick = (konvaText) => {
 	const layer = layerRef.value.getNode();
 	if (!layer || !konvaText) return;
-	konvaText.draggable(false);
 	const tr = new Konva.Transformer({
 		nodes: [konvaText],
 		borderStroke: "#ffc107",
@@ -667,10 +671,10 @@ const handleTextClick = (konvaText) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left", "middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+		enabledAnchors: ["top-left", "top-center", "top-right", "middle-left", "middle-right", "bottom-left", "bottom-center", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
-		rotateEnabled: true,
+		rotateEnabled: false,
 		boundBoxFunc: (oldBox, newBox) => {
 			if (newBox.width < 5 || newBox.height < 5) {
 				return oldBox;
@@ -733,9 +737,44 @@ const handleTextClick = (konvaText) => {
 		deleteGroup.y(pos.y);
 	};
 
+	konvaText.on('dragmove', () => {
+		updateDeleteButtonPosition();
+		const previewTextToDrag = previewLayer.findOne(`#${konvaText.id()}`);
+		if (previewTextToDrag) {
+			previewTextToDrag.position(konvaText.position());
+			previewLayer.batchDraw();
+		}
+	});
+
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
-		//layer.batchDraw();
+		const previewTextToResize = previewLayer.findOne(`#${konvaText.id()}`);
+		const scaleX = konvaText.scaleX() || 1;
+		const scaleY = konvaText.scaleY() || 1;
+		const origFontSize = konvaText.getAttr('originalFontSize') || 32;
+		const origWidth = konvaText.getAttr('originalWidth') || 220;
+		const origHeight = konvaText.getAttr('originalHeight') || 80;
+		if (previewTextToResize) {
+			previewTextToResize.x(konvaText.x());
+			previewTextToResize.y(konvaText.y());
+			previewTextToResize.fontSize(origFontSize * scaleX);
+			previewTextToResize.width(origWidth * scaleX);
+			previewTextToResize.height(origHeight * scaleY);
+			previewTextToResize.scaleX(1);
+			previewTextToResize.scaleY(1);
+			previewLayer.batchDraw();
+		}
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "resize-shape",
+				id: konvaText.id(),
+				x: konvaText.x(),
+				y: konvaText.y(),
+				width: origWidth * scaleX,
+				height: origHeight * scaleY,
+				fontSize: origFontSize * scaleX,
+			}));
+		}
 	})
 	layer.draw();
 };
@@ -1189,7 +1228,13 @@ ws.value.onmessage = async (event) => {
 				verticalAlign: data.verticalAlign,
 			});
 			shape = new Konva.Text(shapeConfig);
+			shape.setAttr('originalFontSize', data.fontSize);
+			shape.setAttr('originalWidth', data.width);
+			shape.setAttr('originalHeight', data.height);
 			previewShape = new Konva.Text({ ...shapeConfig });
+			previewShape.setAttr('originalFontSize', data.fontSize);
+			previewShape.setAttr('originalWidth', data.width);
+			previewShape.setAttr('originalHeight', data.height);
 			shape.on('dragmove', () => {
 				previewShape.position(shape.position());
 				previewLayer.batchDraw();
@@ -1343,6 +1388,49 @@ ws.value.onmessage = async (event) => {
 		}
 		if (previewShape) {
 			previewShape.position(data.newpos);
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "resize-shape" && data.id) {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.x(data.x);
+			shape.y(data.y);
+			if (data.fontSize) {
+				shape.setAttr('originalFontSize', data.fontSize);
+				shape.fontSize(data.fontSize);
+			}
+			if (data.width) {
+				shape.setAttr('originalWidth', data.width);
+				shape.width(data.width);
+			}
+			if (data.height) {
+				shape.setAttr('originalHeight', data.height);
+				shape.height(data.height);
+			}
+			shape.scaleX(1);
+			shape.scaleY(1);
+			const tr = transformers.find(t => t.nodes().includes(shape));
+			if (tr) {
+				tr.forceUpdate();
+			}
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.x(data.x);
+			previewShape.y(data.y);
+			if (data.fontSize) {
+				previewShape.fontSize(data.fontSize);
+			}
+			if (data.width) {
+				previewShape.width(data.width);
+			}
+			if (data.height) {
+				previewShape.height(data.height);
+			}
+			previewShape.scaleX(1);
+			previewShape.scaleY(1);
 			previewLayer.batchDraw();
 		}
 	}
