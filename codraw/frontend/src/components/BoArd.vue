@@ -437,6 +437,7 @@ const createShape = (shapeName) => {
 			previewtext.on('dblclick', (e) => {
 				e.evt.stopPropagation();
 				handleTextClick(maintext);
+				document.getElementById("textarea").remove()
 			});
 			layerRef.value.getNode().add(maintext);
 			previewLayer.add(previewtext);
@@ -686,6 +687,47 @@ const handleTextClick = (konvaText) => {
 	transformers.push(tr);
 	layer.add(tr);
 	layer.batchDraw();
+	konvaText.hide()
+	const stage = stageRef.value.getNode();
+	const textPosition = konvaText.getAbsolutePosition();
+	const stageBox = stage.container().getBoundingClientRect();
+	const scale = stage.scaleX();
+	const textarea = document.createElement("textarea");
+	textarea.id = "textarea"
+	document.body.appendChild(textarea);
+	textarea.value = konvaText.text();
+	textarea.style.position = 'absolute';
+	textarea.style.top = (stageBox.top + textPosition.y * scale) + 'px';
+	textarea.style.left = (stageBox.left + textPosition.x * scale) + 'px';
+	textarea.style.width = (konvaText.width() * scale) + 'px';
+	textarea.style.height = (konvaText.height() * scale) + 'px';
+	textarea.style.fontSize = (konvaText.fontSize() * scale) + 'px';
+	textarea.style.fontFamily = konvaText.fontFamily();
+	textarea.style.color = konvaText.fill();
+	textarea.style.backgroundColor = 'transparent';
+	textarea.style.border = 'none';
+	textarea.style.outline = 'none';
+	textarea.style.resize = 'none';
+	textarea.style.textAlign = konvaText.align();
+	textarea.style.lineHeight = '1';
+	textarea.style.padding = '0';
+	textarea.style.margin = '0';
+	textarea.style.verticalAlign = 'middle';
+	textarea.style.display = 'flex';
+	textarea.style.alignItems = 'center';
+	textarea.style.justifyContent = 'center';
+	textarea.style.whiteSpace = 'pre-wrap';
+	textarea.style.overflow = 'hidden';
+	textarea.style.transform = 'translate(0, 0)';
+	textarea.focus();
+	textarea.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter') {
+			konvaText.text(textarea.value);
+			layer.draw();
+			document.body.removeChild(textarea);
+			konvaText.show();
+		}
+	});
 	const getDeleteButtonPos = () => {
 		const scaleX = konvaText.scaleX() || 1;
 		return { x: konvaText.x() + konvaText.width() * scaleX - 15, y: konvaText.y() - 15 };
