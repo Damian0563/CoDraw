@@ -709,6 +709,7 @@ const handleTextClick = (konvaText) => {
 	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
 	const textarea = document.createElement("textarea");
 	textarea.id = "textarea"
+	textarea.dataset.textId = konvaText.id();
 	document.body.appendChild(textarea);
 	textarea.value = konvaText.text();
 	textarea.style.position = 'absolute';
@@ -738,30 +739,8 @@ const handleTextClick = (konvaText) => {
 	textarea.style.boxSizing = 'border-box';
 	textarea.focus();
 	textarea.addEventListener('keydown', (e) => {
-		if (textarea.value.length > 0) {
-			const scaleX = konvaText.scaleX() || 1;
-			const currentTextWidth = konvaText.width() * scaleX;
-			const tempText = new Konva.Text({
-				text: textarea.value,
-				fontSize: konvaText.fontSize(),
-				fontFamily: konvaText.fontFamily(),
-				width: konvaText.width()
-			});
-			const textHeight = tempText.height();
-			const textWidth = tempText.width();
-			if (textWidth > currentTextWidth || textHeight > konvaText.height() * scaleX) {
-				const newWidth = Math.max(konvaText.width(), textWidth);
-				konvaText.width(newWidth);
-				tr.nodes([konvaText]);
-				tr.getLayer().batchDraw();
-			}
-			tempText.destroy();
-		}
 		if (e.key === 'Enter') {
-			konvaText.text(textarea.value);
-			layer.draw();
-			document.body.removeChild(textarea);
-			konvaText.show();
+			finishTextEditing();
 		}
 	});
 	const getDeleteButtonPos = () => {
@@ -1040,13 +1019,17 @@ const disableTransformers = () => {
 	deleteButtons.length = 0;
 }
 
-const handleStageClick = (e) => {
-	const target = e.target;
-	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
-		return;
+const finishTextEditing = () => {
+	const textarea = document.getElementById("textarea");
+	if (!textarea || !textarea.dataset.textId) return;
+	const layer = layerRef.value.getNode();
+	const konvaText = layer.findOne(`#${textarea.dataset.textId}`);
+	if (konvaText) {
+		konvaText.text(textarea.value);
+		layer.draw();
+		document.body.removeChild(textarea);
+		konvaText.show();
 	}
-	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
-	const layer = layerRef.value.getNode()
 	texts.forEach(konvaTextId => {
 		const found = layer.findOne(`#${konvaTextId}`);
 		if (found) {
@@ -1055,6 +1038,14 @@ const handleStageClick = (e) => {
 		}
 	})
 	disableTransformers();
+}
+
+const handleStageClick = (e) => {
+	const target = e.target;
+	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
+		return;
+	}
+	finishTextEditing();
 }
 
 const check_visitor = async () => {
