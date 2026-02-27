@@ -706,16 +706,19 @@ const handleTextClick = (konvaText) => {
 	const textPosition = konvaText.getAbsolutePosition();
 	const stageBox = stage.container().getBoundingClientRect();
 	const scale = stage.scaleX();
+	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
 	const textarea = document.createElement("textarea");
 	textarea.id = "textarea"
 	document.body.appendChild(textarea);
 	textarea.value = konvaText.text();
 	textarea.style.position = 'absolute';
-	textarea.style.top = (stageBox.top + textPosition.y * scale + 20) + 'px';
+	textarea.style.top = (stageBox.top + textPosition.y * scale + 18) + 'px';
 	textarea.style.left = (stageBox.left + textPosition.x * scale) + 'px';
-	textarea.style.width = (konvaText.width() * scale) + 'px';
-	textarea.style.height = (konvaText.height() * scale) + 'px';
-	textarea.style.fontSize = (konvaText.fontSize() * scale) + 'px';
+	const textScaleX = konvaText.scaleX() || 1;
+	const textScaleY = konvaText.scaleY() || 1;
+	textarea.style.width = (konvaText.width() * textScaleX * scale) + 'px';
+	textarea.style.height = (konvaText.height() * textScaleY * scale) + 'px';
+	textarea.style.fontSize = (konvaText.fontSize() * textScaleX * scale) + 'px';
 	textarea.style.fontFamily = konvaText.fontFamily();
 	textarea.style.color = konvaText.fill();
 	textarea.style.backgroundColor = 'transparent';
@@ -731,7 +734,6 @@ const handleTextClick = (konvaText) => {
 	textarea.style.alignItems = 'center';
 	textarea.style.justifyContent = 'center';
 	textarea.style.whiteSpace = 'pre-wrap';
-	textarea.style.overflow = 'hidden';
 	textarea.style.transform = 'translate(0, 0)';
 	textarea.style.boxSizing = 'border-box';
 	textarea.focus();
@@ -794,6 +796,28 @@ const handleTextClick = (konvaText) => {
 		deleteGroup.y(pos.y);
 	};
 
+	const updateTextareaPosition = () => {
+		const textarea = document.getElementById("textarea");
+		if (!textarea) return;
+		const stage = stageRef.value.getNode();
+		const stageBox = stage.container().getBoundingClientRect();
+		const stageScale = stage.scaleX();
+		const textPosition = konvaText.getAbsolutePosition();
+		const scaleX = konvaText.scaleX() || 1;
+		const scaleY = konvaText.scaleY() || 1;
+		const origWidth = konvaText.getAttr('originalWidth') || 220;
+		const origHeight = konvaText.getAttr('originalHeight') || 80;
+		const origFontSize = konvaText.getAttr('originalFontSize') || 32;
+		const newWidth = origWidth * scaleX;
+		const newHeight = origHeight * scaleY;
+		const newFontSize = origFontSize * scaleX;
+		textarea.style.top = (stageBox.top + textPosition.y * stageScale + 20) + 'px';
+		textarea.style.left = (stageBox.left + textPosition.x * stageScale) + 'px';
+		textarea.style.width = newWidth * stageScale + 'px';
+		textarea.style.height = newHeight * stageScale + 'px';
+		textarea.style.fontSize = newFontSize * stageScale + 'px';
+	};
+
 	konvaText.on('dragmove', () => {
 		updateDeleteButtonPosition();
 		const stage = stageRef.value.getNode();
@@ -807,18 +831,22 @@ const handleTextClick = (konvaText) => {
 
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
+		updateTextareaPosition();
 		const previewTextToResize = previewLayer.findOne(`#${konvaText.id()}`);
 		const scaleX = konvaText.scaleX() || 1;
 		const scaleY = konvaText.scaleY() || 1;
 		const origFontSize = konvaText.getAttr('originalFontSize') || 32;
 		const origWidth = konvaText.getAttr('originalWidth') || 220;
 		const origHeight = konvaText.getAttr('originalHeight') || 80;
+		const newFontSize = origFontSize * scaleX;
+		const newWidth = origWidth * scaleX;
+		const newHeight = origHeight * scaleY;
 		if (previewTextToResize) {
 			previewTextToResize.x(konvaText.x());
 			previewTextToResize.y(konvaText.y());
-			previewTextToResize.fontSize(origFontSize * scaleX);
-			previewTextToResize.width(origWidth * scaleX);
-			previewTextToResize.height(origHeight * scaleY);
+			previewTextToResize.fontSize(newFontSize);
+			previewTextToResize.width(newWidth);
+			previewTextToResize.height(newHeight);
 			previewTextToResize.scaleX(1);
 			previewTextToResize.scaleY(1);
 			previewLayer.batchDraw();
@@ -829,11 +857,14 @@ const handleTextClick = (konvaText) => {
 				id: konvaText.id(),
 				x: konvaText.x(),
 				y: konvaText.y(),
-				width: origWidth * scaleX,
-				height: origHeight * scaleY,
-				fontSize: origFontSize * scaleX,
+				width: newWidth,
+				height: newHeight,
+				fontSize: newFontSize,
 			}));
 		}
+	})
+	tr.on('transformend', () => {
+		updateTextareaPosition();
 	})
 	layer.draw();
 };
