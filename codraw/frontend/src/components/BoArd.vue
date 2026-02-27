@@ -420,6 +420,18 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
+			maintext.on('dragstart', () => {
+				stageRef.value.getNode().container().style.cursor = 'grabbing';
+			});
+			maintext.on('dragend', () => {
+				stageRef.value.getNode().container().style.cursor = 'default';
+			});
+			maintext.on('mouseenter', () => {
+				stageRef.value.getNode().container().style.cursor = 'grab';
+			});
+			maintext.on('mouseleave', () => {
+				stageRef.value.getNode().container().style.cursor = 'default';
+			});
 			maintext.on("dblclick", (e) => {
 				e.evt.stopPropagation();
 				handleTextClick(e.target);
@@ -686,11 +698,10 @@ const handleTextClick = (konvaText) => {
 			return newBox;
 		},
 	});
-	disableTransformers();
-	transformers.push(tr);
 	layer.add(tr);
 	layer.batchDraw();
-	konvaText.hide()
+	transformers.push(tr);
+	konvaText.hide();
 	const stage = stageRef.value.getNode();
 	const textPosition = konvaText.getAbsolutePosition();
 	const stageBox = stage.container().getBoundingClientRect();
@@ -700,7 +711,7 @@ const handleTextClick = (konvaText) => {
 	document.body.appendChild(textarea);
 	textarea.value = konvaText.text();
 	textarea.style.position = 'absolute';
-	textarea.style.top = (stageBox.top + textPosition.y * scale) + 'px';
+	textarea.style.top = (stageBox.top + textPosition.y * scale + 20) + 'px';
 	textarea.style.left = (stageBox.left + textPosition.x * scale) + 'px';
 	textarea.style.width = (konvaText.width() * scale) + 'px';
 	textarea.style.height = (konvaText.height() * scale) + 'px';
@@ -722,6 +733,7 @@ const handleTextClick = (konvaText) => {
 	textarea.style.whiteSpace = 'pre-wrap';
 	textarea.style.overflow = 'hidden';
 	textarea.style.transform = 'translate(0, 0)';
+	textarea.style.boxSizing = 'border-box';
 	textarea.focus();
 	textarea.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') {
@@ -784,6 +796,8 @@ const handleTextClick = (konvaText) => {
 
 	konvaText.on('dragmove', () => {
 		updateDeleteButtonPosition();
+		const stage = stageRef.value.getNode();
+		stage.container().style.cursor = 'grab';
 		const previewTextToDrag = previewLayer.findOne(`#${konvaText.id()}`);
 		if (previewTextToDrag) {
 			previewTextToDrag.position(konvaText.position());
@@ -977,12 +991,18 @@ const disableTransformers = () => {
 
 const handleStageClick = (e) => {
 	const target = e.target;
-	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
-	const layer = layerRef.getNode().value
-	texts.forEach(konvaTextId => layer.find(`#${konvaTextId}`).draggable(true))
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
+	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
+	const layer = layerRef.value.getNode()
+	texts.forEach(konvaTextId => {
+		const found = layer.findOne(`#${konvaTextId}`);
+		if (found) {
+			found.draggable(true);
+			found.show()
+		}
+	})
 	disableTransformers();
 }
 
