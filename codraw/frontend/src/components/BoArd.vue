@@ -738,6 +738,25 @@ const handleTextClick = (konvaText) => {
 	textarea.style.boxSizing = 'border-box';
 	textarea.focus();
 	textarea.addEventListener('keydown', (e) => {
+		if (textarea.value.length > 0) {
+			const scaleX = konvaText.scaleX() || 1;
+			const currentTextWidth = konvaText.width() * scaleX;
+			const tempText = new Konva.Text({
+				text: textarea.value,
+				fontSize: konvaText.fontSize(),
+				fontFamily: konvaText.fontFamily(),
+				width: konvaText.width()
+			});
+			const textHeight = tempText.height();
+			const textWidth = tempText.width();
+			if (textWidth > currentTextWidth || textHeight > konvaText.height() * scaleX) {
+				const newWidth = Math.max(konvaText.width(), textWidth);
+				konvaText.width(newWidth);
+				tr.nodes([konvaText]);
+				tr.getLayer().batchDraw();
+			}
+			tempText.destroy();
+		}
 		if (e.key === 'Enter') {
 			konvaText.text(textarea.value);
 			layer.draw();
@@ -978,7 +997,8 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
 	const imageId = imageNode.id();
-	if (texts.contains(imageId)) texts.splice(texts.indexOf(imageId), 1)
+	if (texts.includes(imageId)) texts.splice(texts.indexOf(imageId), 1)
+	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
 	imageNode.destroy();
 	if (transformer) {
 		transformer.destroy();
