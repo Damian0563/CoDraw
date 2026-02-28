@@ -687,7 +687,7 @@ const handleTextClick = (konvaText) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left", "top-center", "top-right", "middle-left", "middle-right", "bottom-left", "bottom-center", "bottom-right"],
+		enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: false,
@@ -735,13 +735,39 @@ const handleTextClick = (konvaText) => {
 	textarea.style.alignItems = 'center';
 	textarea.style.justifyContent = 'center';
 	textarea.style.whiteSpace = 'pre-wrap';
+	textarea.style.overflow = 'hidden';
 	textarea.style.transform = 'translate(0, 0)';
 	textarea.style.boxSizing = 'border-box';
 	textarea.focus();
-	textarea.addEventListener('keydown', (e) => {
-		if (e.key === 'Enter') {
-			finishTextEditing();
-		}
+	textarea.addEventListener('keyup', () => {
+		requestAnimationFrame(() => {
+			const scaleX = konvaText.scaleX() || 1;
+			const scaleY = konvaText.scaleY() || 1;
+			const currentWidth = konvaText.width() * scaleX;
+			const currentHeight = konvaText.height() * scaleY;
+			const tempText = new Konva.Text({
+				text: textarea.value,
+				fontSize: konvaText.fontSize(),
+				fontFamily: konvaText.fontFamily(),
+				width: konvaText.width(),
+				align: konvaText.align(),
+				verticalAlign: konvaText.verticalAlign()
+			});
+			const newTextWidth = tempText.width() * scaleX;
+			const newTextHeight = tempText.height() * scaleY;
+			if (newTextWidth > currentWidth || newTextHeight > currentHeight) {
+				const newWidth = Math.max(konvaText.width(), tempText.width());
+				const heightMargin = 20;
+				konvaText.width(newWidth);
+				konvaText.height(tempText.height() + heightMargin);
+				textarea.style.width = newWidth * scaleX + 'px';
+				textarea.style.height = (tempText.height() + heightMargin) * scaleY + 'px';
+				tr.nodes([konvaText]);
+				tr.forceUpdate();
+				layer.batchDraw();
+			}
+			tempText.destroy();
+		});
 	});
 	const getDeleteButtonPos = () => {
 		const scaleX = konvaText.scaleX() || 1;
@@ -880,7 +906,7 @@ const handleDblClick = (e) => {
 		borderDashOffset: 0,
 		borderJoinStyle: "round",
 		scalingEnabled: true,
-		enabledAnchors: ["top-left", "middle-left", "top-right", "middle-right", "bottom-left", "bottom-right"],
+		enabledAnchors: ["top-left", "top-right", "bottom-left", "bottom-right"],
 		keepRatio: true,
 		keepRatioByExpanding: true,
 		rotateEnabled: false,
