@@ -1062,6 +1062,13 @@ const finishTextEditing = () => {
 			found.draggable(true);
 			found.show()
 		}
+		const previewText = previewLayer.findOne(`#${konvaTextId}`);
+		if (previewText) {
+			previewText.text(konvaText.text());
+			previewLayer.draw();
+			previewText.draggable(true);
+			previewText.show()
+		}
 	})
 	disableTransformers();
 }
