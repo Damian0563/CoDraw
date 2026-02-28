@@ -782,30 +782,39 @@ const handleTextClick = (konvaText) => {
 	});
 	const deleteCircle = new Konva.Circle({
 		radius: 12,
-		fill: '#ff4f4f',
-		stroke: '#fff',
-		strokeWidth: 2
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
 	});
-	const deleteText = new Konva.Text({
-		text: '×',
-		fontSize: 12,
-		fontFamily: 'Arial',
-		fill: '#fff',
-		x: -5,
+	const deleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
 		y: -8
 	});
 	deleteGroup.add(deleteCircle);
-	deleteGroup.add(deleteText);
+	deleteGroup.add(deleteIcon);
 	deleteGroup.on('click', (e) => {
 		e.evt.stopPropagation();
 		deleteImage(konvaText, tr, deleteGroup);
 	});
 	deleteGroup.on('mouseenter', () => {
-		deleteCircle.fill('#ff3333');
+		deleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
 		layer.batchDraw();
 	});
 	deleteGroup.on('mouseleave', () => {
-		deleteCircle.fill('#ff4f4f');
+		deleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
 		layer.batchDraw();
 	});
 	deleteButtons.push(deleteGroup);
@@ -852,7 +861,6 @@ const handleTextClick = (konvaText) => {
 			previewLayer.batchDraw();
 		}
 	});
-
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
 		updateTextareaPosition();
@@ -932,31 +940,40 @@ const handleDblClick = (e) => {
 		listening: true
 	});
 	const deleteCircle = new Konva.Circle({
-		radius: 12,
-		fill: '#ff4f4f',
-		stroke: '#fff',
-		strokeWidth: 2
+		radius: 14,
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
 	});
-	const deleteText = new Konva.Text({
-		text: '×',
-		fontSize: 12,
-		fontFamily: 'Arial',
-		fill: '#fff',
-		x: -5,
+	const deleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
 		y: -8
 	});
 	deleteGroup.add(deleteCircle);
-	deleteGroup.add(deleteText);
+	deleteGroup.add(deleteIcon);
 	deleteGroup.on('click', (e) => {
 		e.evt.stopPropagation();
 		deleteImage(konvaImg, tr, deleteGroup);
 	});
 	deleteGroup.on('mouseenter', () => {
-		deleteCircle.fill('#ff3333');
+		deleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
 		layer.batchDraw();
 	});
 	deleteGroup.on('mouseleave', () => {
-		deleteCircle.fill('#ff4f4f');
+		deleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
 		layer.batchDraw();
 	});
 	deleteButtons.push(deleteGroup);
