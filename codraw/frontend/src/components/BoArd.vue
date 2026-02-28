@@ -380,7 +380,7 @@ const createShape = (shapeName) => {
 				height: 80,
 				fill: fill,
 				fontSize: 32,
-				fontFamily: 'System UI',
+				fontFamily: 'Caveat',
 				text: 'Write text here',
 				align: 'center',
 				verticalAlign: 'middle',
@@ -399,7 +399,7 @@ const createShape = (shapeName) => {
 				height: 80,
 				fill: fill,
 				fontSize: 32,
-				fontFamily: 'System UI',
+				fontFamily: 'Caveat',
 				text: 'Write text here',
 				align: 'center',
 				verticalAlign: 'middle',
@@ -745,6 +745,11 @@ const handleTextClick = (konvaText) => {
 			const scaleY = konvaText.scaleY() || 1;
 			const currentWidth = konvaText.width() * scaleX;
 			const currentHeight = konvaText.height() * scaleY;
+			const textBeforeCursor = textarea.value.substring(0, textarea.selectionStart);
+			const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+			const textToMeasure = lastNewlineIndex >= 0
+				? textBeforeCursor.substring(lastNewlineIndex + 1)
+				: textBeforeCursor;
 			const tempText = new Konva.Text({
 				text: textarea.value,
 				fontSize: konvaText.fontSize(),
@@ -753,10 +758,21 @@ const handleTextClick = (konvaText) => {
 				align: konvaText.align(),
 				verticalAlign: konvaText.verticalAlign()
 			});
+			const tempTextForCursor = new Konva.Text({
+				text: textToMeasure,
+				fontSize: konvaText.fontSize(),
+				fontFamily: konvaText.fontFamily(),
+				width: konvaText.width(),
+				align: konvaText.align(),
+				verticalAlign: konvaText.verticalAlign()
+			});
 			const newTextWidth = tempText.width() * scaleX;
 			const newTextHeight = tempText.height() * scaleY;
-			if (newTextWidth > currentWidth || newTextHeight > currentHeight) {
-				const newWidth = Math.max(konvaText.width(), tempText.width());
+			const cursorLineWidth = tempTextForCursor.width() * scaleX;
+			if (newTextWidth > currentWidth || newTextHeight > currentHeight || cursorLineWidth < currentWidth) {
+				const newWidth = lastNewlineIndex >= 0
+					? Math.max(konvaText.width(), tempTextForCursor.width())
+					: Math.max(konvaText.width(), tempText.width());
 				const heightMargin = 20;
 				konvaText.width(newWidth);
 				konvaText.height(tempText.height() + heightMargin);
@@ -767,6 +783,7 @@ const handleTextClick = (konvaText) => {
 				layer.batchDraw();
 			}
 			tempText.destroy();
+			tempTextForCursor.destroy();
 		});
 	});
 	const getDeleteButtonPos = () => {
@@ -851,7 +868,7 @@ const handleTextClick = (konvaText) => {
 		textarea.style.fontSize = newFontSize * stageScale + 'px';
 	};
 	const buffer = []
-	textarea.on('keydown', (e) => {
+	textarea.addEventListener('keydown', e => {
 		buffer.push(e.key)
 		if (lastWsSendTime !== 0 && Date.now() - lastWsSendTime < 16) return
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -1550,6 +1567,9 @@ ws.value.onmessage = async (event) => {
 			previewShape.moveToTop();
 			layer.batchDraw();
 			previewLayer.batchDraw();
+			if (data.shapeType === 'text') {
+				texts.push(data.id);
+			}
 		}
 	} else if (data.type === "shape-drag" && data.shapeType && data.id) {
 		const layer = layerRef.value.getNode();
