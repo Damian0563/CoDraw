@@ -1606,6 +1606,18 @@ ws.value.onmessage = async (event) => {
 			previewShape.scaleY(1);
 			previewLayer.batchDraw();
 		}
+	} else if (data.type === "text-modify" && data.id) {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.text(data.text);
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.text(data.text);
+			previewLayer.batchDraw();
+		}
 	}
 };
 const handleContextMenu = (e) => {
