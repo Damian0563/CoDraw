@@ -850,7 +850,19 @@ const handleTextClick = (konvaText) => {
 		textarea.style.height = newHeight * stageScale + 'px';
 		textarea.style.fontSize = newFontSize * stageScale + 'px';
 	};
-
+	const buffer = []
+	textarea.on('keydown', (e) => {
+		buffer.push(e.key)
+		if (lastWsSendTime !== 0 && Date.now() - lastWsSendTime < 16) return
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "text-modify",
+				text: textarea.value,
+				id: konvaText.id(),
+				keys: buffer.join('')
+			}));
+		}
+	})
 	konvaText.on('dragmove', () => {
 		updateDeleteButtonPosition();
 		const stage = stageRef.value.getNode();
