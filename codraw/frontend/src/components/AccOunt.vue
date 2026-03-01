@@ -43,31 +43,32 @@
 									style="width:20px;height:20px;cursor:pointer;">
 							</div>
 							<div v-if="!edits[index]">
-								<input class="form-control fw-bold mt-2 bg-dark text-white" v-model="board.title" @click.stop
-									:placeholder="'Board Title'" readonly disabled />
-								<input class="form-control small mt-3 bg-dark text-white" v-model="board.description" @click.stop
-									:placeholder="'Board Description'" readonly disabled />
+								<textarea class="form-control fw-bold mt-2 bg-dark text-white title-field" v-model="board.title"
+									@click.stop :placeholder="'Board Title'" readonly disabled></textarea>
+								<textarea class="form-control small mt-3 bg-dark text-white description-field"
+									v-model="board.description" @click.stop :placeholder="'Board Description'" readonly
+									disabled></textarea>
 							</div>
 							<div v-else>
-								<input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop
-									:placeholder="'Board Title'" />
-								<input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop
-									:placeholder="'Board Description'" />
+								<textarea class="form-control fw-bold mt-2 bg-white text-dark title-field" v-model="board.title"
+									@click.stop :placeholder="'Board Title'"></textarea>
+								<textarea class="form-control small mt-3 bg-white text-dark description-field"
+									v-model="board.description" @click.stop :placeholder="'Board Description'"></textarea>
 							</div>
 						</div>
 						<div v-else class="w-100">
 							<button class="btn btn-success success" @click="join(board.room)">
 								Join room
 							</button>
-							<input class="form-control fw-bold mt-2 bg-dark text-white" v-model="board.title" @click.stop
-								:placeholder="'Board Title'" readonly disabled />
-							<input class="form-control small mt-3 bg-dark text-white" v-model="board.description" @click.stop
-								:placeholder="'Board Description'" readonly disabled />
+							<textarea class="form-control fw-bold mt-2 bg-dark text-white title-field" v-model="board.title"
+								@click.stop :placeholder="'Board Title'" readonly disabled></textarea>
+							<textarea class="form-control small mt-3 bg-dark text-white description-field" v-model="board.description"
+								@click.stop :placeholder="'Board Description'" readonly disabled></textarea>
 						</div>
 					</div>
-					<div class="card-body text-white position-relative flex-grow-1">
+					<div class="card-body text-white position-relative flex-grow-1 d-flex flex-column justify-content-end">
 						<div class="d-flex flex-column align-items-start gap-1"
-							style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
+							style="background: rgba(0,0,0,0.05); padding: 0.5rem; margin-top: auto;">
 							<span class="fw-semibold text-warning" style="font-size: 0.85rem;">
 								Views: <span class="text-white">{{ board.views }}</span>
 							</span>
@@ -81,11 +82,11 @@
 					</div>
 				</div>
 			</div>
-			<div class="container mt-4 mt-md-5" v-if="admin">
+			<div class="container mt-2" v-if="admin">
 				<h1 class="text-start" style="color:#ffc107">Bookmarks</h1>
 				<div class="boards-wrapper mt-5 justify-content-start">
 					<div v-for="(board, index) in bookmarks" :key="index" class="project-card">
-						<div class="d-flex justify-content-end">
+						<div class="d-flex justify-content-end gap-2">
 							<button class="btn btn-success success" @click="join(board.room)">
 								Join room
 							</button>
@@ -93,10 +94,10 @@
 								@click="delete_bookmark(bookmarks[index].room); bookmarks.splice(index, 1)"
 								style="width:20px;height:20px;cursor:pointer;">
 						</div>
-						<input class="form-control fw-bold mt-2 bg-white text-dark" v-model="board.title" @click.stop
-							:placeholder="'Board Title'" readonly disabled />
-						<input class="form-control small mt-3 bg-white text-dark" v-model="board.description" @click.stop
-							:placeholder="'Board Description'" readonly disabled />
+						<textarea class="form-control fw-bold mt-2 bg-white text-dark title-field" v-model="board.title" @click.stop
+							:placeholder="'Board Title'" readonly disabled></textarea>
+						<textarea class="form-control small mt-3 bg-white text-dark description-field" v-model="board.description"
+							@click.stop :placeholder="'Board Description'" readonly disabled></textarea>
 						<div class="card-body text-white position-relative flex-grow-1">
 							<div class="d-flex flex-column align-items-start gap-1"
 								style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 0.5rem;">
@@ -418,13 +419,14 @@ onMounted(async () => {
 	border-radius: 1rem;
 	width: 100%;
 	min-height: 320px;
-	max-height: 400px;
+	max-height: 450px;
 	padding: 1rem;
 	display: flex;
 	flex-direction: column;
 	text-align: center;
 	cursor: pointer;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	overflow: hidden;
 }
 
 .project-card:hover {
@@ -478,6 +480,26 @@ onMounted(async () => {
 		font-size: 0.875rem !important;
 		padding: 0.375rem 0.75rem !important;
 	}
+}
+
+.container {
+	padding: 0 1rem;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.form-control {
+	word-break: break-word;
+	white-space: normal;
+	resize: none;
+}
+
+textarea.title-field {
+	height: 40px;
+}
+
+textarea.description-field {
+	height: 80px;
 }
 
 .spinner-overlay {

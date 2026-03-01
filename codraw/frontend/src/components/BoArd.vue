@@ -117,6 +117,64 @@
       " @click="clear_all()">
 				Clear all
 			</button>
+			<div style="position: relative;" ref="moreMenuRef">
+				<button @click.stop="showMoreMenu = !showMoreMenu" style="
+					background: transparent;
+					border: none;
+					color: #fff;
+					font-size: 1.5rem;
+					cursor: pointer;
+					padding: 4px 12px;
+					line-height: 1;
+				">...</button>
+				<div v-if="showMoreMenu" style="
+					position: absolute;
+					top: 100%;
+					left: 0;
+					margin-top: 8px;
+					background: #23272f;
+					border-radius: 12px;
+					padding: 12px;
+					display: flex;
+					flex-direction: column;
+					gap: 10px;
+					min-width: 180px;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+					z-index: 20;
+				">
+					<button @click="copyInvitationLink" style="
+						display: flex;
+						align-items: center;
+						gap: 8px;
+						background: #4f8cff;
+						color: #fff;
+						border: none;
+						border-radius: 8px;
+						padding: 10px 14px;
+						font-size: 0.9rem;
+						cursor: pointer;
+					">
+						<img :src="url" alt="Copy" style="width: 16px; height: 16px;" />
+						Copy Invitation
+					</button>
+					<button v-if="visitor && MODE !== 'demo'" @click="toggleBookmark" style="
+						display: flex;
+						align-items: center;
+						gap: 8px;
+						background: #4f8cff;
+						color: #fff;
+						border: none;
+						border-radius: 8px;
+						padding: 10px 14px;
+						font-size: 0.9rem;
+						cursor: pointer;
+					">
+						<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark"
+							style="width: 16px; height: 16px;" />
+						{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
+					</button>
+				</div>
+			</div>
 		</div>
 		<Transition name="fade-slide">
 			<div v-if="showShapeSelector"
@@ -149,41 +207,6 @@
 				</div>
 			</div>
 		</Transition>
-		<div id="inv_div" style="position: absolute; top: 12px; right: 1rem; z-index: 10;">
-			<button v-if="visitor && MODE !== 'demo' && !admin" id="bookmark-btn" @click="toggleBookmark" class="mb-2" style="
-        background: #4f8cff;
-        color:#fff ;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 18px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: ease-in-out 0.6s;
-        height: 40px;
-        " :style="{ width: show_text ? '200px' : 'unset' }">
-				<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark" style="width: 18px; height: 18px;" />
-				<span v-if="show_text">{{ isBookmarked ? "Bookmarked" : "Bookmark" }}</span>
-			</button>
-			<button id="inv" @click="copyInvitationLink" style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: #4f8cff;
-          color: #fff;
-          border: none;
-          border-radius: 10px;
-          padding: 10px 18px;
-          font-size: 0.95rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: ease-in-out 0.6s;
-          height: 40px;
-        " :style="{ width: show_text ? '200px' : 'unset' }">
-				<img :src="url" alt="Copy" style="width: 18px; height: 18px;" />
-				<span v-if="show_text">Copy invitation link</span>
-			</button>
-		</div>
 		<Transition name="fade-slide">
 			<div v-if="isVisible" style="
           position: absolute;
@@ -356,6 +379,8 @@ const stroke_history = ref([])
 const history_index = ref(0)
 const isBookmarked = ref(false);
 const paneToggler = ref(false)
+const showMoreMenu = ref(false)
+const moreMenuRef = ref(null)
 const showShapeSelector = ref(false)
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
@@ -1217,7 +1242,6 @@ const check_book_mark = async () => {
 		isBookmarked.value = false;
 	}
 }
-const show_text = computed(() => windowWidth.value > 1300);
 const stageConfig = {
 	width: 2 * document.documentElement.clientWidth,
 	height: 2 * document.documentElement.clientHeight,
@@ -2592,6 +2616,12 @@ const initializeBoard = async () => {
 	}
 }
 
+const handleClickOutside = (event) => {
+	if (showMoreMenu.value && moreMenuRef.value && !moreMenuRef.value.contains(event.target)) {
+		showMoreMenu.value = false
+	}
+}
+
 onMounted(async () => {
 	loading.value = true
 	await nextTick();
@@ -2607,6 +2637,7 @@ onMounted(async () => {
 	window.addEventListener('keydown', keyhandler)
 	window.addEventListener('resize', handleStageResize);
 	window.addEventListener('paste', handlePaste)
+	document.addEventListener('click', handleClickOutside)
 	const inputElement = document.getElementById("upload");
 	inputElement.addEventListener("change", handleFiles);
 	loading.value = false
@@ -2619,13 +2650,7 @@ onBeforeUnmount(() => {
 })
 onUnmounted(() => {
 	clearInterval(autosaveInterval)
-	window.removeEventListener('paste', handlePaste)
-	window.removeEventListener("keydown", keyhandler)
-	window.removeEventListener("resize", handleStageResize)
-	const inputElement = document.getElementById("upload");
-	if (inputElement) {
-		inputElement.removeEventListener("change", handleFiles);
-	}
+	document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
