@@ -302,7 +302,7 @@
 			<v-stage ref="stageRef" :config="stageConfig" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
 				@mouseup="handleMouseUp" @wheel="handleMouseWheel" @touchstart="handleMouseDown" @touchmove="handleMouseMove"
 				@touchend="handleMouseUp" @contextmenu="handleContextMenu" @click="(e) => handleStageClick(e)"
-				style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
+				@dragstart="handleDragStart" style="overflow-x: hidden;overflow-y: hidden;border: none !important;">
 				<v-layer ref="layerRef">
 					<v-image ref="imageRef" :config="imageConfig" />
 				</v-layer>
@@ -1121,6 +1121,13 @@ const finishTextEditing = () => {
 const handleStageClick = (e) => {
 	const target = e.target;
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
+		return;
+	}
+	finishTextEditing();
+	disableTransformers();
+}
+const handleDragStart = (e) => {
+	if (e.target.className === 'Transformer' || e.target.getParent()?.className === 'Transformer') {
 		return;
 	}
 	finishTextEditing();
