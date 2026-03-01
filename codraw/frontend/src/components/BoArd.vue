@@ -150,7 +150,7 @@
 			</div>
 		</Transition>
 		<div id="inv_div" style="position: absolute; top: 12px; right: 1rem; z-index: 10;">
-			<button v-if="visitor && MODE !== 'demo'" id="bookmark-btn" @click="toggleBookmark" class="mb-2" style="
+			<button v-if="visitor && MODE !== 'demo' && !admin" id="bookmark-btn" @click="toggleBookmark" class="mb-2" style="
         background: #4f8cff;
         color:#fff ;
         border: none;
@@ -316,8 +316,7 @@ import url from '@/assets/email.webp'
 import zoom_ico from '@/assets/zoom.webp'
 import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
-import { BASE_URL } from '../common.js'
-import { WS_URL } from '../common.js'
+import { BASE_URL, WS_URL, wsConnections } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners'
 import bookmarkIcon from '@/assets/star.webp'
 const loading = ref(false)
@@ -1125,6 +1124,7 @@ const handleStageClick = (e) => {
 		return;
 	}
 	finishTextEditing();
+	disableTransformers();
 }
 
 const check_visitor = async () => {
@@ -1223,12 +1223,11 @@ const ws = ref(null)
 const rawUrl = WS_URL
 const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 const finalUrl = `${cleanBase}/${room.value}/`;
-ws.value = new WebSocket(finalUrl)
-ws.value.onopen = function () {
-	ws.value.send(JSON.stringify({
-		type: "sync-request",
-		room: room.value
-	}))
+if (wsConnections[room.value]) {
+	ws.value = wsConnections[room.value]
+	delete wsConnections[room.value]
+} else {
+	ws.value = new WebSocket(finalUrl)
 }
 ws.value.onmessage = async (event) => {
 	const data = JSON.parse(event.data);
@@ -2444,24 +2443,6 @@ const applyStateToLayer = async (data) => {
 	layer.destroyChildren();
 	disableTransformers();
 	const savedChildren = stageData.children?.[0]?.children || [];
-	const imagePromises = savedChildren.map(shapeJson => {
-		if (shapeJson.className === "Image" && shapeJson.attrs.src) {
-			return new Promise((resolve) => {
-				const img = new window.Image();
-				img.crossOrigin = "Anonymous";
-				img.onload = () => {
-					shapeJson.attrs.image = img;
-					resolve();
-				};
-				img.onerror = () => {
-					resolve();
-				};
-				img.src = shapeJson.attrs.src;
-			});
-		}
-		return Promise.resolve();
-	});
-	await Promise.all(imagePromises);
 	savedChildren.forEach(shapeJson => {
 		const previewShape = Konva.Node.create(shapeJson);
 		const mainShape = Konva.Node.create(shapeJson);
@@ -2470,6 +2451,18 @@ const applyStateToLayer = async (data) => {
 		if (mainShape.className === 'Image') {
 			applyCrop(mainShape);
 			mainShape.on('dblclick', handleDblClick);
+			if (shapeJson.attrs.src) {
+				const img = new window.Image();
+				img.crossOrigin = "Anonymous";
+				img.onload = () => {
+					mainShape.image(img);
+					const previewImg = previewLayer.findOne(`#${mainShape.id()}`);
+					if (previewImg) previewImg.image(img);
+					layer.batchDraw();
+					previewLayer.batchDraw();
+				};
+				img.src = shapeJson.attrs.src;
+			}
 		}
 	});
 	previewLayer.batchDraw();
@@ -2574,22 +2567,36 @@ const waitForSync = () => new Promise(resolve => {
 	setTimeout(() => { clearInterval(check); resolve(); }, 5000);
 });
 
-onMounted(async () => {
-	loading.value = true
-	await nextTick();
-	await waitForSync();
+const loadBoardData = async () => {
 	if (await check_save('load')) {
 		if (!responded.value) {
 			get_details_and_load()
 		}
 	}
+}
+
+const initializeBoard = async () => {
 	if (MODE === 'demo') {
 		visitor.value = true;
+		await loadBoardData();
 	} else {
-		await Promise.all([check_owner(), check_visitor(), checkSaveStatus()])
+		await Promise.all([check_visitor(), checkSaveStatus(), loadBoardData()])
+		if (visitor.value) {
+			await check_book_mark();
+		}
 	}
-	if (visitor.value && MODE !== 'demo') {
-		await check_book_mark();
+}
+
+onMounted(async () => {
+	loading.value = true
+	await nextTick();
+	await check_owner();
+	if (admin.value) {
+		await loadBoardData();
+		await initializeBoard();
+	} else {
+		await waitForSync();
+		await initializeBoard();
 	}
 	autosaveInterval = setInterval(() => autosave(), 60000)
 	window.addEventListener('keydown', keyhandler)
@@ -2597,7 +2604,7 @@ onMounted(async () => {
 	window.addEventListener('paste', handlePaste)
 	const inputElement = document.getElementById("upload");
 	inputElement.addEventListener("change", handleFiles);
-	loading.value = false;
+	loading.value = false
 })
 onBeforeUnmount(() => {
 	if (ws.value) {

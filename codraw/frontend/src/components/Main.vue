@@ -20,8 +20,6 @@
 									<img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy"
 										decoding="async" />
 								</div>
-								<!-- <font-awesome-icon :icon="['fas', 'eye-slash']" class="preview-toggle text-start" -->
-								<!-- 	@click="togglePreview($event, board.room)" title="Hide preview" /> -->
 							</div>
 							<div class="content-section">
 								<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
@@ -51,11 +49,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { get_cookie } from '@/common';
-import { BASE_URL } from '../common.js'
+import { BASE_URL, WS_URL, wsConnections } from '../common.js'
 import SiDebar from './SiDebar.vue'
 import { VueSpinnerTail } from 'vue3-spinners'
 import { DateTime } from 'luxon'
+
+const router = useRouter()
 
 const loading = ref(false)
 const csrf = get_cookie('csrftoken')
@@ -119,12 +120,6 @@ const get_boards = async () => {
 		console.error(e)
 	}
 }
-//
-// const togglePreview = (event, room) => {
-// 	event.stopPropagation()
-// 	previewing.value[room] = !previewing.value[room]
-// }
-
 async function join(room) {
 	try {
 		const data = await fetch(`${BASE_URL}/load`, {
@@ -140,7 +135,7 @@ async function join(room) {
 		})
 		const response = await data.json()
 		if (response.status === 200) {
-			window.location.href = `${response.url}?origin=default`
+			router.push(`${response.url}?origin=default`)
 		}
 	} catch (e) {
 		console.error(e)
@@ -159,7 +154,7 @@ async function create() {
 		})
 		const response = await data.json()
 		if (response.status === 200) {
-			window.location.href = `${response.url}?origin=default`
+			router.push(`${response.url}?origin=default`)
 		}
 		else {
 			console.log('error')
@@ -176,6 +171,16 @@ onMounted(async () => {
 		get_boards(),
 		get_username()
 	])
+	await Promise.all(boards.value.map(board => {
+		return new Promise((resolve) => {
+			const ws = new WebSocket(`${WS_URL}/${board.room}/`)
+			ws.onopen = () => {
+				wsConnections[board.room] = ws
+				resolve()
+			}
+			ws.onerror = () => resolve()
+		})
+	}))
 	loading.value = false
 })
 </script>
