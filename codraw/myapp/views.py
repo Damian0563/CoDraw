@@ -433,7 +433,7 @@ def boards_user(request, username):
             boards = json.loads(cached_boards)
             images = json.loads(cached_images)
         else:
-            boards = database.get_boards_of_username(mode,timezone, username)
+            boards = database.get_boards_of_username(mode, timezone, username)
             images = bucket.get_images([board['room'] for board in boards])
             redis_client.setex(boards_cache_key, 60*5, json.dumps(boards))
             redis_client.setex(images_cache_key, 60*5, json.dumps(images))
@@ -510,10 +510,9 @@ def bookmark(request, room):
     id = helpers.validate_request(request)
     if id is not None:
         data = request.data
-        me = data['user']
         curr_bookmark = data['status']
-        if database.modify_bookmark(me, curr_bookmark, room):
-            redis_client.delete(f"bookmarks:{me}")
+        if database.modify_bookmark(id, curr_bookmark, room):
+            redis_client.delete(f"bookmarks:{id}")
             if curr_bookmark:
                 return Response({'status': 200, 'bookmarked': False})
             else:

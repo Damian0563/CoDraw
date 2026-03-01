@@ -1173,7 +1173,6 @@ const toggleShapeSelector = () => {
 }
 
 const toggleBookmark = async () => {
-	const me = new URL(window.location.href).pathname.split("/")[2]
 	try {
 		const data = await fetch(`${BASE_URL}/bookmark/${room.value}`, {
 			method: "POST",
@@ -1183,7 +1182,6 @@ const toggleBookmark = async () => {
 			},
 			credentials: "include",
 			body: JSON.stringify({
-				"user": me,
 				"status": isBookmarked.value
 			})
 		})
