@@ -80,10 +80,35 @@
 				</svg>
 				<input type="file" id="upload" style="display:none">
 			</label>
-			<div style="display: flex; align-items: center;cursor: pointer;">
-				<img width="24" height="24" loading="async" decoding="lazy" @click="toggleShapeSelector"
-					src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png"
-					alt="external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo" />
+			<div style="position: relative;" ref="shapeMenuRef">
+				<div style="display: flex; align-items: center;cursor: pointer;"
+					@click.stop="showShapeSelector = !showShapeSelector">
+					<img width="24" height="24" loading="async" decoding="lazy"
+						src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png"
+						alt="shapes" />
+				</div>
+				<div v-if="showShapeSelector" style="
+					position: absolute;
+					top: 100%;
+					left: 0;
+					margin-top: 18px;
+					background: #23272f;
+					border-radius: 12px;
+					padding: 12px;
+					display: flex;
+					gap: 12px;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+					z-index: 20;
+				">
+					<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
+						@click="createShape('text')"></font-awesome-icon>
+					<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
+						@click="createShape('arrow')"></font-awesome-icon>
+					<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"
+						@click="createShape('circle')"></font-awesome-icon>
+					<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
+						@click="createShape('square')"></font-awesome-icon>
+				</div>
 			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
@@ -176,37 +201,6 @@
 				</div>
 			</div>
 		</div>
-		<Transition name="fade-slide">
-			<div v-if="showShapeSelector"
-				style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
-				<div
-					style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-					<button @click="showShapeSelector = false"
-						style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">
-						✕
-					</button>
-					<p>Select a Shape</p>
-					<div class="row">
-						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
-								@click="createShape('text')"></font-awesome-icon>
-						</div>
-						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
-								@click="createShape('arrow')"></font-awesome-icon>
-						</div>
-						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"
-								@click="createShape('circle')"></font-awesome-icon>
-						</div>
-						<div class="col-3">
-							<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
-								@click="createShape('square')"></font-awesome-icon>
-						</div>
-					</div>
-				</div>
-			</div>
-		</Transition>
 		<Transition name="fade-slide">
 			<div v-if="isVisible" style="
           position: absolute;
@@ -382,6 +376,7 @@ const paneToggler = ref(false)
 const showMoreMenu = ref(false)
 const moreMenuRef = ref(null)
 const showShapeSelector = ref(false)
+const shapeMenuRef = ref(null)
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if (MODE === 'demo') {
@@ -1191,10 +1186,6 @@ const togglePane = () => {
 		stage.draggable(false);
 		stage.container().style.cursor = 'default';
 	}
-}
-
-const toggleShapeSelector = () => {
-	showShapeSelector.value = !showShapeSelector.value;
 }
 
 const toggleBookmark = async () => {
@@ -2619,6 +2610,9 @@ const initializeBoard = async () => {
 const handleClickOutside = (event) => {
 	if (showMoreMenu.value && moreMenuRef.value && !moreMenuRef.value.contains(event.target)) {
 		showMoreMenu.value = false
+	}
+	if (showShapeSelector.value && shapeMenuRef.value && !shapeMenuRef.value.contains(event.target)) {
+		showShapeSelector.value = false
 	}
 }
 
