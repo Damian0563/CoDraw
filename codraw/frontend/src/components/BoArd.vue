@@ -456,16 +456,16 @@ const createShape = (shapeName) => {
 				}
 			});
 			maintext.on('dragstart', () => {
-				stageRef.value.getNode().container().style.cursor = 'grabbing';
+				stage.container().style.cursor = 'grabbing';
 			});
 			maintext.on('dragend', () => {
-				stageRef.value.getNode().container().style.cursor = 'default';
+				stage.container().style.cursor = 'default';
 			});
 			maintext.on('mouseenter', () => {
-				stageRef.value.getNode().container().style.cursor = 'grab';
+				stage.container().style.cursor = 'grab';
 			});
 			maintext.on('mouseleave', () => {
-				stageRef.value.getNode().container().style.cursor = 'default';
+				stage.container().style.cursor = 'default';
 			});
 			maintext.on("dblclick", (e) => {
 				e.evt.stopPropagation();
@@ -2460,6 +2460,43 @@ const handleStageResize = () => {
 	if (layer) layer.batchDraw();
 };
 
+const applyListenerText = (maintext, previewtext) => {
+	const stage = stageRef.value.getNode();
+	maintext.on('dragstart', () => {
+		stage.container().style.cursor = 'grabbing';
+	});
+	maintext.on('dragend', () => {
+		stage.container().style.cursor = 'default';
+	});
+	maintext.on('mouseenter', () => {
+		stage.container().style.cursor = 'grab';
+	});
+	maintext.on('mouseleave', () => {
+		stage.container().style.cursor = 'default';
+	});
+	maintext.on("dblclick", (e) => {
+		e.evt.stopPropagation();
+		handleTextClick(e.target);
+	})
+	previewtext.on('dragmove', () => {
+		maintext.position(previewtext.position());
+		layerRef.value.getNode().batchDraw();
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "shape-drag",
+				shapeType: "text",
+				newpos: previewtext.position(),
+				id: previewtext.id(),
+			}));
+		}
+	});
+	previewtext.on('dblclick', (e) => {
+		e.evt.stopPropagation();
+		handleTextClick(maintext);
+		document.getElementById("textarea").remove()
+	});
+}
+
 const applyStateToLayer = async (data) => {
 	if (!data) return;
 	const layer = layerRef.value?.getNode();
@@ -2502,11 +2539,14 @@ const applyStateToLayer = async (data) => {
 				};
 				img.src = shapeJson.attrs.src;
 			}
+		} else if (mainShape.className === 'Text') {
+			texts.push(mainShape.id())
+			applyListenerText(mainShape, previewShape)
 		}
+		previewLayer.batchDraw();
+		layer.batchDraw();
 	});
-	previewLayer.batchDraw();
-	layer.batchDraw();
-};
+}
 
 const get_details_and_load = async () => {
 	try {
