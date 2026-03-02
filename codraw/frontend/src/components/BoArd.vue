@@ -1822,18 +1822,13 @@ const save_definetely = async () => {
 			message.value = "The description length is to large, must be at most 100 characters."
 		}
 		const formData = new FormData();
+		const previewBlob = dataURLtoBlob(getPreviewPicture());
 		formData.append("project", room.value);
 		formData.append("title", title.value);
 		formData.append("description", description.value);
-		formData.append(
-			"payload",
-			JSON.stringify([{
-				id: Date.now(),
-				image: stageRef.value.getStage().toJSON()
-			}])
-		);
+		formData.append("payload", JSON.stringify(stageRef.value.getStage().toJSON()));
 		formData.append("bg", background.value);
-		formData.append("preview", getPreviewPicture());
+		formData.append("preview", previewBlob, `${room.value}.webp`);
 		formData.append("type", type.value);
 		const data = await fetch(`${BASE_URL}/codraw/save_new`, {
 			method: "POST",
