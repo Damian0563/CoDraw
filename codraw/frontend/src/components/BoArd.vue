@@ -31,7 +31,7 @@
 				</div>
 			</div>
 		</Transition>
-		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 800 }" style="
+		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 850 }" style="
 				position: absolute;
 				top: 12px;
 				left: 3%;
@@ -87,19 +87,32 @@
 						src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png"
 						alt="shapes" />
 				</div>
-				<div v-if="showShapeSelector" style="
-					position: absolute;
-					top: 100%;
-					left: 0;
-					margin-top: 18px;
-					background: #23272f;
-					border-radius: 12px;
-					padding: 12px;
-					display: flex;
-					gap: 12px;
-					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-					z-index: 20;
-				">
+				<div v-if="showShapeSelector" :style="windowWidth < 850 ? {
+					position: 'absolute',
+					top: 0,
+					left: '100%',
+					marginLeft: '18px',
+					background: '#23272f',
+					borderRadius: '12px',
+					padding: '12px',
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '12px',
+					boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+					zIndex: 20,
+				} : {
+					position: 'absolute',
+					top: '100%',
+					left: 0,
+					marginTop: '18px',
+					background: '#23272f',
+					borderRadius: '12px',
+					padding: '12px',
+					display: 'flex',
+					gap: '12px',
+					boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+					zIndex: 20,
+				}">
 					<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
 						@click="createShape('text')"></font-awesome-icon>
 					<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
@@ -1143,6 +1156,8 @@ const handleStageClick = (e) => {
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
+	showShapeSelector.value = false
+	showMoreMenu.value = false
 	finishTextEditing();
 	disableTransformers();
 }
@@ -2607,15 +2622,6 @@ const initializeBoard = async () => {
 	}
 }
 
-const handleClickOutside = (event) => {
-	if (showMoreMenu.value && moreMenuRef.value && !moreMenuRef.value.contains(event.target)) {
-		showMoreMenu.value = false
-	}
-	if (showShapeSelector.value && shapeMenuRef.value && !shapeMenuRef.value.contains(event.target)) {
-		showShapeSelector.value = false
-	}
-}
-
 onMounted(async () => {
 	loading.value = true
 	await nextTick();
@@ -2631,7 +2637,6 @@ onMounted(async () => {
 	window.addEventListener('keydown', keyhandler)
 	window.addEventListener('resize', handleStageResize);
 	window.addEventListener('paste', handlePaste)
-	document.addEventListener('click', handleClickOutside)
 	const inputElement = document.getElementById("upload");
 	inputElement.addEventListener("change", handleFiles);
 	loading.value = false
@@ -2644,7 +2649,6 @@ onBeforeUnmount(() => {
 })
 onUnmounted(() => {
 	clearInterval(autosaveInterval)
-	document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -2671,7 +2675,7 @@ body {
 	gap: 20px;
 }
 
-@media(max-width:800px) {
+@media(max-width:850px) {
 	#toolbar {
 		justify-content: center;
 		flex-direction: column;
