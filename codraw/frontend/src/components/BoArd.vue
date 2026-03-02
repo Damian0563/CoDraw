@@ -387,9 +387,7 @@ const history_index = ref(0)
 const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const showMoreMenu = ref(false)
-const moreMenuRef = ref(null)
 const showShapeSelector = ref(false)
-const shapeMenuRef = ref(null)
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if (MODE === 'demo') {
@@ -402,11 +400,16 @@ const deleteButtons = []
 
 const createShape = (shapeName) => {
 	const fill = color.value
+	const stage = stageRef.value.getNode()
+	const visibleWidth = window.innerWidth / stage.scaleX()
+	const visibleHeight = window.innerHeight / stage.scaleY()
+	const new_x = (-stage.x() / stage.scaleX()) + visibleWidth / 2
+	const new_y = (-stage.y() / stage.scaleY()) + visibleHeight / 2
 	switch (shapeName) {
 		case 'text': {
 			const maintext = new Konva.Text({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: uuidv4(),
 				width: 220,
 				height: 80,
@@ -424,8 +427,8 @@ const createShape = (shapeName) => {
 			maintext.setAttr('originalWidth', 220);
 			maintext.setAttr('originalHeight', 80);
 			const previewtext = new Konva.Text({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: maintext.id(),
 				width: 220,
 				height: 80,
@@ -506,12 +509,13 @@ const createShape = (shapeName) => {
 					verticalAlign: maintext.verticalAlign()
 				}));
 			}
+			handleTextClick(maintext);
 			break;
 		}
 		case 'arrow': {
 			const arrow = new Konva.Arrow({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: uuidv4(),
 				points: [200, 200, 0, 0],
 				stroke: fill,
@@ -522,8 +526,8 @@ const createShape = (shapeName) => {
 				draggable: true,
 			});
 			const previewArrow = new Konva.Arrow({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: arrow.id(),
 				points: [200, 200, 0, 0],
 				stroke: fill,
@@ -580,8 +584,8 @@ const createShape = (shapeName) => {
 		}
 		case 'circle': {
 			const circle = new Konva.Circle({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: uuidv4(),
 				radius: 100,
 				fill: fill,
@@ -590,8 +594,8 @@ const createShape = (shapeName) => {
 				draggable: true,
 			});
 			const previewCircle = new Konva.Circle({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: circle.id(),
 				radius: 100,
 				fill: fill,
@@ -644,8 +648,8 @@ const createShape = (shapeName) => {
 		}
 		case 'square': {
 			const square = new Konva.Rect({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: uuidv4(),
 				width: 100,
 				height: 100,
@@ -655,8 +659,8 @@ const createShape = (shapeName) => {
 				draggable: true,
 			});
 			const previewSquare = new Konva.Rect({
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2,
+				x: new_x,
+				y: new_y,
 				id: square.id(),
 				width: 100,
 				height: 100,
