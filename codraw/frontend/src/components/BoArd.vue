@@ -388,6 +388,8 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const showMoreMenu = ref(false)
 const showShapeSelector = ref(false)
+const customMouse = ref(false)
+let textInitialPos = null;
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if (MODE === 'demo') {
@@ -407,109 +409,9 @@ const createShape = (shapeName) => {
 	const new_y = (-stage.y() / stage.scaleY()) + visibleHeight / 2
 	switch (shapeName) {
 		case 'text': {
-			const maintext = new Konva.Text({
-				x: new_x,
-				y: new_y,
-				id: uuidv4(),
-				width: 220,
-				height: 80,
-				fill: fill,
-				fontSize: 32,
-				fontFamily: 'Caveat',
-				text: 'Write text here',
-				align: 'center',
-				verticalAlign: 'middle',
-				draggable: true,
-				name: 'mainText',
-			});
-			texts.push(maintext.id())
-			maintext.setAttr('originalFontSize', 32);
-			maintext.setAttr('originalWidth', 220);
-			maintext.setAttr('originalHeight', 80);
-			const previewtext = new Konva.Text({
-				x: new_x,
-				y: new_y,
-				id: maintext.id(),
-				width: 220,
-				height: 80,
-				fill: fill,
-				fontSize: 32,
-				fontFamily: 'Caveat',
-				text: 'Write text here',
-				align: 'center',
-				verticalAlign: 'middle',
-				draggable: true,
-			});
-			previewtext.setAttr('originalFontSize', 32);
-			previewtext.setAttr('originalWidth', 220);
-			previewtext.setAttr('originalHeight', 80);
-			maintext.on('dragmove', () => {
-				previewtext.position(maintext.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "text",
-						newpos: maintext.position(),
-						id: maintext.id(),
-					}));
-				}
-			});
-			maintext.on('dragstart', () => {
-				stage.container().style.cursor = 'grabbing';
-			});
-			maintext.on('dragend', () => {
-				stage.container().style.cursor = 'default';
-			});
-			maintext.on('mouseenter', () => {
-				stage.container().style.cursor = 'grab';
-			});
-			maintext.on('mouseleave', () => {
-				stage.container().style.cursor = 'default';
-			});
-			maintext.on("dblclick", (e) => {
-				e.evt.stopPropagation();
-				handleTextClick(e.target);
-			})
-			previewtext.on('dragmove', () => {
-				maintext.position(previewtext.position());
-				layerRef.value.getNode().batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "text",
-						newpos: previewtext.position(),
-						id: previewtext.id(),
-					}));
-				}
-			});
-			previewtext.on('dblclick', (e) => {
-				e.evt.stopPropagation();
-				handleTextClick(maintext);
-				document.getElementById("textarea").remove()
-			});
-			layerRef.value.getNode().add(maintext);
-			previewLayer.add(previewtext);
-			previewtext.moveToTop();
-			maintext.moveToTop();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape",
-					shapeType: "text",
-					id: maintext.id(),
-					x: maintext.x(),
-					y: maintext.y(),
-					width: maintext.width(),
-					height: maintext.height(),
-					fill: maintext.fill(),
-					text: maintext.text(),
-					fontSize: maintext.fontSize(),
-					fontFamily: maintext.fontFamily(),
-					align: maintext.align(),
-					verticalAlign: maintext.verticalAlign()
-				}));
-			}
-			handleTextClick(maintext);
+			customMouse.value = true;
+			const stage = stageRef.value.getNode();
+			stage.container().style.cursor = 'context-menu';
 			break;
 		}
 		case 'arrow': {
@@ -2284,6 +2186,10 @@ const imageConfig = {
 let lastCenter = null;
 let lastDist = 0;
 const handleMouseDown = (e) => {
+	if (customMouse.value) {
+		textInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
+		return;
+	}
 	if (!e.evt.touches || e.evt.touches.length == 1) {
 		const stage = e.target.getStage();
 		if (e.evt.button === 2 || paneToggler.value) {
@@ -2359,6 +2265,125 @@ const handleMouseDown = (e) => {
 };
 
 const handleMouseUp = (e) => {
+	if (customMouse.value && textInitialPos) {
+		const stage = stageRef.value.getNode();
+		const last_x = e.evt.clientX;
+		const last_y = e.evt.clientY;
+		const width = Math.abs(last_x - textInitialPos.x);
+		const height = Math.abs(last_y - textInitialPos.y);
+		const fill = color.value;
+		const maintext = new Konva.Text({
+			x: textInitialPos.x,
+			y: textInitialPos.y,
+			id: uuidv4(),
+			width: Math.max(width, 50),
+			height: Math.max(height, 30),
+			fill: fill,
+			fontSize: 32,
+			fontFamily: 'Caveat',
+			text: 'Write text here',
+			align: 'center',
+			verticalAlign: 'middle',
+			draggable: true,
+			name: 'mainText',
+		});
+		texts.push(maintext.id());
+		maintext.setAttr('originalFontSize', 32);
+		maintext.setAttr('originalWidth', 220);
+		maintext.setAttr('originalHeight', 80);
+		const visibleWidth = window.innerWidth / stage.scaleX();
+		const visibleHeight = window.innerHeight / stage.scaleY();
+		const new_x = (-stage.x() / stage.scaleX()) + visibleWidth / 2;
+		const new_y = (-stage.y() / stage.scaleY()) + visibleHeight / 2;
+		const previewtext = new Konva.Text({
+			x: new_x,
+			y: new_y,
+			id: maintext.id(),
+			width: 220,
+			height: 80,
+			fill: fill,
+			fontSize: 32,
+			fontFamily: 'Caveat',
+			text: 'Write text here',
+			align: 'center',
+			verticalAlign: 'middle',
+			draggable: true,
+		});
+		previewtext.setAttr('originalFontSize', 32);
+		previewtext.setAttr('originalWidth', 220);
+		previewtext.setAttr('originalHeight', 80);
+		maintext.on('dragmove', () => {
+			previewtext.position(maintext.position());
+			previewLayer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "text",
+					newpos: maintext.position(),
+					id: maintext.id(),
+				}));
+			}
+		});
+		maintext.on('dragstart', () => {
+			stage.container().style.cursor = 'grabbing';
+		});
+		maintext.on('dragend', () => {
+			stage.container().style.cursor = 'default';
+		});
+		maintext.on('mouseenter', () => {
+			stage.container().style.cursor = 'grab';
+		});
+		maintext.on('mouseleave', () => {
+			stage.container().style.cursor = 'default';
+		});
+		maintext.on("dblclick", (ev) => {
+			ev.evt.stopPropagation();
+			handleTextClick(maintext);
+		});
+		previewtext.on('dragmove', () => {
+			maintext.position(previewtext.position());
+			layerRef.value.getNode().batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "text",
+					newpos: previewtext.position(),
+					id: previewtext.id(),
+				}));
+			}
+		});
+		previewtext.on('dblclick', (ev) => {
+			ev.evt.stopPropagation();
+			handleTextClick(maintext);
+			document.getElementById("textarea").remove();
+		});
+		layerRef.value.getNode().add(maintext);
+		previewLayer.add(previewtext);
+		previewtext.moveToTop();
+		maintext.moveToTop();
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "shape",
+				shapeType: "text",
+				id: maintext.id(),
+				x: maintext.x(),
+				y: maintext.y(),
+				width: maintext.width(),
+				height: maintext.height(),
+				fill: maintext.fill(),
+				text: maintext.text(),
+				fontSize: maintext.fontSize(),
+				fontFamily: maintext.fontFamily(),
+				align: maintext.align(),
+				verticalAlign: maintext.verticalAlign()
+			}));
+		}
+		customMouse.value = false;
+		textInitialPos = null;
+		stage.container().style.cursor = 'default';
+		handleTextClick(maintext);
+		return;
+	}
 	isDrawing.value = false;
 	currentLine.value = null;
 	lastDist = 0;
