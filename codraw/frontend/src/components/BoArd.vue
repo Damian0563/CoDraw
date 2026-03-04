@@ -505,9 +505,17 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
+			layerRef.value.getNode().add(circle);
+			previewLayer.add(previewCircle);
+			circle.moveToTop();
+			previewCircle.moveToTop();
+			const layer = layerRef.value.getNode();
+			const circleTr = handleTransformerPop(circle)
+			const { updatePosition: updateCircleDeletePosition } = createCircleDeleteGroup(circle, circleTr)
 			circle.on('dragmove', () => {
 				previewCircle.position(circle.position());
 				previewLayer.batchDraw();
+				updateCircleDeletePosition();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
@@ -520,6 +528,7 @@ const createShape = (shapeName) => {
 			previewCircle.on('dragmove', () => {
 				circle.position(previewCircle.position());
 				layerRef.value.getNode().batchDraw();
+				updateCircleDeletePosition();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
@@ -529,10 +538,48 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
-			layerRef.value.getNode().add(circle);
-			previewLayer.add(previewCircle);
-			circle.moveToTop();
-			previewCircle.moveToTop();
+			let circleDeleteHidden = false;
+			circleTr.on('transformstart', () => {
+				if (!circleDeleteHidden) {
+					const deleteBtn = deleteButtons.find(b => b.name() === `delete-${circle.id()}`);
+					if (deleteBtn) {
+						deleteBtn.destroy();
+						const idx = deleteButtons.indexOf(deleteBtn);
+						if (idx > -1) deleteButtons.splice(idx, 1);
+					}
+					circleDeleteHidden = true;
+				}
+			});
+			circleTr.on('transform', () => {
+				updateCircleDeletePosition();
+				layer.batchDraw();
+				const previewCircleToResize = previewLayer.findOne(`#${circle.id()}`);
+				if (previewCircleToResize) {
+					previewCircleToResize.x(circle.x());
+					previewCircleToResize.y(circle.y());
+					previewCircleToResize.radius(circle.radius() * circle.scaleX());
+					previewCircleToResize.scaleX(1);
+					previewCircleToResize.scaleY(1);
+					previewLayer.batchDraw();
+				}
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-resize",
+						shapeType: "circle",
+						id: circle.id(),
+						x: circle.x(),
+						y: circle.y(),
+						radius: circle.radius() * circle.scaleX(),
+					}));
+				}
+			});
+			circle.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				e.evt.preventDefault();
+				disableTransformers();
+				const newCircleTr = handleTransformerPop(circle)
+				createCircleDeleteGroup(circle, newCircleTr)
+			});
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
 					type: "shape",
@@ -571,9 +618,18 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
+			layerRef.value.getNode().add(square);
+			previewLayer.add(previewSquare);
+			square.moveToTop();
+			previewSquare.moveToTop();
+			const layer = layerRef.value.getNode();
+			const squareTr = handleTransformerPop(square)
+			const { updatePosition: updateSquareDeletePosition } = createSquareDeleteGroup(square, squareTr)
+
 			square.on('dragmove', () => {
 				previewSquare.position(square.position());
 				previewLayer.batchDraw();
+				updateSquareDeletePosition();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
@@ -586,11 +642,54 @@ const createShape = (shapeName) => {
 			previewSquare.on('dragmove', () => {
 				square.position(previewSquare.position());
 				layerRef.value.getNode().batchDraw();
+				updateSquareDeletePosition();
 			});
-			layerRef.value.getNode().add(square);
-			previewLayer.add(previewSquare);
-			square.moveToTop();
-			previewSquare.moveToTop();
+
+			let squareDeleteHidden = false;
+			squareTr.on('transformstart', () => {
+				if (!squareDeleteHidden) {
+					const deleteBtn = deleteButtons.find(b => b.name() === `delete-${square.id()}`);
+					if (deleteBtn) {
+						deleteBtn.destroy();
+						const idx = deleteButtons.indexOf(deleteBtn);
+						if (idx > -1) deleteButtons.splice(idx, 1);
+					}
+					squareDeleteHidden = true;
+				}
+			});
+
+			squareTr.on('transform', () => {
+				updateSquareDeletePosition();
+				layer.batchDraw();
+				const previewSquareToResize = previewLayer.findOne(`#${square.id()}`);
+				if (previewSquareToResize) {
+					previewSquareToResize.x(square.x());
+					previewSquareToResize.y(square.y());
+					previewSquareToResize.width(square.width() * square.scaleX());
+					previewSquareToResize.height(square.height() * square.scaleY());
+					previewSquareToResize.scaleX(1);
+					previewSquareToResize.scaleY(1);
+					previewLayer.batchDraw();
+				}
+				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+					ws.value.send(JSON.stringify({
+						type: "shape-resize",
+						shapeType: "square",
+						id: square.id(),
+						x: square.x(),
+						y: square.y(),
+						width: square.width() * square.scaleX(),
+						height: square.height() * square.scaleY(),
+					}));
+				}
+			});
+			square.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				e.evt.preventDefault();
+				disableTransformers();
+				const newSquareTr = handleTransformerPop(square)
+				createSquareDeleteGroup(square, newSquareTr)
+			});
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
 					type: "shape",
@@ -613,12 +712,12 @@ const createShape = (shapeName) => {
 	showShapeSelector.value = false
 }
 
-const handleTextClick = (konvaText) => {
+const handleTransformerPop = (node) => {
 	const layer = layerRef.value.getNode();
-	if (!layer || !konvaText) return;
-	konvaText.draggable(false);
+	if (!layer || !node) return;
+	node.draggable(false);
 	const tr = new Konva.Transformer({
-		nodes: [konvaText],
+		nodes: [node],
 		borderStroke: "#ffc107",
 		borderDash: [5, 5],
 		borderStrokeWidth: 1,
@@ -637,8 +736,274 @@ const handleTextClick = (konvaText) => {
 		},
 	});
 	layer.add(tr);
-	layer.batchDraw();
 	transformers.push(tr);
+	layer.batchDraw();
+	return tr
+}
+
+const createCircleDeleteGroup = (circle, transformer) => {
+	const layer = layerRef.value.getNode();
+	const getCircleDeletePos = () => {
+		const scaleX = circle.scaleX() || 1;
+		return { x: circle.x() + circle.radius() * scaleX - 15, y: circle.y() - circle.radius() * scaleX - 15 };
+	};
+	const circleDeletePos = getCircleDeletePos();
+	const circleDeleteGroup = new Konva.Group({
+		name: `delete-${circle.id()}`,
+		x: circleDeletePos.x,
+		y: circleDeletePos.y,
+		opacity: 0,
+		listening: true
+	});
+	const circleDeleteCircle = new Konva.Circle({
+		radius: 12,
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
+	});
+	const circleDeleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
+		y: -8
+	});
+	circleDeleteGroup.add(circleDeleteCircle);
+	circleDeleteGroup.add(circleDeleteIcon);
+	circleDeleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteShape(circle, transformer, circleDeleteGroup, null);
+	});
+	circleDeleteGroup.on('mouseenter', () => {
+		circleDeleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
+		layer.batchDraw();
+	});
+	circleDeleteGroup.on('mouseleave', () => {
+		circleDeleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
+		layer.batchDraw();
+	});
+	deleteButtons.push(circleDeleteGroup);
+	layer.add(circleDeleteGroup);
+	circleDeleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	const updateCircleDeletePosition = () => {
+		const pos = getCircleDeletePos();
+		circleDeleteGroup.x(pos.x);
+		circleDeleteGroup.y(pos.y);
+	};
+	return { deleteGroup: circleDeleteGroup, updatePosition: updateCircleDeletePosition };
+}
+
+const createSquareDeleteGroup = (square, transformer) => {
+	const layer = layerRef.value.getNode();
+	const getSquareDeletePos = () => {
+		const scaleX = square.scaleX() || 1;
+		return { x: square.x() + square.width() * scaleX - 15, y: square.y() - 15 };
+	};
+	const squareDeletePos = getSquareDeletePos();
+	const squareDeleteGroup = new Konva.Group({
+		name: `delete-${square.id()}`,
+		x: squareDeletePos.x,
+		y: squareDeletePos.y,
+		opacity: 0,
+		listening: true
+	});
+	const squareDeleteCircle = new Konva.Circle({
+		radius: 12,
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
+	});
+	const squareDeleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
+		y: -8
+	});
+	squareDeleteGroup.add(squareDeleteCircle);
+	squareDeleteGroup.add(squareDeleteIcon);
+	squareDeleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteShape(square, transformer, squareDeleteGroup, null);
+	});
+	squareDeleteGroup.on('mouseenter', () => {
+		squareDeleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
+		layer.batchDraw();
+	});
+	squareDeleteGroup.on('mouseleave', () => {
+		squareDeleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
+		layer.batchDraw();
+	});
+	deleteButtons.push(squareDeleteGroup);
+	layer.add(squareDeleteGroup);
+	squareDeleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	const updateSquareDeletePosition = () => {
+		const pos = getSquareDeletePos();
+		squareDeleteGroup.x(pos.x);
+		squareDeleteGroup.y(pos.y);
+	};
+	return { deleteGroup: squareDeleteGroup, updatePosition: updateSquareDeletePosition };
+}
+
+const createTextDeleteGroup = (konvaText, transformer) => {
+	const layer = layerRef.value.getNode();
+	const getTextDeletePos = () => {
+		const scaleX = konvaText.scaleX() || 1;
+		return { x: konvaText.x() + konvaText.width() * scaleX - 15, y: konvaText.y() - 15 };
+	};
+	const initialPos = getTextDeletePos();
+	const deleteGroup = new Konva.Group({
+		name: `delete-${konvaText.id()}`,
+		x: initialPos.x,
+		y: initialPos.y,
+		opacity: 0,
+		listening: true
+	});
+	const deleteCircle = new Konva.Circle({
+		radius: 12,
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
+	});
+	const deleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
+		y: -8
+	});
+	deleteGroup.add(deleteCircle);
+	deleteGroup.add(deleteIcon);
+	deleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteImage(konvaText, transformer, deleteGroup);
+	});
+	deleteGroup.on('mouseenter', () => {
+		deleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
+		layer.batchDraw();
+	});
+	deleteGroup.on('mouseleave', () => {
+		deleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
+		layer.batchDraw();
+	});
+	deleteButtons.push(deleteGroup);
+	layer.add(deleteGroup);
+	deleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	const updateTextDeletePosition = () => {
+		const pos = getTextDeletePos();
+		deleteGroup.x(pos.x);
+		deleteGroup.y(pos.y);
+	};
+	return { deleteGroup, updatePosition: updateTextDeletePosition };
+}
+
+const createImageDeleteGroup = (konvaImg, transformer) => {
+	const layer = layerRef.value.getNode();
+	const getImageDeletePos = () => {
+		const scaleX = konvaImg.scaleX() || 1;
+		return { x: konvaImg.x() + konvaImg.width() * scaleX - 15, y: konvaImg.y() - 15 };
+	};
+	const initialPos = getImageDeletePos();
+	const deleteGroup = new Konva.Group({
+		name: `delete-${konvaImg.id()}`,
+		x: initialPos.x,
+		y: initialPos.y,
+		opacity: 0,
+		listening: true
+	});
+	const deleteCircle = new Konva.Circle({
+		radius: 14,
+		fill: '#dc3545',
+		stroke: '#ffffff',
+		strokeWidth: 2,
+		shadowColor: '#000',
+		shadowBlur: 6,
+		shadowOffset: { x: 0, y: 2 },
+		shadowOpacity: 0.3
+	});
+	const deleteIcon = new Konva.Path({
+		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+		stroke: '#fff',
+		strokeWidth: 2,
+		strokeLineCap: 'round',
+		strokeLineJoin: 'round',
+		scaleX: 0.8,
+		scaleY: 0.8,
+		x: -8,
+		y: -8
+	});
+	deleteGroup.add(deleteCircle);
+	deleteGroup.add(deleteIcon);
+	deleteGroup.on('click', (e) => {
+		e.evt.stopPropagation();
+		deleteImage(konvaImg, transformer, deleteGroup);
+	});
+	deleteGroup.on('mouseenter', () => {
+		deleteCircle.fill('#c82333');
+		stageRef.value.getNode().container().style.cursor = 'pointer';
+		layer.batchDraw();
+	});
+	deleteGroup.on('mouseleave', () => {
+		deleteCircle.fill('#dc3545');
+		stageRef.value.getNode().container().style.cursor = 'default';
+		layer.batchDraw();
+	});
+	deleteButtons.push(deleteGroup);
+	layer.add(deleteGroup);
+	deleteGroup.to({
+		opacity: 1,
+		duration: 0.2
+	});
+	const updateImageDeletePosition = () => {
+		const pos = getImageDeletePos();
+		deleteGroup.x(pos.x);
+		deleteGroup.y(pos.y);
+	};
+	return { deleteGroup, updatePosition: updateImageDeletePosition };
+}
+
+const handleTextClick = (konvaText) => {
+	const layer = layerRef.value.getNode();
+	const tr = handleTransformerPop(konvaText)
 	konvaText.hide();
 	const stage = stageRef.value.getNode();
 	const textPosition = konvaText.getAbsolutePosition();
@@ -724,65 +1089,7 @@ const handleTextClick = (konvaText) => {
 			tempTextForCursor.destroy();
 		});
 	});
-	const getDeleteButtonPos = () => {
-		const scaleX = konvaText.scaleX() || 1;
-		return { x: konvaText.x() + konvaText.width() * scaleX - 15, y: konvaText.y() - 15 };
-	};
-	const initialPos = getDeleteButtonPos();
-	const deleteGroup = new Konva.Group({
-		x: initialPos.x,
-		y: initialPos.y,
-		opacity: 0,
-		listening: true
-	});
-	const deleteCircle = new Konva.Circle({
-		radius: 12,
-		fill: '#dc3545',
-		stroke: '#ffffff',
-		strokeWidth: 2,
-		shadowColor: '#000',
-		shadowBlur: 6,
-		shadowOffset: { x: 0, y: 2 },
-		shadowOpacity: 0.3
-	});
-	const deleteIcon = new Konva.Path({
-		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
-		stroke: '#fff',
-		strokeWidth: 2,
-		strokeLineCap: 'round',
-		strokeLineJoin: 'round',
-		scaleX: 0.8,
-		scaleY: 0.8,
-		x: -8,
-		y: -8
-	});
-	deleteGroup.add(deleteCircle);
-	deleteGroup.add(deleteIcon);
-	deleteGroup.on('click', (e) => {
-		e.evt.stopPropagation();
-		deleteImage(konvaText, tr, deleteGroup);
-	});
-	deleteGroup.on('mouseenter', () => {
-		deleteCircle.fill('#c82333');
-		stageRef.value.getNode().container().style.cursor = 'pointer';
-		layer.batchDraw();
-	});
-	deleteGroup.on('mouseleave', () => {
-		deleteCircle.fill('#dc3545');
-		stageRef.value.getNode().container().style.cursor = 'default';
-		layer.batchDraw();
-	});
-	deleteButtons.push(deleteGroup);
-	layer.add(deleteGroup);
-	deleteGroup.to({
-		opacity: 1,
-		duration: 0.2
-	});
-	const updateDeleteButtonPosition = () => {
-		const pos = getDeleteButtonPos();
-		deleteGroup.x(pos.x);
-		deleteGroup.y(pos.y);
-	};
+	const { updatePosition: updateDeleteButtonPosition } = createTextDeleteGroup(konvaText, tr)
 
 	const updateTextareaPosition = () => {
 		const textarea = document.getElementById("textarea");
@@ -826,6 +1133,14 @@ const handleTextClick = (konvaText) => {
 		if (previewTextToDrag) {
 			previewTextToDrag.position(konvaText.position());
 			previewLayer.batchDraw();
+		}
+	});
+	tr.on('transformstart', () => {
+		const deleteBtn = deleteButtons.find(b => b.name() === `delete-${konvaText.id()}`);
+		if (deleteBtn) {
+			deleteBtn.destroy();
+			const idx = deleteButtons.indexOf(deleteBtn);
+			if (idx > -1) deleteButtons.splice(idx, 1);
 		}
 	});
 	tr.on('transform', () => {
@@ -895,65 +1210,16 @@ const handleDblClick = (e) => {
 	disableTransformers();
 	transformers.push(tr);
 	layer.add(tr);
-	const getDeleteButtonPos = () => {
-		const scaleX = konvaImg.scaleX() || 1;
-		return { x: konvaImg.x() + konvaImg.width() * scaleX - 15, y: konvaImg.y() - 15 };
-	};
-	const initialPos = getDeleteButtonPos();
-	const deleteGroup = new Konva.Group({
-		x: initialPos.x,
-		y: initialPos.y,
-		opacity: 0,
-		listening: true
+	const { updatePosition: updateDeleteButtonPosition } = createImageDeleteGroup(konvaImg, tr)
+
+	tr.on('transformstart', () => {
+		const deleteBtn = deleteButtons.find(b => b.name() === `delete-${konvaImg.id()}`);
+		if (deleteBtn) {
+			deleteBtn.destroy();
+			const idx = deleteButtons.indexOf(deleteBtn);
+			if (idx > -1) deleteButtons.splice(idx, 1);
+		}
 	});
-	const deleteCircle = new Konva.Circle({
-		radius: 14,
-		fill: '#dc3545',
-		stroke: '#ffffff',
-		strokeWidth: 2,
-		shadowColor: '#000',
-		shadowBlur: 6,
-		shadowOffset: { x: 0, y: 2 },
-		shadowOpacity: 0.3
-	});
-	const deleteIcon = new Konva.Path({
-		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
-		stroke: '#fff',
-		strokeWidth: 2,
-		strokeLineCap: 'round',
-		strokeLineJoin: 'round',
-		scaleX: 0.8,
-		scaleY: 0.8,
-		x: -8,
-		y: -8
-	});
-	deleteGroup.add(deleteCircle);
-	deleteGroup.add(deleteIcon);
-	deleteGroup.on('click', (e) => {
-		e.evt.stopPropagation();
-		deleteImage(konvaImg, tr, deleteGroup);
-	});
-	deleteGroup.on('mouseenter', () => {
-		deleteCircle.fill('#c82333');
-		stageRef.value.getNode().container().style.cursor = 'pointer';
-		layer.batchDraw();
-	});
-	deleteGroup.on('mouseleave', () => {
-		deleteCircle.fill('#dc3545');
-		stageRef.value.getNode().container().style.cursor = 'default';
-		layer.batchDraw();
-	});
-	deleteButtons.push(deleteGroup);
-	layer.add(deleteGroup);
-	deleteGroup.to({
-		opacity: 1,
-		duration: 0.2
-	});
-	const updateDeleteButtonPosition = () => {
-		const pos = getDeleteButtonPos();
-		deleteGroup.x(pos.x);
-		deleteGroup.y(pos.y);
-	};
 
 	tr.on('transform', () => {
 		updateDeleteButtonPosition();
@@ -1018,8 +1284,47 @@ const deleteImage = (imageNode, transformer, deleteBtn) => {
 	addToHistory();
 }
 
+const deleteShape = (shapeNode, transformer, deleteBtn, previewShape) => {
+	const layer = layerRef.value.getNode();
+	if (!layer) return;
+	const shapeId = shapeNode.id();
+	shapeNode.destroy();
+	if (transformer) {
+		transformer.destroy();
+	}
+	if (deleteBtn) {
+		deleteBtn.destroy();
+	}
+	const trIndex = transformers.indexOf(transformer);
+	if (trIndex > -1) {
+		transformers.splice(trIndex, 1);
+	}
+	const btnIndex = deleteButtons.indexOf(deleteBtn);
+	if (btnIndex > -1) {
+		deleteButtons.splice(btnIndex, 1);
+	}
+	layer.batchDraw();
+	if (previewShape) {
+		previewShape.destroy();
+		previewLayer.batchDraw();
+	}
+	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+		ws.value.send(JSON.stringify({
+			type: "shape-delete",
+			id: shapeId
+		}));
+	}
+	addToHistory();
+}
+
 const disableTransformers = () => {
 	for (const transformer of transformers) {
+		const nodes = transformer.nodes();
+		for (const node of nodes) {
+			if (node.className === 'Circle' || node.className === 'Rect') {
+				node.draggable(true);
+			}
+		}
 		transformer.destroy();
 	}
 	for (const btn of deleteButtons) {
@@ -1576,6 +1881,71 @@ ws.value.onmessage = async (event) => {
 		}
 		if (previewShape) {
 			previewShape.text(data.text);
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "shape-resize" && data.shapeType && data.id) {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.x(data.x);
+			shape.y(data.y);
+			if (data.shapeType === 'circle' && data.radius) {
+				shape.radius(data.radius);
+			} else if (data.shapeType === 'square' && data.width && data.height) {
+				shape.width(data.width);
+				shape.height(data.height);
+			}
+			shape.scaleX(1);
+			shape.scaleY(1);
+			const tr = transformers.find(t => t.nodes().includes(shape));
+			if (tr) {
+				tr.forceUpdate();
+			}
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.x(data.x);
+			previewShape.y(data.y);
+			if (data.shapeType === 'circle' && data.radius) {
+				previewShape.radius(data.radius);
+			} else if (data.shapeType === 'square' && data.width && data.height) {
+				previewShape.width(data.width);
+				previewShape.height(data.height);
+			}
+			previewShape.scaleX(1);
+			previewShape.scaleY(1);
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "shape-delete" && data.id) {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			const tr = transformers.find(t => t.nodes().includes(shape));
+			if (tr) {
+				tr.destroy();
+				const trIndex = transformers.indexOf(t => t === tr);
+				if (trIndex > -1) transformers.splice(trIndex, 1);
+			}
+			const btn = deleteButtons.find(b => {
+				const btnX = b.x();
+				const btnY = b.y();
+				const shapeX = shape.x();
+				const shapeY = shape.y();
+				const shapeWidth = shape.width ? shape.width() : shape.radius() * 2;
+				return Math.abs(btnX - (shapeX + shapeWidth - 15)) < 5 && Math.abs(btnY - (shapeY - 15)) < 5;
+			});
+			if (btn) {
+				btn.destroy();
+				const btnIndex = deleteButtons.indexOf(b => b === btn);
+				if (btnIndex > -1) deleteButtons.splice(btnIndex, 1);
+			}
+			shape.destroy();
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.destroy();
 			previewLayer.batchDraw();
 		}
 	}
@@ -2418,8 +2788,8 @@ const handleMouseMove = (e) => {
 			x: initial_x,
 			y: initial_y,
 			id: "selector",
-			width: Math.abs(e.evt.clientX - initial_x),
-			height: Math.abs(e.evt.clientY - initial_y),
+			width: e.evt.clientX - initial_x,
+			height: e.evt.clientY - initial_y,
 			fill: '#ffc107',
 			stroke: motiv.value === '#000000' ? 'white' : 'black',
 			opacity: 0.5,
