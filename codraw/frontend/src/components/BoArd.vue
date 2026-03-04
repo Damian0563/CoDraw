@@ -407,6 +407,7 @@ const createShape = (shapeName) => {
 	const visibleHeight = window.innerHeight / stage.scaleY()
 	const new_x = (-stage.x() / stage.scaleX()) + visibleWidth / 2
 	const new_y = (-stage.y() / stage.scaleY()) + visibleHeight / 2
+	const layer = layerRef.value.getNode()
 	switch (shapeName) {
 		case 'text': {
 			customMouse.value = true;
@@ -463,7 +464,7 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
-			layerRef.value.getNode().add(arrow);
+			layer.add(arrow);
 			previewLayer.add(previewArrow);
 			arrow.moveToTop();
 			previewArrow.moveToTop();
@@ -505,17 +506,15 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
-			layerRef.value.getNode().add(circle);
+			layer.add(circle);
 			previewLayer.add(previewCircle);
 			circle.moveToTop();
 			previewCircle.moveToTop();
-			const layer = layerRef.value.getNode();
 			const circleTr = handleTransformerPop(circle)
-			const { updatePosition: updateCircleDeletePosition } = createCircleDeleteGroup(circle, circleTr)
+			createCircleDeleteGroup(circle, circleTr)
 			circle.on('dragmove', () => {
 				previewCircle.position(circle.position());
 				previewLayer.batchDraw();
-				updateCircleDeletePosition();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
@@ -527,49 +526,13 @@ const createShape = (shapeName) => {
 			});
 			previewCircle.on('dragmove', () => {
 				circle.position(previewCircle.position());
-				layerRef.value.getNode().batchDraw();
-				updateCircleDeletePosition();
+				layer.batchDraw();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
 						shapeType: "circle",
 						newpos: previewCircle.position(),
 						id: previewCircle.id(),
-					}));
-				}
-			});
-			let circleDeleteHidden = false;
-			circleTr.on('transformstart', () => {
-				if (!circleDeleteHidden) {
-					const deleteBtn = deleteButtons.find(b => b.name() === `delete-${circle.id()}`);
-					if (deleteBtn) {
-						deleteBtn.destroy();
-						const idx = deleteButtons.indexOf(deleteBtn);
-						if (idx > -1) deleteButtons.splice(idx, 1);
-					}
-					circleDeleteHidden = true;
-				}
-			});
-			circleTr.on('transform', () => {
-				updateCircleDeletePosition();
-				layer.batchDraw();
-				const previewCircleToResize = previewLayer.findOne(`#${circle.id()}`);
-				if (previewCircleToResize) {
-					previewCircleToResize.x(circle.x());
-					previewCircleToResize.y(circle.y());
-					previewCircleToResize.radius(circle.radius() * circle.scaleX());
-					previewCircleToResize.scaleX(1);
-					previewCircleToResize.scaleY(1);
-					previewLayer.batchDraw();
-				}
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-resize",
-						shapeType: "circle",
-						id: circle.id(),
-						x: circle.x(),
-						y: circle.y(),
-						radius: circle.radius() * circle.scaleX(),
 					}));
 				}
 			});
@@ -618,18 +581,15 @@ const createShape = (shapeName) => {
 				strokeWidth: width_slider.value,
 				draggable: true,
 			});
-			layerRef.value.getNode().add(square);
+			layer.add(square);
 			previewLayer.add(previewSquare);
 			square.moveToTop();
 			previewSquare.moveToTop();
-			const layer = layerRef.value.getNode();
-			const squareTr = handleTransformerPop(square)
-			const { updatePosition: updateSquareDeletePosition } = createSquareDeleteGroup(square, squareTr)
-
+			const tr = handleTransformerPop(square)
+			createSquareDeleteGroup(square, tr)
 			square.on('dragmove', () => {
 				previewSquare.position(square.position());
 				previewLayer.batchDraw();
-				updateSquareDeletePosition();
 				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 					ws.value.send(JSON.stringify({
 						type: "shape-drag",
@@ -641,47 +601,7 @@ const createShape = (shapeName) => {
 			});
 			previewSquare.on('dragmove', () => {
 				square.position(previewSquare.position());
-				layerRef.value.getNode().batchDraw();
-				updateSquareDeletePosition();
-			});
-
-			let squareDeleteHidden = false;
-			squareTr.on('transformstart', () => {
-				if (!squareDeleteHidden) {
-					const deleteBtn = deleteButtons.find(b => b.name() === `delete-${square.id()}`);
-					if (deleteBtn) {
-						deleteBtn.destroy();
-						const idx = deleteButtons.indexOf(deleteBtn);
-						if (idx > -1) deleteButtons.splice(idx, 1);
-					}
-					squareDeleteHidden = true;
-				}
-			});
-
-			squareTr.on('transform', () => {
-				updateSquareDeletePosition();
 				layer.batchDraw();
-				const previewSquareToResize = previewLayer.findOne(`#${square.id()}`);
-				if (previewSquareToResize) {
-					previewSquareToResize.x(square.x());
-					previewSquareToResize.y(square.y());
-					previewSquareToResize.width(square.width() * square.scaleX());
-					previewSquareToResize.height(square.height() * square.scaleY());
-					previewSquareToResize.scaleX(1);
-					previewSquareToResize.scaleY(1);
-					previewLayer.batchDraw();
-				}
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-resize",
-						shapeType: "square",
-						id: square.id(),
-						x: square.x(),
-						y: square.y(),
-						width: square.width() * square.scaleX(),
-						height: square.height() * square.scaleY(),
-					}));
-				}
 			});
 			square.on('dblclick', (e) => {
 				e.evt.stopPropagation();
@@ -735,7 +655,54 @@ const handleTransformerPop = (node) => {
 			return newBox;
 		},
 	});
-	layer.add(tr);
+	tr.on('transformstart', () => {
+		const deleteBtn = deleteButtons.find(b => b.name() === `delete-${node.id()}`);
+		if (deleteBtn) {
+			deleteBtn.destroy();
+			const idx = deleteButtons.indexOf(deleteBtn);
+			if (idx > -1) deleteButtons.splice(idx, 1);
+		}
+	})
+	if (node.className !== 'Text') {
+		tr.on('transform', () => {
+			const isCircle = node.className === 'Circle';
+			const previewShapeToResize = previewLayer.findOne(`#${node.id()}`);
+			if (previewShapeToResize) {
+				previewShapeToResize.x(node.x());
+				previewShapeToResize.y(node.y());
+				if (isCircle) {
+					previewShapeToResize.radius(node.radius() * node.scaleX());
+				} else {
+					previewShapeToResize.width(node.width() * node.scaleX());
+					previewShapeToResize.height(node.height() * node.scaleY());
+				}
+				previewShapeToResize.scaleX(1);
+				previewShapeToResize.scaleY(1);
+				previewLayer.batchDraw();
+			}
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				if (isCircle) {
+					ws.value.send(JSON.stringify({
+						type: `${node.className}-resize`,
+						id: node.id(),
+						x: node.x(),
+						y: node.y(),
+						radius: node.radius() * node.scaleX(),
+					}));
+				} else {
+					ws.value.send(JSON.stringify({
+						type: `${node.className}-resize`,
+						id: node.id(),
+						x: node.x(),
+						y: node.y(),
+						width: node.width() * node.scaleX(),
+						height: node.height() * node.scaleY(),
+					}));
+				}
+			}
+		})
+	}
+	layer.add(tr)
 	transformers.push(tr);
 	layer.batchDraw();
 	return tr
@@ -799,12 +766,6 @@ const createCircleDeleteGroup = (circle, transformer) => {
 		opacity: 1,
 		duration: 0.2
 	});
-	const updateCircleDeletePosition = () => {
-		const pos = getCircleDeletePos();
-		circleDeleteGroup.x(pos.x);
-		circleDeleteGroup.y(pos.y);
-	};
-	return { deleteGroup: circleDeleteGroup, updatePosition: updateCircleDeletePosition };
 }
 
 const createSquareDeleteGroup = (square, transformer) => {
@@ -865,12 +826,6 @@ const createSquareDeleteGroup = (square, transformer) => {
 		opacity: 1,
 		duration: 0.2
 	});
-	const updateSquareDeletePosition = () => {
-		const pos = getSquareDeletePos();
-		squareDeleteGroup.x(pos.x);
-		squareDeleteGroup.y(pos.y);
-	};
-	return { deleteGroup: squareDeleteGroup, updatePosition: updateSquareDeletePosition };
 }
 
 const createTextDeleteGroup = (konvaText, transformer) => {
@@ -1135,14 +1090,6 @@ const handleTextClick = (konvaText) => {
 		if (previewTextToDrag) {
 			previewTextToDrag.position(konvaText.position());
 			previewLayer.batchDraw();
-		}
-	});
-	tr.on('transformstart', () => {
-		const deleteBtn = deleteButtons.find(b => b.name() === `delete-${konvaText.id()}`);
-		if (deleteBtn) {
-			deleteBtn.destroy();
-			const idx = deleteButtons.indexOf(deleteBtn);
-			if (idx > -1) deleteButtons.splice(idx, 1);
 		}
 	});
 	tr.on('transform', () => {
