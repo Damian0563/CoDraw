@@ -2265,6 +2265,7 @@ const handleMouseDown = (e) => {
 };
 
 const handleMouseUp = (e) => {
+	destroySelectRect()
 	if (customMouse.value && textInitialPos) {
 		const stage = stageRef.value.getNode();
 		const last_x = e.evt.clientX;
@@ -2402,7 +2403,33 @@ const handleMouseUp = (e) => {
 	}
 };
 
+const destroySelectRect = () => {
+	const prevRect = layerRef.value.getNode().findOne('#selector')
+	if (prevRect) {
+		prevRect.destroy()
+	}
+}
+
 const handleMouseMove = (e) => {
+	if (customMouse.value && textInitialPos) {
+		const initial_x = textInitialPos.x, initial_y = textInitialPos.y
+		destroySelectRect()
+		const rect = new Konva.Rect({
+			x: initial_x,
+			y: initial_y,
+			id: "selector",
+			width: Math.abs(e.evt.clientX - initial_x),
+			height: Math.abs(e.evt.clientY - initial_y),
+			fill: '#ffc107',
+			stroke: motiv.value === '#000000' ? 'white' : 'black',
+			opacity: 0.5,
+			strokeWidth: width_slider.value,
+			draggable: false
+		});
+		layerRef.value.getNode().add(rect);
+		rect.moveToTop();
+		return
+	}
 	if (!e.evt.touches || e.evt.touches.length == 1) {
 		if (!isDrawing.value || !currentLine.value) return;
 		const stage = e.target.getStage();
