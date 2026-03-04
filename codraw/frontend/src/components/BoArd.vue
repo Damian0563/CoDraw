@@ -780,7 +780,8 @@ const createCircleDeleteGroup = (circle, transformer) => {
 	circleDeleteGroup.add(circleDeleteIcon);
 	circleDeleteGroup.on('click', (e) => {
 		e.evt.stopPropagation();
-		deleteShape(circle, transformer, circleDeleteGroup, null);
+		const previewCircle = previewLayer.findOne(`#${circle.id()}`);
+		deleteShape(circle, transformer, circleDeleteGroup, previewCircle);
 	});
 	circleDeleteGroup.on('mouseenter', () => {
 		circleDeleteCircle.fill('#c82333');
@@ -845,7 +846,8 @@ const createSquareDeleteGroup = (square, transformer) => {
 	squareDeleteGroup.add(squareDeleteIcon);
 	squareDeleteGroup.on('click', (e) => {
 		e.evt.stopPropagation();
-		deleteShape(square, transformer, squareDeleteGroup, null);
+		const previewSquare = previewLayer.findOne(`#${square.id()}`);
+		deleteShape(square, transformer, squareDeleteGroup, previewSquare);
 	});
 	squareDeleteGroup.on('mouseenter', () => {
 		squareDeleteCircle.fill('#c82333');
