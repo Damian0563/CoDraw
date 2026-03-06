@@ -399,6 +399,7 @@ const responded = ref(false)
 const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
+let autosaveInterval = null;
 
 const createShape = (shapeName) => {
 	const fill = color.value
@@ -2005,7 +2006,10 @@ const check_owner = async () => {
 
 const copyInvitationLink = async () => {
 	try {
-		const link = window.location.href;
+		let link = window.location.href;
+		if (MODE === 'demo') {
+			link = link.replace('home', 'home_inv')
+		}
 		await navigator.clipboard.writeText(link);
 		showPopup.value = true;
 		message.value = "Invitation link copied to clipboard!";
@@ -3000,8 +3004,6 @@ const keyhandler = async (event) => {
 	}
 }
 
-let autosaveInterval = null;
-
 const waitForSync = () => new Promise(resolve => {
 	const check = setInterval(() => {
 		if (responded.value) {
@@ -3036,7 +3038,10 @@ onMounted(async () => {
 	loading.value = true
 	await nextTick();
 	await check_owner();
-	if (admin.value) {
+	const searchParams = new URLSearchParams(window.location.search);
+	if (MODE === 'demo' && searchParams.get('origin') === 'home') {
+		await initializeBoard();
+	} else if (admin.value) {
 		await loadBoardData();
 		await initializeBoard();
 	} else {
