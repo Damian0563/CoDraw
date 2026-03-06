@@ -684,7 +684,7 @@ const handleTransformerPop = (node) => {
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				if (isCircle) {
 					ws.value.send(JSON.stringify({
-						type: `${node.className}-resize`,
+						type: `resize-${node.className}`,
 						id: node.id(),
 						x: node.x(),
 						y: node.y(),
@@ -692,7 +692,7 @@ const handleTransformerPop = (node) => {
 					}));
 				} else {
 					ws.value.send(JSON.stringify({
-						type: `${node.className}-resize`,
+						type: `resize-${node.className}`,
 						id: node.id(),
 						x: node.x(),
 						y: node.y(),
@@ -1117,7 +1117,7 @@ const handleTextClick = (konvaText) => {
 		}
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 			ws.value.send(JSON.stringify({
-				type: "resize-shape",
+				type: "resize-text",
 				id: konvaText.id(),
 				x: konvaText.x(),
 				y: konvaText.y(),
@@ -1708,6 +1708,13 @@ ws.value.onmessage = async (event) => {
 					}));
 				}
 			});
+			shape.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				e.evt.preventDefault();
+				disableTransformers();
+				const newCircleTr = handleTransformerPop(shape)
+				createCircleDeleteGroup(shape, newCircleTr)
+			})
 			previewShape.on('dragmove', () => {
 				shape.position(previewShape.position());
 				layer.batchDraw();
@@ -1742,6 +1749,13 @@ ws.value.onmessage = async (event) => {
 					}));
 				}
 			});
+			shape.on('dblclick', (e) => {
+				e.evt.stopPropagation();
+				e.evt.preventDefault();
+				disableTransformers();
+				const newSquareTr = handleTransformerPop(shape)
+				createSquareDeleteGroup(shape, newSquareTr)
+			})
 			previewShape.on('dragmove', () => {
 				shape.position(previewShape.position());
 				layer.batchDraw();
@@ -1778,7 +1792,7 @@ ws.value.onmessage = async (event) => {
 			previewShape.position(data.newpos);
 			previewLayer.batchDraw();
 		}
-	} else if (data.type === "resize-shape" && data.id) {
+	} else if (data.type === "resize-text" && data.id) {
 		const layer = layerRef.value.getNode();
 		const shape = layer.findOne(`#${data.id}`);
 		const previewShape = previewLayer.findOne(`#${data.id}`);
@@ -1833,36 +1847,76 @@ ws.value.onmessage = async (event) => {
 			previewShape.text(data.text);
 			previewLayer.batchDraw();
 		}
-	} else if (data.type === "shape-resize" && data.shapeType && data.id) {
+	} else if (data.type === "resize-Circle") {
 		const layer = layerRef.value.getNode();
 		const shape = layer.findOne(`#${data.id}`);
 		const previewShape = previewLayer.findOne(`#${data.id}`);
 		if (shape) {
 			shape.x(data.x);
 			shape.y(data.y);
-			if (data.shapeType === 'circle' && data.radius) {
-				shape.radius(data.radius);
-			} else if (data.shapeType === 'square' && data.width && data.height) {
-				shape.width(data.width);
-				shape.height(data.height);
-			}
+			shape.radius(data.radius);
 			shape.scaleX(1);
 			shape.scaleY(1);
 			const tr = transformers.find(t => t.nodes().includes(shape));
 			if (tr) {
 				tr.forceUpdate();
 			}
+			const btn = deleteButtons.find(b => {
+				const scaleX = shape.scaleX() || 1;
+				const btnX = b.x();
+				const btnY = b.y();
+				const shapeX = shape.x();
+				const shapeY = shape.y();
+				return Math.abs(btnX - (shapeX + shape.radius() * scaleX - 15)) < 5 && Math.abs(btnY - (shapeY - shape.radius() * scaleX - 15)) < 5;
+			});
+			if (btn) {
+				btn.x(data.x + data.radius - 15);
+				btn.y(data.y - data.radius - 15);
+			}
 			layer.batchDraw();
 		}
 		if (previewShape) {
 			previewShape.x(data.x);
 			previewShape.y(data.y);
-			if (data.shapeType === 'circle' && data.radius) {
-				previewShape.radius(data.radius);
-			} else if (data.shapeType === 'square' && data.width && data.height) {
-				previewShape.width(data.width);
-				previewShape.height(data.height);
+			previewShape.radius(data.radius);
+			previewShape.scaleX(1);
+			previewShape.scaleY(1);
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "resize-Rect") {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.x(data.x);
+			shape.y(data.y);
+			shape.width(data.width);
+			shape.height(data.height);
+			shape.scaleX(1);
+			shape.scaleY(1);
+			const tr = transformers.find(t => t.nodes().includes(shape));
+			if (tr) {
+				tr.forceUpdate();
 			}
+			const btn = deleteButtons.find(b => {
+				const scaleX = shape.scaleX() || 1;
+				const btnX = b.x();
+				const btnY = b.y();
+				const shapeX = shape.x();
+				const shapeY = shape.y();
+				return Math.abs(btnX - (shapeX + shape.width() * scaleX - 15)) < 5 && Math.abs(btnY - (shapeY - 15)) < 5;
+			});
+			if (btn) {
+				btn.x(data.x + data.width - 15);
+				btn.y(data.y - 15);
+			}
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.x(data.x);
+			previewShape.y(data.y);
+			previewShape.width(data.width);
+			previewShape.height(data.height);
 			previewShape.scaleX(1);
 			previewShape.scaleY(1);
 			previewLayer.batchDraw();
