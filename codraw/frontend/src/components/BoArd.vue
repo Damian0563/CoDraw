@@ -1580,9 +1580,9 @@ ws.value.onmessage = async (event) => {
 	} else if (data.type === "history_update" && data.history) {
 		stroke_history.value = data.history
 		history_index.value = data.index
-	} else if (data.type === "undo") {
+	} else if (data.type === "undo" && (!data.actionId || data.actionId !== lastBroadcastId.value)) {
 		await undo();
-	} else if (data.type === "redo") redo();
+	} else if (data.type === "redo" && (!data.actionId || data.actionId !== lastBroadcastId.value)) redo();
 	else if (data.type === "sync-request") {
 		autosave()
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -2192,9 +2192,16 @@ function addToHistory() {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
 	const children = layer.children || [];
-	const lastChild = children[children.length - 1];
-	if (!lastChild) return;
-	const childConfig = lastChild.toJSON();
+	const shapeTypes = ['Circle', 'Rect', 'Arrow', 'Text', 'Line', 'Image'];
+	let lastShape = null;
+	for (let i = children.length - 1; i >= 0; i--) {
+		if (shapeTypes.includes(children[i].className)) {
+			lastShape = children[i];
+			break;
+		}
+	}
+	if (!lastShape) return;
+	const childConfig = lastShape.toJSON();
 	if (history_index.value < stroke_history.value.length - 1) {
 		stroke_history.value = stroke_history.value.slice(0, history_index.value + 1);
 	}
@@ -2217,11 +2224,20 @@ const undo = async () => {
 	if (history_index.value < 0) return;
 	const layer = layerRef.value.getNode();
 	const children = layer.children || [];
-	const lastChild = children[children.length - 1];
-	if (lastChild) lastChild.destroy();
-	const previewChildren = previewLayer.children || [];
-	const lastPreviewChild = previewChildren[previewChildren.length - 1];
-	if (lastPreviewChild) lastPreviewChild.destroy();
+	const shapeTypes = ['Circle', 'Rect', 'Arrow', 'Text', 'Line', 'Image'];
+	let lastShape = null;
+	for (let i = children.length - 1; i >= 0; i--) {
+		if (shapeTypes.includes(children[i].className)) {
+			lastShape = children[i];
+			break;
+		}
+	}
+	if (lastShape) {
+		const shapeId = lastShape.id();
+		lastShape.destroy();
+		const previewShape = previewLayer.findOne(`#${shapeId}`);
+		if (previewShape) previewShape.destroy();
+	}
 	disableTransformers();
 	history_index.value--;
 	previewLayer.batchDraw();
@@ -2283,20 +2299,28 @@ const redo = () => {
 	disableTransformers();
 }
 
+const lastBroadcastId = ref('');
+
 const undoWithBroadcast = async () => {
+	const actionId = uuidv4();
+	lastBroadcastId.value = actionId;
 	await undo();
 	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
-			type: "undo"
+			type: "undo",
+			actionId: actionId
 		}));
 	}
 }
 
 const redoWithBroadcast = () => {
+	const actionId = uuidv4();
+	lastBroadcastId.value = actionId;
 	redo();
 	if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 		ws.value.send(JSON.stringify({
-			type: "redo"
+			type: "redo",
+			actionId: actionId
 		}));
 	}
 }
