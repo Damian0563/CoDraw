@@ -19,7 +19,7 @@
 					</button>
 					<p>{{ message }}</p>
 					<button v-if="message !== 'Are you sure you would like to clear the board? This action is irreversible.'"
-						@click="showPopup = false" id="close_form"
+						@click="showPopup = false; showMoreMenu = false" id="close_form"
 						style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
 						Close
 					</button>
@@ -89,40 +89,40 @@
 				</div>
 				<Transition name="fade-slide">
 					<div v-if="showShapeSelector" :style="windowWidth < 850 ? {
-					position: 'absolute',
-					top: 0,
-					left: '100%',
-					marginLeft: '18px',
-					background: '#23272f',
-					borderRadius: '12px',
-					padding: '12px',
-					display: 'flex',
-					flexDirection: 'column',
-					gap: '12px',
-					boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-					zIndex: 20,
-				} : {
-					position: 'absolute',
-					top: '100%',
-					left: 0,
-					marginTop: '18px',
-					background: '#23272f',
-					borderRadius: '12px',
-					padding: '12px',
-					display: 'flex',
-					gap: '12px',
-					boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-					zIndex: 20,
-				}">
-					<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
-						@click="createShape('text')"></font-awesome-icon>
-					<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
-						@click="createShape('arrow')"></font-awesome-icon>
-					<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"
-						@click="createShape('circle')"></font-awesome-icon>
-					<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
-						@click="createShape('square')"></font-awesome-icon>
-				</div>
+						position: 'absolute',
+						top: 0,
+						left: '100%',
+						marginLeft: '18px',
+						background: '#23272f',
+						borderRadius: '12px',
+						padding: '12px',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: '12px',
+						boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+						zIndex: 20,
+					} : {
+						position: 'absolute',
+						top: '100%',
+						left: 0,
+						marginTop: '18px',
+						background: '#23272f',
+						borderRadius: '12px',
+						padding: '12px',
+						display: 'flex',
+						gap: '12px',
+						boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+						zIndex: 20,
+					}">
+						<font-awesome-icon :icon="['fas', 'text-height']" class="feature-icon" alt="text" ara-label="text"
+							@click="createShape('text')"></font-awesome-icon>
+						<font-awesome-icon :icon="['fas', 'arrow-up-long']" class="feature-icon" alt="arrow" ara-label="arrow"
+							@click="createShape('arrow')"></font-awesome-icon>
+						<font-awesome-icon :icon="['fas', 'circle']" class="feature-icon" alt="circle" ara-label="circle"
+							@click="createShape('circle')"></font-awesome-icon>
+						<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
+							@click="createShape('square')"></font-awesome-icon>
+					</div>
 				</Transition>
 			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
@@ -171,7 +171,7 @@
 					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 					z-index: 20;
 				">
-					<button @click="copyInvitationLink; showMoreMenu = false" style="
+						<button @click="copyInvitationLink" style="
 						display: flex;
 						align-items: center;
 						gap: 8px;
@@ -183,38 +183,38 @@
 						font-size: 0.9rem;
 						cursor: pointer;
 					">
-						<img :src="url" alt="Copy" style="width: 16px; height: 16px;" />
-						Copy Invitation
-					</button>
-					<button v-if="visitor && MODE !== 'demo'" @click="toggleBookmark" style="
-						display: flex;
-						align-items: center;
-						gap: 8px;
-						background: #4f8cff;
-						color: #fff;
-						border: none;
-						border-radius: 8px;
-						padding: 10px 14px;
-						font-size: 0.9rem;
-						cursor: pointer;
-					">
-						<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark"
-							style="width: 16px; height: 16px;" />
-						{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
-					</button>
-					<button id="clearall" v-if="admin || MODE === 'demo'" style="
-						background: #f68608;
-						color: #fff;
-						border: none;
-						border-radius: 8px;
-						padding: 8px 20px;
-						font-size: 1rem;
-						cursor: pointer;
-						transition: ease-in-out 0.6s;
+							<img :src="url" alt="Copy" style="width: 16px; height: 16px;" />
+							Copy Invitation
+						</button>
+						<button v-if="visitor && MODE !== 'demo'" @click="toggleBookmark" style="
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					background: #4f8cff;
+					color: #fff;
+					border: none;
+					border-radius: 8px;
+					padding: 10px 14px;
+					font-size: 0.9rem;
+					cursor: pointer;
+				">
+							<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark"
+								style="width: 16px; height: 16px;" />
+							{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
+						</button>
+						<button id="clearall" v-if="admin || MODE === 'demo'" style="
+					background: #f68608;
+					color: #fff;
+					border: none;
+					border-radius: 8px;
+					padding: 8px 20px;
+					font-size: 1rem;
+					cursor: pointer;
+					transition: ease-in-out 0.6s;
 					" @click="clear_all()">
-						Clear all
-					</button>
-				</div>
+							Clear all
+						</button>
+					</div>
 				</Transition>
 			</div>
 		</div>
@@ -576,6 +576,7 @@ const createShape = (shapeName) => {
 				fill: fill,
 				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
+				cornerRadius: 10,
 				draggable: true,
 			});
 			const previewSquare = new Konva.Rect({
@@ -587,6 +588,7 @@ const createShape = (shapeName) => {
 				fill: fill,
 				stroke: motiv.value === '#000000' ? 'white' : 'black',
 				strokeWidth: width_slider.value,
+				cornerRadius: 10,
 				draggable: true,
 			});
 			layer.add(square);
@@ -638,6 +640,7 @@ const createShape = (shapeName) => {
 			break;
 	}
 	showShapeSelector.value = false
+	addToHistory()
 }
 
 const handleTransformerPop = (node) => {
@@ -1742,6 +1745,7 @@ ws.value.onmessage = async (event) => {
 				fill: data.fill,
 				stroke: data.stroke,
 				strokeWidth: data.strokeWidth,
+				cornerRadius: 10,
 			});
 			shape = new Konva.Rect(shapeConfig);
 			previewShape = new Konva.Rect({ ...shapeConfig });
@@ -2768,6 +2772,7 @@ const handleMouseUp = (e) => {
 		textInitialPos = null;
 		stage.container().style.cursor = 'default';
 		handleTextClick(maintext);
+		addToHistory()
 		return;
 	}
 	isDrawing.value = false;
@@ -2809,7 +2814,8 @@ const handleMouseMove = (e) => {
 			stroke: motiv.value === '#000000' ? 'white' : 'black',
 			opacity: 0.5,
 			strokeWidth: width_slider.value,
-			draggable: false
+			draggable: false,
+			cornerRadius: 10
 		});
 		layerRef.value.getNode().add(rect);
 		rect.moveToTop();
