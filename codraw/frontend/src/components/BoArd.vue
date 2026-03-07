@@ -24,7 +24,7 @@
 						Close
 					</button>
 					<button v-if="message === 'Are you sure you would like to clear the board? This action is irreversible.'"
-						@click="clearDefinetely(true)" id="confirm_clear"
+						@click="clearDefinetely(true); showMoreMenu = false" id="confirm_clear"
 						style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
 						Confirm
 					</button>
@@ -87,7 +87,8 @@
 						src="https://img.icons8.com/external-tal-revivo-filled-tal-revivo/24/external-assorted-shape-tool-selector-for-designing-application-text-filled-tal-revivo.png"
 						alt="shapes" />
 				</div>
-				<div v-if="showShapeSelector" :style="windowWidth < 850 ? {
+				<Transition name="fade-slide">
+					<div v-if="showShapeSelector" :style="windowWidth < 850 ? {
 					position: 'absolute',
 					top: 0,
 					left: '100%',
@@ -122,6 +123,7 @@
 					<font-awesome-icon :icon="['fas', 'square']" class="feature-icon" alt="square" ara-label="square"
 						@click="createShape('square')"></font-awesome-icon>
 				</div>
+				</Transition>
 			</div>
 			<button id="save_btn" v-if="(admin || visitor) && MODE === 'default'" @click="check_save('save')" style="
           background: #4f8cff;
@@ -143,18 +145,6 @@
         cursor: pointer;
         transition: ease-in-out 0.6s;
       ">Exit</button>
-			<button id="clearall" v-if="admin || MODE === 'demo'" style="
-        background: #f68608;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 20px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: ease-in-out 0.6s;
-      " @click="clear_all()">
-				Clear all
-			</button>
 			<div style="position: relative;" ref="moreMenuRef">
 				<button @click.stop="showMoreMenu = !showMoreMenu" style="
 					background: transparent;
@@ -165,7 +155,8 @@
 					padding: 4px 12px;
 					line-height: 1;
 				">...</button>
-				<div v-if="showMoreMenu" style="
+				<Transition name="fade-slide">
+					<div v-if="showMoreMenu" style="
 					position: absolute;
 					top: 100%;
 					left: 0;
@@ -180,7 +171,7 @@
 					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 					z-index: 20;
 				">
-					<button @click="copyInvitationLink" style="
+					<button @click="copyInvitationLink; showMoreMenu = false" style="
 						display: flex;
 						align-items: center;
 						gap: 8px;
@@ -211,7 +202,20 @@
 							style="width: 16px; height: 16px;" />
 						{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
 					</button>
+					<button id="clearall" v-if="admin || MODE === 'demo'" style="
+						background: #f68608;
+						color: #fff;
+						border: none;
+						border-radius: 8px;
+						padding: 8px 20px;
+						font-size: 1rem;
+						cursor: pointer;
+						transition: ease-in-out 0.6s;
+					" @click="clear_all()">
+						Clear all
+					</button>
 				</div>
+				</Transition>
 			</div>
 		</div>
 		<Transition name="fade-slide">
@@ -400,7 +404,10 @@ const origin = new URL(window.location.href).searchParams.get('origin')
 const transformers = []
 const deleteButtons = []
 let autosaveInterval = null;
-
+const ws = ref(null)
+const rawUrl = WS_URL
+const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+const finalUrl = `${cleanBase}/${room.value}/`;
 const createShape = (shapeName) => {
 	const fill = color.value
 	const stage = stageRef.value.getNode()
@@ -1411,15 +1418,20 @@ const stageConfig = {
 	draggable: false
 };
 
-const ws = ref(null)
-const rawUrl = WS_URL
-const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
-const finalUrl = `${cleanBase}/${room.value}/`;
+
 if (wsConnections[room.value]) {
 	ws.value = wsConnections[room.value]
 	delete wsConnections[room.value]
 } else {
 	ws.value = new WebSocket(finalUrl)
+}
+const searchParams = new URLSearchParams(window.location.search);
+ws.value.onopen = () => {
+	if (admin.value || (MODE === 'demo' && searchParams.get('origin') === 'home')) return;
+	ws.value.send(JSON.stringify({
+		type: "sync-request",
+		room: room.value
+	}))
 }
 ws.value.onmessage = async (event) => {
 	const data = JSON.parse(event.data);
@@ -3054,16 +3066,6 @@ const keyhandler = async (event) => {
 	}
 }
 
-const waitForSync = () => new Promise(resolve => {
-	const check = setInterval(() => {
-		if (responded.value) {
-			clearInterval(check);
-			resolve();
-		}
-	}, 100);
-	setTimeout(() => { clearInterval(check); resolve(); }, 5000);
-});
-
 const loadBoardData = async () => {
 	if (await check_save('load')) {
 		if (!responded.value) {
@@ -3088,14 +3090,10 @@ onMounted(async () => {
 	loading.value = true
 	await nextTick();
 	await check_owner();
-	const searchParams = new URLSearchParams(window.location.search);
-	if (MODE === 'demo' && searchParams.get('origin') === 'home') {
-		await initializeBoard();
-	} else if (admin.value) {
+	if (admin.value) {
 		await loadBoardData();
 		await initializeBoard();
 	} else {
-		await waitForSync();
 		await initializeBoard();
 	}
 	autosaveInterval = setInterval(() => autosave(), 60000)
