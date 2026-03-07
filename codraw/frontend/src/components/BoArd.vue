@@ -2605,7 +2605,10 @@ const imageConfig = {
 let lastCenter = null;
 let lastDist = 0;
 const handleMouseDown = (e) => {
-	if (isTransforming) return
+	if (isTransforming) {
+		disableTransformers()
+		finishTextEditing()
+	}
 	if (customMouse.value) {
 		textInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
 		return;
