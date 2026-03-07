@@ -2608,6 +2608,17 @@ const handleMouseDown = (e) => {
 	if (isTransforming) {
 		disableTransformers()
 		finishTextEditing()
+		isTransforming = false
+		return
+	}
+	const target = e.target;
+	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
+		return;
+	}
+	if (transformers.length > 0 && target === e.target.getStage()) {
+		disableTransformers()
+		finishTextEditing()
+		return
 	}
 	if (customMouse.value) {
 		textInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
