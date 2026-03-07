@@ -360,6 +360,7 @@ const currentLine = ref(null)
 const MODE = new URL(window.location.href).pathname.split('/')[1] == 'demo' ? 'demo' : 'default'
 let drawFrameId = null
 let lastWsSendTime = 0
+let isTransforming = false
 import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
@@ -644,8 +645,12 @@ const createShape = (shapeName) => {
 }
 
 const handleTransformerPop = (node) => {
+	isTransforming = true
 	const layer = layerRef.value.getNode();
-	if (!layer || !node) return;
+	if (!layer || !node) {
+		isTransforming = false;
+		return
+	}
 	node.draggable(false);
 	const tr = new Konva.Transformer({
 		nodes: [node],
@@ -1319,6 +1324,7 @@ const finishTextEditing = () => {
 }
 
 const handleStageClick = (e) => {
+	isTransforming = false
 	const target = e.target;
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
@@ -2599,6 +2605,7 @@ const imageConfig = {
 let lastCenter = null;
 let lastDist = 0;
 const handleMouseDown = (e) => {
+	if (isTransforming) return
 	if (customMouse.value) {
 		textInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
 		return;
