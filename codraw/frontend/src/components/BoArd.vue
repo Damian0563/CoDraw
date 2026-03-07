@@ -545,9 +545,11 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
+			showGrabbing(circle)
 			circle.on('dblclick', (e) => {
 				e.evt.stopPropagation();
 				e.evt.preventDefault();
+				stage.container().style.cursor = 'default';
 				disableTransformers();
 				const newCircleTr = handleTransformerPop(circle)
 				createCircleDeleteGroup(circle, newCircleTr)
@@ -610,12 +612,14 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
+			showGrabbing(square)
 			previewSquare.on('dragmove', () => {
 				square.position(previewSquare.position());
 				layer.batchDraw();
 			});
 			square.on('dblclick', (e) => {
 				e.evt.stopPropagation();
+				stage.container().style.cursor = 'default';
 				e.evt.preventDefault();
 				disableTransformers();
 				const newSquareTr = handleTransformerPop(square)
@@ -642,6 +646,30 @@ const createShape = (shapeName) => {
 	}
 	showShapeSelector.value = false
 	addToHistory()
+}
+
+const showGrabbing = (node) => {
+	const stage = stageRef.value.getNode();
+	node.on('dragstart', () => {
+		if (!isTransforming) {
+			stage.container().style.cursor = 'grabbing';
+		}
+	});
+	node.on('dragend', () => {
+		if (!isTransforming) {
+			stage.container().style.cursor = 'grab';
+		}
+	});
+	node.on('mouseenter', () => {
+		if (!isTransforming) {
+			stage.container().style.cursor = 'grab';
+		}
+	});
+	node.on('mouseleave', () => {
+		if (!isTransforming) {
+			stage.container().style.cursor = 'default';
+		}
+	});
 }
 
 const handleTransformerPop = (node) => {
@@ -678,6 +706,9 @@ const handleTransformerPop = (node) => {
 			const idx = deleteButtons.indexOf(deleteBtn);
 			if (idx > -1) deleteButtons.splice(idx, 1);
 		}
+	})
+	tr.on('transformend', () => {
+		isTransforming = false;
 	})
 	if (node.className !== 'Text') {
 		tr.on('transform', () => {
