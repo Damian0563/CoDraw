@@ -393,8 +393,9 @@ const isBookmarked = ref(false);
 const paneToggler = ref(false)
 const showMoreMenu = ref(false)
 const showShapeSelector = ref(false)
-const customMouse = ref(false)
-let textInitialPos = null;
+const customMouseText = ref(false)
+const customMouseArrow = ref(false)
+let objectInitialPos = null;
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
 if (MODE === 'demo') {
@@ -417,81 +418,16 @@ const createShape = (shapeName) => {
 	const new_x = (-stage.x() / stage.scaleX()) + visibleWidth / 2
 	const new_y = (-stage.y() / stage.scaleY()) + visibleHeight / 2
 	const layer = layerRef.value.getNode()
+	if (shapeName === 'text' || shapeName === 'arrow') {
+		stage.container().style.cursor = 'context-menu'
+	}
 	switch (shapeName) {
 		case 'text': {
-			customMouse.value = true;
-			const stage = stageRef.value.getNode();
-			stage.container().style.cursor = 'context-menu';
+			customMouseText.value = true;
 			break;
 		}
 		case 'arrow': {
-			const arrow = new Konva.Arrow({
-				x: new_x,
-				y: new_y,
-				id: uuidv4(),
-				points: [200, 200, 0, 0],
-				stroke: fill,
-				strokeWidth: width_slider.value,
-				pointerLength: 20,
-				pointerWidth: 20,
-				fill: fill,
-				draggable: true,
-			});
-			const previewArrow = new Konva.Arrow({
-				x: new_x,
-				y: new_y,
-				id: arrow.id(),
-				points: [200, 200, 0, 0],
-				stroke: fill,
-				strokeWidth: width_slider.value,
-				pointerLength: 20,
-				pointerWidth: 20,
-				fill: fill,
-				draggable: true,
-			});
-			arrow.on('dragmove', () => {
-				previewArrow.position(arrow.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "arrow",
-						newpos: arrow.position(),
-						id: arrow.id(),
-					}));
-				}
-			});
-			previewArrow.on('dragmove', () => {
-				arrow.position(previewArrow.position());
-				layerRef.value.getNode().batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "arrow",
-						newpos: previewArrow.position(),
-						id: previewArrow.id(),
-					}));
-				}
-			});
-			layer.add(arrow);
-			previewLayer.add(previewArrow);
-			arrow.moveToTop();
-			previewArrow.moveToTop();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape",
-					shapeType: "arrow",
-					id: arrow.id(),
-					x: arrow.x(),
-					y: arrow.y(),
-					points: arrow.points(),
-					stroke: arrow.stroke(),
-					strokeWidth: arrow.strokeWidth(),
-					pointerLength: arrow.pointerLength(),
-					pointerWidth: arrow.pointerWidth(),
-					fill: arrow.fill()
-				}));
-			}
+			customMouseArrow.value = true;
 			break;
 		}
 		case 'circle': {
@@ -1008,6 +944,7 @@ const createImageDeleteGroup = (konvaImg, transformer) => {
 const handleTextClick = (konvaText) => {
 	const layer = layerRef.value.getNode();
 	const tr = handleTransformerPop(konvaText)
+	showGrabbing(konvaText)
 	konvaText.hide();
 	const stage = stageRef.value.getNode();
 	const textPosition = konvaText.getAbsolutePosition();
@@ -1313,7 +1250,7 @@ const disableTransformers = () => {
 	for (const transformer of transformers) {
 		const nodes = transformer.nodes();
 		for (const node of nodes) {
-			if (node.className === 'Circle' || node.className === 'Rect') {
+			if (node.className === 'Circle' || node.className === 'Rect' || node.className === 'Text') {
 				node.draggable(true);
 			}
 		}
@@ -2646,13 +2583,8 @@ const handleMouseDown = (e) => {
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
-	if (transformers.length > 0 && target === e.target.getStage()) {
-		disableTransformers()
-		finishTextEditing()
-		return
-	}
-	if (customMouse.value) {
-		textInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
+	if (customMouseText.value || customMouseArrow.value) {
+		objectInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
 		return;
 	}
 	if (!e.evt.touches || e.evt.touches.length == 1) {
@@ -2730,17 +2662,17 @@ const handleMouseDown = (e) => {
 };
 
 const handleMouseUp = (e) => {
-	destroySelectRect()
-	if (customMouse.value && textInitialPos) {
+	destroySelectObject()
+	if (customMouseText.value && objectInitialPos) {
 		const stage = stageRef.value.getNode();
 		const last_x = e.evt.clientX;
 		const last_y = e.evt.clientY;
-		const width = Math.abs(last_x - textInitialPos.x);
-		const height = Math.abs(last_y - textInitialPos.y);
+		const width = Math.abs(last_x - objectInitialPos.x);
+		const height = Math.abs(last_y - objectInitialPos.y);
 		const fill = color.value;
 		const maintext = new Konva.Text({
-			x: textInitialPos.x,
-			y: textInitialPos.y,
+			x: objectInitialPos.x,
+			y: objectInitialPos.y,
 			id: uuidv4(),
 			width: Math.max(width, 50),
 			height: Math.max(height, 30),
@@ -2790,18 +2722,7 @@ const handleMouseUp = (e) => {
 				}));
 			}
 		});
-		maintext.on('dragstart', () => {
-			stage.container().style.cursor = 'grabbing';
-		});
-		maintext.on('dragend', () => {
-			stage.container().style.cursor = 'default';
-		});
-		maintext.on('mouseenter', () => {
-			stage.container().style.cursor = 'grab';
-		});
-		maintext.on('mouseleave', () => {
-			stage.container().style.cursor = 'default';
-		});
+		showGrabbing(maintext)
 		maintext.on("dblclick", (ev) => {
 			ev.evt.stopPropagation();
 			handleTextClick(maintext);
@@ -2844,13 +2765,16 @@ const handleMouseUp = (e) => {
 				verticalAlign: maintext.verticalAlign()
 			}));
 		}
-		customMouse.value = false;
-		textInitialPos = null;
+		customMouseText.value = false;
 		stage.container().style.cursor = 'default';
 		handleTextClick(maintext);
 		addToHistory()
 		return;
+	} else if (customMouseArrow.value && objectInitialPos) {
+		stage.container().style.cursor = 'default';
+		customMouseArrow.value = false;
 	}
+	objectInitialPos = null;
 	isDrawing.value = false;
 	currentLine.value = null;
 	lastDist = 0;
@@ -2869,7 +2793,7 @@ const handleMouseUp = (e) => {
 	}
 };
 
-const destroySelectRect = () => {
+const destroySelectObject = () => {
 	const prevRect = layerRef.value.getNode().findOne('#selector')
 	if (prevRect) {
 		prevRect.destroy()
@@ -2877,9 +2801,10 @@ const destroySelectRect = () => {
 }
 
 const handleMouseMove = (e) => {
-	if (customMouse.value && textInitialPos) {
-		const initial_x = textInitialPos.x, initial_y = textInitialPos.y
-		destroySelectRect()
+	const layer = layerRef.value.getNode();
+	if (customMouseText.value && objectInitialPos) {
+		const initial_x = objectInitialPos.x, initial_y = objectInitialPos.y
+		destroySelectObject()
 		const rect = new Konva.Rect({
 			x: initial_x,
 			y: initial_y,
@@ -2893,8 +2818,28 @@ const handleMouseMove = (e) => {
 			draggable: false,
 			cornerRadius: 10
 		});
-		layerRef.value.getNode().add(rect);
+		layer.add(rect);
 		rect.moveToTop();
+		return
+	} else if (customMouseArrow.value && objectInitialPos) {
+		const initial_x = objectInitialPos.x, initial_y = objectInitialPos.y
+		destroySelectObject()
+		const stage = stageRef.value.getNode();
+		const point = getRelativePointerPosition(stage);
+		const arrow = new Konva.Arrow({
+			x: 0,
+			y: 0,
+			id: "selector",
+			points: [initial_x, initial_y, point.x, point.y],
+			stroke: color.value,
+			strokeWidth: width_slider.value,
+			pointerLength: 20,
+			pointerWidth: 20,
+			fill: color.value,
+			draggable: true,
+		});
+		layer.add(arrow);
+		arrow.moveToTop();
 		return
 	}
 	if (!e.evt.touches || e.evt.touches.length == 1) {
@@ -2917,7 +2862,7 @@ const handleMouseMove = (e) => {
 		}
 		if (drawFrameId === null) {
 			drawFrameId = requestAnimationFrame(() => {
-				layerRef.value.getNode().batchDraw();
+				layer.batchDraw();
 				previewLayer.batchDraw();
 				drawFrameId = null;
 			});
