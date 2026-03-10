@@ -751,6 +751,10 @@ const createCircleDeleteGroup = (circle, transformer) => {
 	});
 }
 
+const createArrowDeleteGroup = (arrow, transformer) => {
+	console.log(arrow, transformer)
+}
+
 const createSquareDeleteGroup = (square, transformer) => {
 	const layer = layerRef.value.getNode();
 	const getSquareDeletePos = () => {
@@ -1250,7 +1254,7 @@ const disableTransformers = () => {
 	for (const transformer of transformers) {
 		const nodes = transformer.nodes();
 		for (const node of nodes) {
-			if (node.className === 'Circle' || node.className === 'Rect' || node.className === 'Text') {
+			if (node.className === 'Circle' || node.className === 'Rect' || node.className === 'Text' || node.className === 'Arrow') {
 				node.draggable(true);
 			}
 		}
@@ -2663,13 +2667,13 @@ const handleMouseDown = (e) => {
 
 const handleMouseUp = (e) => {
 	destroySelectObject()
+	const stage = stageRef.value.getNode();
+	const last_x = e.evt.clientX;
+	const last_y = e.evt.clientY;
+	const fill = color.value;
 	if (customMouseText.value && objectInitialPos) {
-		const stage = stageRef.value.getNode();
-		const last_x = e.evt.clientX;
-		const last_y = e.evt.clientY;
 		const width = Math.abs(last_x - objectInitialPos.x);
 		const height = Math.abs(last_y - objectInitialPos.y);
-		const fill = color.value;
 		const maintext = new Konva.Text({
 			x: objectInitialPos.x,
 			y: objectInitialPos.y,
@@ -2727,23 +2731,6 @@ const handleMouseUp = (e) => {
 			ev.evt.stopPropagation();
 			handleTextClick(maintext);
 		});
-		previewtext.on('dragmove', () => {
-			maintext.position(previewtext.position());
-			layerRef.value.getNode().batchDraw();
-			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-				ws.value.send(JSON.stringify({
-					type: "shape-drag",
-					shapeType: "text",
-					newpos: previewtext.position(),
-					id: previewtext.id(),
-				}));
-			}
-		});
-		previewtext.on('dblclick', (ev) => {
-			ev.evt.stopPropagation();
-			handleTextClick(maintext);
-			document.getElementById("textarea").remove();
-		});
 		layerRef.value.getNode().add(maintext);
 		previewLayer.add(previewtext);
 		previewtext.moveToTop();
@@ -2769,19 +2756,71 @@ const handleMouseUp = (e) => {
 		stage.container().style.cursor = 'default';
 		handleTextClick(maintext);
 		addToHistory()
+		objectInitialPos = null;
 		return;
 	} else if (customMouseArrow.value && objectInitialPos) {
+		const arrow = new Konva.Arrow({
+			x: 0,
+			y: 0,
+			id: uuidv4(),
+			points: [objectInitialPos.x, objectInitialPos.y, last_x, last_y],
+			stroke: color.value,
+			strokeWidth: width_slider.value,
+			pointerLength: 20,
+			pointerWidth: 20,
+			fill: color.value,
+			draggable: true,
+		});
+		const previewArrow = new Konva.Arrow({
+			x: 0,
+			y: 0,
+			id: arrow.id(),
+			points: [objectInitialPos.x, objectInitialPos.y, last_x, last_y],
+			stroke: color.value,
+			strokeWidth: width_slider.value,
+			pointerLength: 20,
+			pointerWidth: 20,
+			fill: color.value,
+			draggable: true,
+		});
+		showGrabbing(arrow)
+		arrow.on('dragmove', () => {
+			previewArrow.position(arrow.position());
+			previewLayer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: "arrow",
+					newpos: arrow.position(),
+					id: arrow.id(),
+				}));
+			}
+		});
+		arrow.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			e.evt.preventDefault();
+			disableTransformers();
+			const newArrowTr = handleTransformerPop(arrow)
+			createArrowDeleteGroup(arrow, newArrowTr)
+		})
+		layerRef.value.getNode().add(arrow);
+		previewLayer.add(previewArrow);
+		previewArrow.moveToTop();
+		arrow.moveToTop();
+		const newArrowTr = handleTransformerPop(arrow)
+		createArrowDeleteGroup(arrow, newArrowTr)
 		stage.container().style.cursor = 'default';
 		customMouseArrow.value = false;
+		addToHistory()
+		objectInitialPos = null;
+		return
 	}
-	objectInitialPos = null;
 	isDrawing.value = false;
 	currentLine.value = null;
 	lastDist = 0;
 	lastCenter = null;
 	addToHistory()
 	if (isPanning.value) {
-		const stage = e.target.getStage();
 		stage.draggable(false);
 		isPanning.value = false;
 	}
