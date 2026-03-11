@@ -592,6 +592,90 @@ const showGrabbing = (node) => {
 	});
 }
 
+const findDeleteButtonByShape = (shape) => {
+	return deleteButtons.find(b => b.name() === `delete-${shape.id()}`);
+};
+
+const attachShapeHandlers = (shape, previewShape, shapeType) => {
+	shape.on('dragmove', () => {
+		previewShape.position(shape.position());
+		previewLayer.batchDraw();
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "shape-drag",
+				shapeType: shapeType,
+				newpos: shape.position(),
+				id: shape.id(),
+			}));
+		}
+	});
+
+	if (shapeType !== 'text') {
+		previewShape.on('dragmove', () => {
+			const layer = layerRef.value.getNode();
+			shape.position(previewShape.position());
+			layer.batchDraw();
+			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+				ws.value.send(JSON.stringify({
+					type: "shape-drag",
+					shapeType: shapeType,
+					newpos: previewShape.position(),
+					id: previewShape.id(),
+				}));
+			}
+		});
+	}
+
+	if (shapeType === 'text') {
+		shape.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			handleTextClick(shape);
+		});
+		previewShape.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			handleTextClick(shape);
+		});
+	} else if (shapeType === 'arrow') {
+		shape.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			e.evt.preventDefault();
+			disableTransformers();
+			const { updatePosition } = createShapeDeleteGroup(shape, null);
+			handleTransformerPop(shape, updatePosition);
+		});
+	} else if (shapeType === 'circle') {
+		shape.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			e.evt.preventDefault();
+			disableTransformers();
+			const { updatePosition } = createCircleDeleteGroup(shape, null);
+			handleTransformerPop(shape, updatePosition);
+		});
+	} else if (shapeType === 'square') {
+		shape.on('dblclick', (e) => {
+			e.evt.stopPropagation();
+			e.evt.preventDefault();
+			disableTransformers();
+			const { updatePosition } = createShapeDeleteGroup(shape, null);
+			handleTransformerPop(shape, updatePosition);
+		});
+	}
+};
+
+const addShapeToLayer = (shape, previewShape, shapeType) => {
+	const layer = layerRef.value.getNode();
+	showGrabbing(shape);
+	layer.add(shape);
+	previewLayer.add(previewShape);
+	shape.moveToTop();
+	previewShape.moveToTop();
+	layer.batchDraw();
+	previewLayer.batchDraw();
+	if (shapeType === 'text') {
+		texts.push(shape.id());
+	}
+};
+
 const handleTransformerPop = (node, onTransformUpdate) => {
 	isTransforming = true
 	const layer = layerRef.value.getNode();
@@ -633,12 +717,17 @@ const handleTransformerPop = (node, onTransformUpdate) => {
 	if (node.className !== 'Text') {
 		tr.on('transform', () => {
 			const isCircle = node.className === 'Circle';
+			const isArrow = node.className === 'Arrow';
 			const previewShapeToResize = previewLayer.findOne(`#${node.id()}`);
 			if (previewShapeToResize) {
 				previewShapeToResize.x(node.x());
 				previewShapeToResize.y(node.y());
 				if (isCircle) {
-					previewShapeToResize.radius(node.radius() * node.scaleX());
+					previewShapeToResize.radius(Math.abs(node.radius()) * node.scaleX());
+				} else if (isArrow) {
+					const scaleX = node.scaleX() || 1;
+					const scaleY = node.scaleY() || 1;
+					previewShapeToResize.points(node.points().map((p, i) => i % 2 === 0 ? p * scaleX : p * scaleY));
 				} else {
 					previewShapeToResize.width(node.width() * node.scaleX());
 					previewShapeToResize.height(node.height() * node.scaleY());
@@ -657,7 +746,18 @@ const handleTransformerPop = (node, onTransformUpdate) => {
 						id: node.id(),
 						x: node.x(),
 						y: node.y(),
-						radius: node.radius() * node.scaleX(),
+						radius: Math.abs(node.radius()) * node.scaleX(),
+					}));
+				} else if (node.className === 'Arrow') {
+					const scaleX = node.scaleX() || 1;
+					const scaleY = node.scaleY() || 1;
+					const scaledPoints = node.points().map((p, i) => i % 2 === 0 ? p * scaleX : p * scaleY);
+					ws.value.send(JSON.stringify({
+						type: `resize-${node.className}`,
+						id: node.id(),
+						x: node.x(),
+						y: node.y(),
+						points: scaledPoints,
 					}));
 				} else {
 					ws.value.send(JSON.stringify({
@@ -1599,7 +1699,6 @@ ws.value.onmessage = async (event) => {
 	} else if (data.type === "clearall") {
 		clearDefinetely(false) //prevent recursive ws calls
 	} else if (data.type === "shape" && data.shapeType) {
-		const layer = layerRef.value.getNode();
 		let shape;
 		let previewShape;
 		const shapeConfig = {
@@ -1627,38 +1726,6 @@ ws.value.onmessage = async (event) => {
 			previewShape.setAttr('originalFontSize', data.fontSize);
 			previewShape.setAttr('originalWidth', data.width);
 			previewShape.setAttr('originalHeight', data.height);
-			shape.on('dragmove', () => {
-				previewShape.position(shape.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "text",
-						newpos: shape.position(),
-						id: shape.id(),
-					}));
-				}
-			});
-			previewShape.on('dragmove', () => {
-				shape.position(previewShape.position());
-				layer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "text",
-						newpos: previewShape.position(),
-						id: previewShape.id(),
-					}));
-				}
-			});
-			shape.on('dblclick', (e) => {
-				e.evt.stopPropagation();
-				handleTextClick(shape);
-			});
-			previewShape.on('dblclick', (e) => {
-				e.evt.stopPropagation();
-				handleTextClick(shape);
-			});
 		} else if (data.shapeType === 'arrow') {
 			Object.assign(shapeConfig, {
 				points: data.points,
@@ -1670,70 +1737,15 @@ ws.value.onmessage = async (event) => {
 			});
 			shape = new Konva.Arrow(shapeConfig);
 			previewShape = new Konva.Arrow({ ...shapeConfig });
-			shape.on('dragmove', () => {
-				previewShape.position(shape.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "arrow",
-						newpos: shape.position(),
-						id: shape.id(),
-					}));
-				}
-			});
-			previewShape.on('dragmove', () => {
-				shape.position(previewShape.position());
-				layer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "arrow",
-						newpos: previewShape.position(),
-						id: previewShape.id(),
-					}));
-				}
-			});
 		} else if (data.shapeType === 'circle') {
 			Object.assign(shapeConfig, {
-				radius: data.radius,
+				radius: Math.abs(data.radius),
 				fill: data.fill,
 				stroke: data.stroke,
 				strokeWidth: data.strokeWidth,
 			});
 			shape = new Konva.Circle(shapeConfig);
 			previewShape = new Konva.Circle({ ...shapeConfig });
-			shape.on('dragmove', () => {
-				previewShape.position(shape.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "circle",
-						newpos: shape.position(),
-						id: shape.id(),
-					}));
-				}
-			});
-			shape.on('dblclick', (e) => {
-				e.evt.stopPropagation();
-				e.evt.preventDefault();
-				disableTransformers();
-				const { updatePosition: updateCircleDeletePos } = createCircleDeleteGroup(shape, null)
-				handleTransformerPop(shape, updateCircleDeletePos)
-			})
-			previewShape.on('dragmove', () => {
-				shape.position(previewShape.position());
-				layer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "circle",
-						newpos: previewShape.position(),
-						id: previewShape.id(),
-					}));
-				}
-			});
 		} else if (data.shapeType === 'square') {
 			Object.assign(shapeConfig, {
 				width: data.width,
@@ -1745,48 +1757,10 @@ ws.value.onmessage = async (event) => {
 			});
 			shape = new Konva.Rect(shapeConfig);
 			previewShape = new Konva.Rect({ ...shapeConfig });
-			shape.on('dragmove', () => {
-				previewShape.position(shape.position());
-				previewLayer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "square",
-						newpos: shape.position(),
-						id: shape.id(),
-					}));
-				}
-			});
-			shape.on('dblclick', (e) => {
-				e.evt.stopPropagation();
-				e.evt.preventDefault();
-				disableTransformers();
-				const { updatePosition: updateShapeDeletePos } = createShapeDeleteGroup(shape, null)
-				handleTransformerPop(shape, updateShapeDeletePos)
-			})
-			previewShape.on('dragmove', () => {
-				shape.position(previewShape.position());
-				layer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "square",
-						newpos: previewShape.position(),
-						id: previewShape.id(),
-					}));
-				}
-			});
 		}
 		if (shape && previewShape) {
-			layer.add(shape);
-			previewLayer.add(previewShape);
-			shape.moveToTop();
-			previewShape.moveToTop();
-			layer.batchDraw();
-			previewLayer.batchDraw();
-			if (data.shapeType === 'text') {
-				texts.push(data.id);
-			}
+			attachShapeHandlers(shape, previewShape, data.shapeType);
+			addShapeToLayer(shape, previewShape, data.shapeType);
 		}
 	} else if (data.type === "shape-drag" && data.shapeType && data.id) {
 		const layer = layerRef.value.getNode();
@@ -1862,7 +1836,7 @@ ws.value.onmessage = async (event) => {
 		if (shape) {
 			shape.x(data.x);
 			shape.y(data.y);
-			shape.radius(data.radius);
+			shape.radius(Math.abs(data.radius));
 			shape.scaleX(1);
 			shape.scaleY(1);
 			const tr = transformers.find(t => t.nodes().includes(shape));
@@ -1886,7 +1860,7 @@ ws.value.onmessage = async (event) => {
 		if (previewShape) {
 			previewShape.x(data.x);
 			previewShape.y(data.y);
-			previewShape.radius(data.radius);
+			previewShape.radius(Math.abs(data.radius));
 			previewShape.scaleX(1);
 			previewShape.scaleY(1);
 			previewLayer.batchDraw();
@@ -1925,6 +1899,36 @@ ws.value.onmessage = async (event) => {
 			previewShape.y(data.y);
 			previewShape.width(data.width);
 			previewShape.height(data.height);
+			previewShape.scaleX(1);
+			previewShape.scaleY(1);
+			previewLayer.batchDraw();
+		}
+	} else if (data.type === "resize-Arrow") {
+		const layer = layerRef.value.getNode();
+		const shape = layer.findOne(`#${data.id}`);
+		const previewShape = previewLayer.findOne(`#${data.id}`);
+		if (shape) {
+			shape.x(data.x);
+			shape.y(data.y);
+			shape.points(data.points);
+			shape.scaleX(1);
+			shape.scaleY(1);
+			const tr = transformers.find(t => t.nodes().includes(shape));
+			if (tr) {
+				tr.forceUpdate();
+			}
+			const btn = findDeleteButtonByShape(shape);
+			if (btn) {
+				const box = shape.getClientRect();
+				btn.x(box.x + box.width + 15);
+				btn.y(box.y - 15);
+			}
+			layer.batchDraw();
+		}
+		if (previewShape) {
+			previewShape.x(data.x);
+			previewShape.y(data.y);
+			previewShape.points(data.points);
 			previewShape.scaleX(1);
 			previewShape.scaleY(1);
 			previewLayer.batchDraw();
@@ -2840,6 +2844,21 @@ const handleMouseUp = (e) => {
 		arrow.moveToTop();
 		const { updatePosition: updateArrowDeletePos } = createShapeDeleteGroup(arrow, null)
 		handleTransformerPop(arrow, updateArrowDeletePos)
+		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+			ws.value.send(JSON.stringify({
+				type: "shape",
+				shapeType: "arrow",
+				id: arrow.id(),
+				x: arrow.x(),
+				y: arrow.y(),
+				points: arrow.points(),
+				stroke: arrow.stroke(),
+				strokeWidth: arrow.strokeWidth(),
+				pointerLength: arrow.pointerLength(),
+				pointerWidth: arrow.pointerWidth(),
+				fill: arrow.fill(),
+			}));
+		}
 		stage.container().style.cursor = 'default';
 		customMouseArrow.value = false;
 		addToHistory()
