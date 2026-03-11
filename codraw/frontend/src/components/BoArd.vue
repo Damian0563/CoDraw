@@ -455,8 +455,8 @@ const createShape = (shapeName) => {
 			previewLayer.add(previewCircle);
 			circle.moveToTop();
 			previewCircle.moveToTop();
-			const circleTr = handleTransformerPop(circle)
-			createCircleDeleteGroup(circle, circleTr)
+			const { updatePosition: updateCircleDeletePos } = createCircleDeleteGroup(circle, null)
+			handleTransformerPop(circle, updateCircleDeletePos)
 			circle.on('dragmove', () => {
 				previewCircle.position(circle.position());
 				previewLayer.batchDraw();
@@ -475,8 +475,8 @@ const createShape = (shapeName) => {
 				e.evt.preventDefault();
 				stage.container().style.cursor = 'default';
 				disableTransformers();
-				const newCircleTr = handleTransformerPop(circle)
-				createCircleDeleteGroup(circle, newCircleTr)
+				const { updatePosition: updateCircleDeletePos } = createCircleDeleteGroup(circle, null)
+				handleTransformerPop(circle, updateCircleDeletePos)
 			});
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
@@ -522,8 +522,8 @@ const createShape = (shapeName) => {
 			previewLayer.add(previewSquare);
 			square.moveToTop();
 			previewSquare.moveToTop();
-			const tr = handleTransformerPop(square)
-			createShapeDeleteGroup(square, tr)
+			const { updatePosition: updateSquareDeletePos } = createShapeDeleteGroup(square, null)
+			handleTransformerPop(square, updateSquareDeletePos)
 			square.on('dragmove', () => {
 				previewSquare.position(square.position());
 				previewLayer.batchDraw();
@@ -542,8 +542,8 @@ const createShape = (shapeName) => {
 				stage.container().style.cursor = 'default';
 				e.evt.preventDefault();
 				disableTransformers();
-				const newSquareTr = handleTransformerPop(square)
-				createShapeDeleteGroup(square, newSquareTr)
+				const { updatePosition: updateSquareDeletePos } = createShapeDeleteGroup(square, null)
+				handleTransformerPop(square, updateSquareDeletePos)
 			});
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
@@ -592,7 +592,7 @@ const showGrabbing = (node) => {
 	});
 }
 
-const handleTransformerPop = (node) => {
+const handleTransformerPop = (node, onTransformUpdate) => {
 	isTransforming = true
 	const layer = layerRef.value.getNode();
 	if (!layer || !node) {
@@ -646,6 +646,9 @@ const handleTransformerPop = (node) => {
 				previewShapeToResize.scaleX(1);
 				previewShapeToResize.scaleY(1);
 				previewLayer.batchDraw();
+			}
+			if (onTransformUpdate) {
+				onTransformUpdate();
 			}
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				if (isCircle) {
@@ -733,6 +736,12 @@ const createCircleDeleteGroup = (circle, transformer) => {
 		opacity: 1,
 		duration: 0.2
 	});
+	const updateCircleDeletePosition = () => {
+		const pos = getCircleDeletePos();
+		circleDeleteGroup.x(pos.x);
+		circleDeleteGroup.y(pos.y);
+	};
+	return { deleteGroup: circleDeleteGroup, updatePosition: updateCircleDeletePosition };
 }
 
 
@@ -741,15 +750,9 @@ const createShapeDeleteGroup = (shape, transformer) => {
 	const getShapeDeletePos = () => {
 		let x, y;
 		if (shape.className === 'Arrow') {
-			const points = shape.points();
-			const offsetX = shape.x();
-			const offsetY = shape.y();
-			const pointsX = points.filter((_, i) => i % 2 === 0).map(p => p + offsetX);
-			const pointsY = points.filter((_, i) => i % 2 === 1).map(p => p + offsetY);
-			const maxX = Math.max(...pointsX);
-			const minY = Math.min(...pointsY);
-			x = maxX + 15;
-			y = minY - 15;
+			const box = shape.getClientRect();
+			x = box.x + box.width + 15;
+			y = box.y - 15;
 			return { x, y };
 		}
 		if (shape.className === 'Circle') {
@@ -817,6 +820,12 @@ const createShapeDeleteGroup = (shape, transformer) => {
 		opacity: 1,
 		duration: 0.2
 	});
+	const updateShapeDeletePosition = () => {
+		const pos = getShapeDeletePos();
+		shapeDeleteGroup.x(pos.x);
+		shapeDeleteGroup.y(pos.y);
+	};
+	return { deleteGroup: shapeDeleteGroup, updatePosition: updateShapeDeletePosition };
 }
 
 const createTextDeleteGroup = (konvaText, transformer) => {
@@ -1225,15 +1234,16 @@ const deleteShape = (shapeNode, transformer, deleteBtn, previewShape) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
 	const shapeId = shapeNode.id();
+	const foundTransformer = transformer || transformers.find(t => t.nodes().includes(shapeNode));
 	shapeNode.destroy();
-	if (transformer) {
-		transformer.destroy();
+	if (foundTransformer) {
+		foundTransformer.destroy();
 	}
 	if (deleteBtn) {
 		deleteBtn.destroy();
 	}
 	isTransforming = false;
-	const trIndex = transformers.indexOf(transformer);
+	const trIndex = transformers.indexOf(foundTransformer);
 	if (trIndex > -1) {
 		transformers.splice(trIndex, 1);
 	}
@@ -1709,8 +1719,8 @@ ws.value.onmessage = async (event) => {
 				e.evt.stopPropagation();
 				e.evt.preventDefault();
 				disableTransformers();
-				const newCircleTr = handleTransformerPop(shape)
-				createCircleDeleteGroup(shape, newCircleTr)
+				const { updatePosition: updateCircleDeletePos } = createCircleDeleteGroup(shape, null)
+				handleTransformerPop(shape, updateCircleDeletePos)
 			})
 			previewShape.on('dragmove', () => {
 				shape.position(previewShape.position());
@@ -1751,8 +1761,8 @@ ws.value.onmessage = async (event) => {
 				e.evt.stopPropagation();
 				e.evt.preventDefault();
 				disableTransformers();
-				const newSquareTr = handleTransformerPop(shape)
-				createShapeDeleteGroup(shape, newSquareTr)
+				const { updatePosition: updateShapeDeletePos } = createShapeDeleteGroup(shape, null)
+				handleTransformerPop(shape, updateShapeDeletePos)
 			})
 			previewShape.on('dragmove', () => {
 				shape.position(previewShape.position());
@@ -2599,14 +2609,14 @@ const handleMouseDown = (e) => {
 			}
 		}
 	}
+	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
+		return;
+	}
 	if (isTransforming && !clickedOnDeleteBtn) {
 		disableTransformers()
 		finishTextEditing()
 		isTransforming = false
 		return
-	}
-	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
-		return;
 	}
 	if (customMouseText.value || customMouseArrow.value) {
 		objectInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
@@ -2821,15 +2831,15 @@ const handleMouseUp = (e) => {
 			e.evt.stopPropagation();
 			e.evt.preventDefault();
 			disableTransformers();
-			const newArrowTr = handleTransformerPop(arrow)
-			createShapeDeleteGroup(arrow, newArrowTr)
+			const { updatePosition: updateArrowDeletePos } = createShapeDeleteGroup(arrow, null)
+			handleTransformerPop(arrow, updateArrowDeletePos)
 		})
 		layerRef.value.getNode().add(arrow);
 		previewLayer.add(previewArrow);
 		previewArrow.moveToTop();
 		arrow.moveToTop();
-		const newArrowTr = handleTransformerPop(arrow)
-		createShapeDeleteGroup(arrow, newArrowTr)
+		const { updatePosition: updateArrowDeletePos } = createShapeDeleteGroup(arrow, null)
+		handleTransformerPop(arrow, updateArrowDeletePos)
 		stage.container().style.cursor = 'default';
 		customMouseArrow.value = false;
 		addToHistory()
