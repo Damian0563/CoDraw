@@ -469,18 +469,6 @@ const createShape = (shapeName) => {
 					}));
 				}
 			});
-			previewCircle.on('dragmove', () => {
-				circle.position(previewCircle.position());
-				layer.batchDraw();
-				if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-					ws.value.send(JSON.stringify({
-						type: "shape-drag",
-						shapeType: "circle",
-						newpos: previewCircle.position(),
-						id: previewCircle.id(),
-					}));
-				}
-			});
 			showGrabbing(circle)
 			circle.on('dblclick', (e) => {
 				e.evt.stopPropagation();
@@ -535,7 +523,7 @@ const createShape = (shapeName) => {
 			square.moveToTop();
 			previewSquare.moveToTop();
 			const tr = handleTransformerPop(square)
-			createSquareDeleteGroup(square, tr)
+			createShapeDeleteGroup(square, tr)
 			square.on('dragmove', () => {
 				previewSquare.position(square.position());
 				previewLayer.batchDraw();
@@ -549,17 +537,13 @@ const createShape = (shapeName) => {
 				}
 			});
 			showGrabbing(square)
-			previewSquare.on('dragmove', () => {
-				square.position(previewSquare.position());
-				layer.batchDraw();
-			});
 			square.on('dblclick', (e) => {
 				e.evt.stopPropagation();
 				stage.container().style.cursor = 'default';
 				e.evt.preventDefault();
 				disableTransformers();
 				const newSquareTr = handleTransformerPop(square)
-				createSquareDeleteGroup(square, newSquareTr)
+				createShapeDeleteGroup(square, newSquareTr)
 			});
 			if (ws.value && ws.value.readyState === WebSocket.OPEN) {
 				ws.value.send(JSON.stringify({
@@ -751,25 +735,43 @@ const createCircleDeleteGroup = (circle, transformer) => {
 	});
 }
 
-const createArrowDeleteGroup = (arrow, transformer) => {
-	console.log(arrow, transformer)
-}
 
-const createSquareDeleteGroup = (square, transformer) => {
+const createShapeDeleteGroup = (shape, transformer) => {
 	const layer = layerRef.value.getNode();
-	const getSquareDeletePos = () => {
-		const scaleX = square.scaleX() || 1;
-		return { x: square.x() + square.width() * scaleX - 15, y: square.y() - 15 };
+	const getShapeDeletePos = () => {
+		let x, y;
+		if (shape.className === 'Arrow') {
+			const points = shape.points();
+			const offsetX = shape.x();
+			const offsetY = shape.y();
+			const pointsX = points.filter((_, i) => i % 2 === 0).map(p => p + offsetX);
+			const pointsY = points.filter((_, i) => i % 2 === 1).map(p => p + offsetY);
+			const maxX = Math.max(...pointsX);
+			const minY = Math.min(...pointsY);
+			x = maxX + 15;
+			y = minY - 15;
+			return { x, y };
+		}
+		if (shape.className === 'Circle') {
+			const scaleX = shape.scaleX() || 1;
+			x = shape.x() + shape.radius() * scaleX - 15;
+			y = shape.y() - shape.radius() * scaleX - 15;
+			return { x, y };
+		}
+		const scaleX = shape.scaleX() || 1;
+		x = shape.x() + shape.width() * scaleX - 15;
+		y = shape.y() - 15;
+		return { x, y };
 	};
-	const squareDeletePos = getSquareDeletePos();
-	const squareDeleteGroup = new Konva.Group({
-		name: `delete-${square.id()}`,
-		x: squareDeletePos.x,
-		y: squareDeletePos.y,
+	const shapeDeletePos = getShapeDeletePos();
+	const shapeDeleteGroup = new Konva.Group({
+		name: `delete-${shape.id()}`,
+		x: shapeDeletePos.x,
+		y: shapeDeletePos.y,
 		opacity: 0,
 		listening: true
 	});
-	const squareDeleteCircle = new Konva.Circle({
+	const shapeDeleteCircle = new Konva.Circle({
 		radius: 12,
 		fill: '#dc3545',
 		stroke: '#ffffff',
@@ -779,7 +781,7 @@ const createSquareDeleteGroup = (square, transformer) => {
 		shadowOffset: { x: 0, y: 2 },
 		shadowOpacity: 0.3
 	});
-	const squareDeleteIcon = new Konva.Path({
+	const shapeDeleteIcon = new Konva.Path({
 		data: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
 		stroke: '#fff',
 		strokeWidth: 2,
@@ -790,26 +792,28 @@ const createSquareDeleteGroup = (square, transformer) => {
 		x: -8,
 		y: -8
 	});
-	squareDeleteGroup.add(squareDeleteCircle);
-	squareDeleteGroup.add(squareDeleteIcon);
-	squareDeleteGroup.on('click', (e) => {
-		e.evt.stopPropagation();
-		const previewSquare = previewLayer.findOne(`#${square.id()}`);
-		deleteShape(square, transformer, squareDeleteGroup, previewSquare);
+	shapeDeleteGroup.add(shapeDeleteCircle);
+	shapeDeleteGroup.add(shapeDeleteIcon);
+	shapeDeleteGroup.on('click', (e) => {
+		if (e.evt) {
+			e.evt.stopPropagation();
+		}
+		const previewShape = previewLayer.findOne(`#${shape.id()}`);
+		deleteShape(shape, transformer, shapeDeleteGroup, previewShape);
 	});
-	squareDeleteGroup.on('mouseenter', () => {
-		squareDeleteCircle.fill('#c82333');
+	shapeDeleteGroup.on('mouseenter', () => {
+		shapeDeleteCircle.fill('#c82333');
 		stageRef.value.getNode().container().style.cursor = 'pointer';
 		layer.batchDraw();
 	});
-	squareDeleteGroup.on('mouseleave', () => {
-		squareDeleteCircle.fill('#dc3545');
+	shapeDeleteGroup.on('mouseleave', () => {
+		shapeDeleteCircle.fill('#dc3545');
 		stageRef.value.getNode().container().style.cursor = 'default';
 		layer.batchDraw();
 	});
-	deleteButtons.push(squareDeleteGroup);
-	layer.add(squareDeleteGroup);
-	squareDeleteGroup.to({
+	deleteButtons.push(shapeDeleteGroup);
+	layer.add(shapeDeleteGroup);
+	shapeDeleteGroup.to({
 		opacity: 1,
 		duration: 0.2
 	});
@@ -1228,6 +1232,7 @@ const deleteShape = (shapeNode, transformer, deleteBtn, previewShape) => {
 	if (deleteBtn) {
 		deleteBtn.destroy();
 	}
+	isTransforming = false;
 	const trIndex = transformers.indexOf(transformer);
 	if (trIndex > -1) {
 		transformers.splice(trIndex, 1);
@@ -1298,6 +1303,9 @@ const finishTextEditing = () => {
 const handleStageClick = (e) => {
 	isTransforming = false
 	const target = e.target;
+	if (target && target.name()?.startsWith('delete-')) {
+		return;
+	}
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
@@ -1744,7 +1752,7 @@ ws.value.onmessage = async (event) => {
 				e.evt.preventDefault();
 				disableTransformers();
 				const newSquareTr = handleTransformerPop(shape)
-				createSquareDeleteGroup(shape, newSquareTr)
+				createShapeDeleteGroup(shape, newSquareTr)
 			})
 			previewShape.on('dragmove', () => {
 				shape.position(previewShape.position());
@@ -2577,13 +2585,26 @@ const imageConfig = {
 let lastCenter = null;
 let lastDist = 0;
 const handleMouseDown = (e) => {
-	if (isTransforming) {
+	const target = e.target;
+	const stage = stageRef.value.getNode();
+	const pointerPos = stage.getPointerPosition();
+	let clickedOnDeleteBtn = false;
+	if (pointerPos) {
+		for (const btn of deleteButtons) {
+			const btnX = btn.x();
+			const btnY = btn.y();
+			if (Math.abs(pointerPos.x - btnX) < 24 && Math.abs(pointerPos.y - btnY) < 24) {
+				clickedOnDeleteBtn = true;
+				break;
+			}
+		}
+	}
+	if (isTransforming && !clickedOnDeleteBtn) {
 		disableTransformers()
 		finishTextEditing()
 		isTransforming = false
 		return
 	}
-	const target = e.target;
 	if (target && (target.className === 'Transformer' || target.getParent()?.className === 'Transformer')) {
 		return;
 	}
@@ -2801,14 +2822,14 @@ const handleMouseUp = (e) => {
 			e.evt.preventDefault();
 			disableTransformers();
 			const newArrowTr = handleTransformerPop(arrow)
-			createArrowDeleteGroup(arrow, newArrowTr)
+			createShapeDeleteGroup(arrow, newArrowTr)
 		})
 		layerRef.value.getNode().add(arrow);
 		previewLayer.add(previewArrow);
 		previewArrow.moveToTop();
 		arrow.moveToTop();
 		const newArrowTr = handleTransformerPop(arrow)
-		createArrowDeleteGroup(arrow, newArrowTr)
+		createShapeDeleteGroup(arrow, newArrowTr)
 		stage.container().style.cursor = 'default';
 		customMouseArrow.value = false;
 		addToHistory()
