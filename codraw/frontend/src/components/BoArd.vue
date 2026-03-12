@@ -556,7 +556,8 @@ const createShape = (shapeName) => {
 					height: square.height(),
 					fill: square.fill(),
 					stroke: square.stroke(),
-					strokeWidth: square.strokeWidth()
+					strokeWidth: square.strokeWidth(),
+					cornerRadius: square.cornerRadius()
 				}));
 			}
 			break;
@@ -1753,7 +1754,7 @@ ws.value.onmessage = async (event) => {
 				fill: data.fill,
 				stroke: data.stroke,
 				strokeWidth: data.strokeWidth,
-				cornerRadius: 10,
+				cornerRadius: data.cornerRadius,
 			});
 			shape = new Konva.Rect(shapeConfig);
 			previewShape = new Konva.Rect({ ...shapeConfig });
