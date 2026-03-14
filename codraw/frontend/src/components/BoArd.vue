@@ -70,7 +70,7 @@
           width: 60px;
       ">
 			<span style="color: #fff; min-width: 32px; text-align: center;">{{ width_slider }}</span>
-			<label aria-label="upload" title="upload image" @click="uploadImage" style="cursor: pointer;">
+			<label aria-label="upload" title="upload image" style="cursor: pointer;">
 				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" fill="#ffc107" class="bi bi-upload"
 					viewBox="0 0 16 16">
 					<path
@@ -2556,6 +2556,10 @@ function clearDefinetely(native) {
 			type: "clearall"
 		}));
 	}
+	const area = document.getElementById("textarea")
+	if (area) {
+		area.remove()
+	}
 	loading.value = false
 }
 
@@ -2602,7 +2606,7 @@ let lastDist = 0;
 const handleMouseDown = (e) => {
 	const target = e.target;
 	const stage = stageRef.value.getNode();
-	const pointerPos = stage.getPointerPosition();
+	const pointerPos = getRelativePointerPosition(stage);
 	let clickedOnDeleteBtn = false;
 	if (pointerPos) {
 		for (const btn of deleteButtons) {
@@ -2624,7 +2628,9 @@ const handleMouseDown = (e) => {
 		return
 	}
 	if (customMouseText.value || customMouseArrow.value) {
-		objectInitialPos = { x: e.evt.clientX, y: e.evt.clientY };
+		const stage = stageRef.value.getNode();
+		const pos = getRelativePointerPosition(stage);
+		objectInitialPos = { x: pos.x, y: pos.y };
 		return;
 	}
 	if (!e.evt.touches || e.evt.touches.length == 1) {
@@ -2701,11 +2707,12 @@ const handleMouseDown = (e) => {
 	}
 };
 
-const handleMouseUp = (e) => {
+const handleMouseUp = () => {
 	destroySelectObject()
 	const stage = stageRef.value.getNode();
-	const last_x = e.evt.clientX;
-	const last_y = e.evt.clientY;
+	const pointerPos = getRelativePointerPosition(stage);
+	const last_x = pointerPos.x;
+	const last_y = pointerPos.y;
 	const fill = color.value;
 	if (customMouseText.value && objectInitialPos) {
 		const width = Math.abs(last_x - objectInitialPos.x);
@@ -2892,6 +2899,8 @@ const destroySelectObject = () => {
 
 const handleMouseMove = (e) => {
 	const layer = layerRef.value.getNode();
+	const stage = stageRef.value.getNode();
+	const pointerPos = getRelativePointerPosition(stage);
 	if (customMouseText.value && objectInitialPos) {
 		const initial_x = objectInitialPos.x, initial_y = objectInitialPos.y
 		destroySelectObject()
@@ -2899,8 +2908,8 @@ const handleMouseMove = (e) => {
 			x: initial_x,
 			y: initial_y,
 			id: "selector",
-			width: e.evt.clientX - initial_x,
-			height: e.evt.clientY - initial_y,
+			width: pointerPos.x - initial_x,
+			height: pointerPos.y - initial_y,
 			fill: '#ffc107',
 			stroke: motiv.value === '#000000' ? 'white' : 'black',
 			opacity: 0.5,
@@ -2914,13 +2923,11 @@ const handleMouseMove = (e) => {
 	} else if (customMouseArrow.value && objectInitialPos) {
 		const initial_x = objectInitialPos.x, initial_y = objectInitialPos.y
 		destroySelectObject()
-		const stage = stageRef.value.getNode();
-		const point = getRelativePointerPosition(stage);
 		const arrow = new Konva.Arrow({
 			x: 0,
 			y: 0,
 			id: "selector",
-			points: [initial_x, initial_y, point.x, point.y],
+			points: [initial_x, initial_y, pointerPos.x, pointerPos.y],
 			stroke: color.value,
 			strokeWidth: width_slider.value,
 			pointerLength: 20,
@@ -3160,6 +3167,7 @@ const handleFiles = (event) => {
 		}
 	});
 	event.target.value = '';
+	objectInitialPos = null;
 }
 
 const keyhandler = async (event) => {
