@@ -5,7 +5,6 @@ from django_ratelimit.decorators import ratelimit
 from uuid import uuid4
 from codraw.redis_client import get_redis_client
 import json
-import os
 from . import helpers
 from . import database
 from . import mail as mailing
