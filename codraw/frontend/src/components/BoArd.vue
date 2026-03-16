@@ -154,6 +154,7 @@
 					cursor: pointer;
 					padding: 4px 12px;
 					line-height: 1;
+					user-select: none;
 				">...</button>
 				<Transition name="fade-slide">
 					<div v-if="showMoreMenu" style="
@@ -170,49 +171,52 @@
 					min-width: 180px;
 					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 					z-index: 20;
-				">
-						<button @click="copyInvitationLink" style="
-						display: flex;
-						align-items: center;
-						gap: 8px;
-						background: #4f8cff;
-						color: #fff;
-						border: none;
-						border-radius: 8px;
-						padding: 10px 14px;
-						font-size: 0.9rem;
-						cursor: pointer;
 					">
+						<button @click="copyInvitationLink" style="
+							display: flex;
+							align-items: center;
+							gap: 8px;
+							background: #4f8cff;
+							color: #fff;
+							border: none;
+							border-radius: 8px;
+							padding: 10px 14px;
+							font-size: 0.9rem;
+							cursor: pointer;
+						">
 							<img :src="url" alt="Copy" style="width: 16px; height: 16px;" />
 							Copy Invitation
 						</button>
 						<button v-if="visitor && MODE !== 'demo'" @click="toggleBookmark" style="
-					display: flex;
-					align-items: center;
-					gap: 8px;
-					background: #4f8cff;
-					color: #fff;
-					border: none;
-					border-radius: 8px;
-					padding: 10px 14px;
-					font-size: 0.9rem;
-					cursor: pointer;
-				">
+							display: flex;
+							align-items: center;
+							gap: 8px;
+							background: #4f8cff;
+							color: #fff;
+							border: none;
+							border-radius: 8px;
+							padding: 10px 14px;
+							font-size: 0.9rem;
+							cursor: pointer;
+						">
 							<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark"
 								style="width: 16px; height: 16px;" />
 							{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
 						</button>
 						<button id="clearall" v-if="admin || MODE === 'demo'" style="
-					background: #f68608;
-					color: #fff;
-					border: none;
-					border-radius: 8px;
-					padding: 8px 20px;
-					font-size: 1rem;
-					cursor: pointer;
-					transition: ease-in-out 0.6s;
-					" @click="clear_all()">
+							background: #f68608;
+							color: #fff;
+							border: none;
+							border-radius: 8px;
+							padding: 8px 20px;
+							font-size: 1rem;
+							cursor: pointer;
+							transition: ease-in-out 0.6s;
+							" @click="clear_all()">
 							Clear all
+						</button>
+						<button id="focus-mode" @click="toggleFocusMode">
+							Focus Mode
 						</button>
 					</div>
 				</Transition>
@@ -325,7 +329,7 @@
 				</button>
 			</div>
 		</Transition>
-		<div id="zoom">
+		<div id="zoom" v-if=!focusMode>
 			<label style="font-size: small; cursor: pointer;width:1.5rem" @click="changeZoom('up')">+</label>
 			<img :src="zoom_ico" decoding="async" loading="lazy" alt="zoom" class="img-fluid"
 				style="width:1rem;height: 1rem;">
@@ -395,6 +399,7 @@ const showMoreMenu = ref(false)
 const showShapeSelector = ref(false)
 const customMouseText = ref(false)
 const customMouseArrow = ref(false)
+const focusMode = ref(false)
 let objectInitialPos = null;
 const texts = []
 const room = ref(new URL(window.location.href).pathname.split('/')[3])
@@ -410,6 +415,63 @@ const ws = ref(null)
 const rawUrl = WS_URL
 const cleanBase = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
 const finalUrl = `${cleanBase}/${room.value}/`;
+const canvas = document.createElement('canvas');
+const stageConfig = {
+	width: 2 * document.documentElement.clientWidth,
+	height: 2 * document.documentElement.clientHeight,
+	draggable: false
+};
+canvas.width = stageConfig.width;
+canvas.height = stageConfig.height;
+const isSaved = ref(false)
+
+const context = canvas.getContext('2d');
+context.strokeStyle = color.value;
+context.fillStyle = background.value
+context.lineJoin = 'round';
+context.lineWidth = Number(width_slider.value);
+context.lineCap = 'round';
+context.lineJoin = 'round';
+const preview = document.createElement('div');
+preview.id = 'preview';
+preview.style.position = 'absolute';
+preview.style.bottom = '5px';
+preview.style.left = '5px';
+preview.style.border = '5px solid #ffc107';
+preview.style.borderRadius = "5%"
+preview.style.backgroundColor = background.value;
+document.body.appendChild(preview);
+const previewStage = new Konva.Stage({
+	container: 'preview',
+	width: window.innerWidth / 8,
+	height: window.innerHeight / 8,
+	scaleX: 1 / 32,
+	scaleY: 1 / 32,
+});
+
+let previewLayer = new Konva.Layer();
+const previewBg = new Konva.Rect({
+	x: 0,
+	y: 0,
+	width: previewStage.width() * 32,
+	height: previewStage.height() * 32,
+	fill: background.value,
+	listening: false,
+});
+previewStage.add(previewLayer);
+previewLayer.add(previewBg)
+
+
+const togglePreviewLayer = (mode) => {
+	const preview = document.getElementById('preview')
+	if (!preview) return
+	if (mode) {
+		preview.hidden = false
+	} else {
+		preview.hidden = true
+	}
+}
+
 const createShape = (shapeName) => {
 	const fill = color.value
 	const stage = stageRef.value.getNode()
@@ -567,6 +629,21 @@ const createShape = (shapeName) => {
 	}
 	showShapeSelector.value = false
 	addToHistory()
+}
+
+const toggleFocusMode = () => {
+	if (!focusMode.value) {
+		if (!document.fullscreenElement) {
+			document.documentElement.requestFullscreen();
+		}
+	} else {
+		if (document.exitFullscreen) {
+			document.exitFullscreen();
+		}
+	}
+	togglePreviewLayer(focusMode.value)
+	focusMode.value = !focusMode.value
+	showMoreMenu.value = false
 }
 
 const showGrabbing = (node) => {
@@ -1512,11 +1589,7 @@ const check_book_mark = async () => {
 		isBookmarked.value = false;
 	}
 }
-const stageConfig = {
-	width: 2 * document.documentElement.clientWidth,
-	height: 2 * document.documentElement.clientHeight,
-	draggable: false
-};
+
 
 
 if (wsConnections[room.value]) {
@@ -1970,46 +2043,7 @@ ws.value.onmessage = async (event) => {
 const handleContextMenu = (e) => {
 	e.evt.preventDefault();
 };
-const canvas = document.createElement('canvas');
-canvas.width = stageConfig.width;
-canvas.height = stageConfig.height;
-const isSaved = ref(false)
 
-const context = canvas.getContext('2d');
-context.strokeStyle = color.value;
-context.fillStyle = background.value
-context.lineJoin = 'round';
-context.lineWidth = Number(width_slider.value);
-context.lineCap = 'round';
-context.lineJoin = 'round';
-const preview = document.createElement('div');
-preview.id = 'preview';
-preview.style.position = 'absolute';
-preview.style.bottom = '5px';
-preview.style.left = '5px';
-preview.style.border = '5px solid #ffc107';
-preview.style.borderRadius = "5%"
-preview.style.backgroundColor = background.value;
-document.body.appendChild(preview);
-const previewStage = new Konva.Stage({
-	container: 'preview',
-	width: window.innerWidth / 8,
-	height: window.innerHeight / 8,
-	scaleX: 1 / 32,
-	scaleY: 1 / 32,
-});
-
-let previewLayer = new Konva.Layer();
-const previewBg = new Konva.Rect({
-	x: 0,
-	y: 0,
-	width: previewStage.width() * 32,
-	height: previewStage.height() * 32,
-	fill: background.value,
-	listening: false,
-});
-previewStage.add(previewLayer);
-previewLayer.add(previewBg)
 
 watch(color, (newColor) => {
 	context.strokeStyle = newColor;
@@ -3448,6 +3482,21 @@ input:checked+.slider::before {
 	z-index: 10;
 }
 
+#focus-mode {
+	background: #49dada;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 8px 20px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: ease-in-out 0.6s;
+}
+
+#focus-mode:hover {
+	background: #fff;
+	color: #49dada;
+}
 
 #inv:hover,
 #bookmark-btn:hover,
