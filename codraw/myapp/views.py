@@ -560,12 +560,14 @@ def trending(request):
     if id is not None:
         data = request.data
         timezone = data['timezone']
+        page = data['page']
         if redis_client.get(f"trending:{id}:{timezone}"):
-            boards = json.loads(redis_client.get(f"trending:{id}:{timezone}"))
+            boards = json.loads(redis_client.get(
+                f"trending:{id}:{timezone}:{page}"))
         else:
-            boards = database.get_trending(id, timezone)
+            boards = database.get_trending(id, timezone, page)
             redis_client.setex(
-                f"trending:{id}:{timezone}", 60*10, json.dumps(boards))
+                f"trending:{id}:{timezone}:{page}", 60*10, json.dumps(boards))
         return Response({'status': 200, 'boards': boards})
     return Response({'status': 400, 'boards': ''})
 
@@ -580,11 +582,13 @@ def search(request):
         data = request.data
         query = data['query']
         timezone = data['timezone']
-        if redis_client.get(f"search:{query}:{timezone}"):
-            result = json.loads(redis_client.get(f"search:{query}:{timezone}"))
+        page = data['page']
+        if redis_client.get(f"search:{query}:{timezone}:{page}"):
+            result = json.loads(redis_client.get(
+                f"search:{query}:{timezone}:{page}"))
         else:
-            result = database.get_matches(query, timezone)
+            result = database.get_matches(query, timezone, page)
             redis_client.setex(f"search:{query}:{
-                               timezone}", 60*5, json.dumps(result))
+                               timezone}:{page}", 60*5, json.dumps(result))
         return Response({"status": 200, "boards": result})
     return Response({"status": 400})

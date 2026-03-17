@@ -8,6 +8,8 @@ from zoneinfo import ZoneInfo
 from datetime import datetime
 import nltk
 from nltk.stem import WordNetLemmatizer
+from codraw.redis_client import get_redis_client
+redis_client = get_redis_client()
 nltk.download('punkt')
 nltk.download('punkt_tab')
 nltk.download('averaged_perceptron_tagger_eng')
@@ -241,12 +243,15 @@ def get_bookmarks(username: str, timezone: str) -> list[dict]:
         return []
 
 
-def get_boards_of_username(mode:str,timezone: str, username: str) -> list[dict]:
+def get_boards_of_username(mode: str, timezone: str, username: str) -> list[dict]:
     try:
         client_tz = ZoneInfo(timezone)
         mail = get_mail_by_username(username)
-        if mode=="admin": entries = models.Board.objects.filter(owner=mail)
-        else: entries=models.Board.objects.filter(owner=mail,visibility="Public")
+        if mode == "admin":
+            entries = models.Board.objects.filter(owner=mail)
+        else:
+            entries = models.Board.objects.filter(
+                owner=mail, visibility="Public")
         res = [
             {
                 "room": entry.room,
@@ -303,11 +308,15 @@ def get_username(email: str) -> str | None:
         return
 
 
-def get_trending(id: str, timezone: str) -> list[Dict[str, str]]:
+def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
     try:
         client_tz = ZoneInfo(timezone)
         entries = models.Board.objects.filter(owner__ne=decode_user(
-            id), visibility='Public').order_by('-views')[:9]
+            id), visibility='Public').order_by('-views')
+        if page == 1:
+            entries = entries[:10]
+        else:
+            entries = entries[10*(page-1):10*page]
         res = [
             {
                 "room": entry.room,
@@ -336,35 +345,46 @@ def increase_view_count(room: str) -> None:
         pass
 
 
-def get_matches(sentence: str, timezone: str) -> list:
+def get_matches(sentence: str, timezone: str, page: int) -> list:
     try:
-        tokenized = nltk.word_tokenize(sentence)
-        tags = nltk.pos_tag(tokenized)
-        lemmatizer = WordNetLemmatizer()
-        result = []
-        for entry in tags:
-            word, word_type = entry[0], entry[1]
-            word = word.lower()
-            if word_type.startswith("NN"):
-                result.append(lemmatizer.lemmatize(word, "n"))
-            elif word_type.startswith("V"):
-                result.append(lemmatizer.lemmatize(word, "v"))
-            elif word_type.startswith("JJ"):
-                result.append(lemmatizer.lemmatize(word, "a"))
-        keywords = list(set(result))
-        if len(keywords) == 0:
-            return []
-        matches = models.Board.objects.filter(
-            summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
+        sorted_boards = redis_client.get(
+            f"search:{sentence}:{timezone}:{page}")
+        if not sorted_boards:
+            tokenized = nltk.word_tokenize(sentence)
+            tags = nltk.pos_tag(tokenized)
+            lemmatizer = WordNetLemmatizer()
+            result = []
+            for entry in tags:
+                word, word_type = entry[0], entry[1]
+                word = word.lower()
+                if word_type.startswith("NN"):
+                    result.append(lemmatizer.lemmatize(word, "n"))
+                elif word_type.startswith("V"):
+                    result.append(lemmatizer.lemmatize(word, "v"))
+                elif word_type.startswith("JJ"):
+                    result.append(lemmatizer.lemmatize(word, "a"))
+            keywords = list(set(result))
+            if len(keywords) == 0:
+                return []
+            matches = models.Board.objects.filter(
+                summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
 
-        def match_count(board):
-            try:
-                board_keywords = set(json.loads(board.summary))
-            except (TypeError, json.JSONDecodeError):
-                board_keywords = set()
-            return len(set(keywords) & board_keywords)
-        client_tz = ZoneInfo(timezone)
-        sorted_boards = sorted(matches, key=match_count, reverse=True)
+            def match_count(board):
+                try:
+                    board_keywords = set(json.loads(board.summary))
+                except (TypeError, json.JSONDecodeError):
+                    board_keywords = set()
+                return len(set(keywords) & board_keywords)
+            client_tz = ZoneInfo(timezone)
+            sorted_boards = sorted(matches, key=match_count, reverse=True)
+            redis_client.setex(f"search:{sentence}:{timezone}:{
+                               page}", 60*5, json.dumps(sorted_boards))
+        else:
+            sorted_boards = json.loads(sorted_boards)
+        if page == 1:
+            sorted_boards = sorted_boards[:10]
+        else:
+            sorted_boards = sorted_boards[10*(page-1):10*page]
         boards_list = [
             {
                 "room": board.room,
