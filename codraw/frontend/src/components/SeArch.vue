@@ -6,7 +6,7 @@
 		<SiDebar />
 		<div class="flex-grow-1 d-flex justify-content-center align-items-start p-2 p-md-3">
 			<div class="search-container border rounded justify-content-between flex-column"
-				style="background-color: #ffc107;width:90%;height: 110vh;">
+				style="background-color: #ffc107;width:90%;min-height: 100vh;">
 				<div class="text-center py-2">
 					<h2 class="fw-bold mb-1">Browse Public Projects</h2>
 					<p class="text-muted small mb-2">Find boards and ideas shared by the community</p>
@@ -16,21 +16,21 @@
 						<div class="input-group shadow-sm rounded mx-2">
 							<input type="text" class="form-control border-0 p-3 minput" placeholder="Search public boards..."
 								aria-label="Search public boards" v-model="input" @keyup.enter="search(input)">
-							<button class="btn btn-primary" type="button" @click="search(input)">
-								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-									class="bi bi-search" viewBox="0 0 16 16">
-									<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1
+								<button class="btn btn-primary" type="button" @click="search(input)">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+										class="bi bi-search" viewBox="0 0 16 16">
+										<path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1
 									1 0 0 0 1.415-1.415l-3.85-3.85zm-5.242
 									1.656a5.5 5.5 0 1 1 0-11 5.5
 									5.5 0 0 1 0 11z" />
-								</svg>
-							</button>
+									</svg>
+								</button>
 						</div>
 					</div>
 				</div>
-				<section id="results" class="mx-3 flex-grow-1 overflow-auto">
-					<div class="container">
-						<div class="row g-1 justify-content-start gap-2">
+				<section id="results" class="mx-auto flex-grow-1">
+					<div class="container mx-auto">
+						<div class="row justify-content-center gap-2">
 							<div v-for="(board, index) in popular" :key="index"
 								:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
 								class="card result-card project-card text-center"
@@ -59,7 +59,7 @@
 						</div>
 					</div>
 				</section>
-				<div class="d-flex justify-content-center align-items-center gap-2 pagination-controls">
+				<div class="d-flex justify-content-center mt-2 align-items-center gap-2 pagination-controls">
 					<button class="btn btn-primary pagination-btn" :disabled="currentpage <= 1 || loading"
 						@click="currentpage--; search(input)">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -69,7 +69,8 @@
 						Prev
 					</button>
 					<span class="pagination-info">Page {{ currentpage }}</span>
-					<button class="btn btn-primary pagination-btn" :disabled="loading || popular.length < max_boards"> Next
+					<button class="btn btn-primary pagination-btn" :disabled="loading || popular.length < max_boards"
+						@click="currentpage++; search(input)"> Next
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
 							<path fill-rule="evenodd"
 								d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
@@ -378,5 +379,9 @@ onMounted(async () => {
 	color: #9ca3af;
 	font-size: 0.9rem;
 	padding: 0 1rem;
+}
+
+#results {
+	height: auto
 }
 </style>
