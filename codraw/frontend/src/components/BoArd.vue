@@ -278,7 +278,8 @@
                 font-size: 0.75rem;
                 color: #aaa;
                 pointer-events: none;
-              ">{{ (title && title.length) || 0 }}</span>
+              " :class="{ to_many_chars: title && title.length > 50 }">{{ ((title && title.length) || 0) +
+								'/50' }} </span>
 					</div>
 				</div>
 				<div style="display: flex; flex-direction: column; gap: 6px;">
@@ -304,7 +305,8 @@
               font-size: 0.75rem;
               color: #aaa;
               pointer-events: none;
-              ">{{ (description && description.length) || 0 }}</span>
+              " :class="{ to_many_chars: description && description.length > 150 }">{{ ((description &&
+								description.length) || 0) + '/150' }}</span>
 					</div>
 				</div>
 				<div style="display: flex; align-items: center; gap: 10px;">
@@ -2139,13 +2141,13 @@ const save_definetely = async () => {
 			showPopup.value = true
 			message.value = "Please provide a title for your board."
 		}
-		if (title.value.length > 66) {
+		if (title.value.length > 50) {
 			showPopup.value = true
 			message.value = "The title length is to large, must be at most 60 characters."
 		}
-		if (description.value && description.value.length > 170) {
+		if (description.value && description.value.length > 150) {
 			showPopup.value = true
-			message.value = "The description length is to large, must be at most 100 characters."
+			message.value = "The description length is to large, must be at most 150 characters."
 		}
 		const formData = new FormData();
 		const previewBlob = dataURLtoBlob(getPreviewPicture());
@@ -3515,5 +3517,10 @@ input:checked+.slider::before {
 #clearall:hover {
 	background: #fff !important;
 	color: #f68608 !important;
+}
+
+.to_many_chars {
+	color: #f68608 !important;
+	font-weight: bolder;
 }
 </style>
