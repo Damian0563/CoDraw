@@ -213,6 +213,12 @@ const resave = async (board) => {
 	if (board.title.length === 0 || board.description.length === 0) {
 		showPopup.value = true
 		message.value = "Board title or description cannot be empty"
+	} else if (board.title.length > 50) {
+		showPopup.value = true
+		message.value = "Board title cannot be longer than 50 characters"
+	} else if (board.description.length > 150) {
+		showPopup.value = true
+		message.value = "Board description cannot be longer than 150 characters"
 	}
 	if (board.original_description !== board.description || board.original_title !== board.title) {
 		try {
@@ -284,7 +290,7 @@ const get_boards = async (username) => {
 		previewing.value = response.images
 		edits.value = response.boards.map(() => false)
 	} catch (e) {
-		console.error(e)
+		return
 	}
 }
 
@@ -315,7 +321,7 @@ async function join(room) {
 			window.location.href = `${response.url}?origin=account/${username.value}`
 		}
 	} catch (e) {
-		console.error(e)
+		return
 	}
 }
 

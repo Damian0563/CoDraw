@@ -84,11 +84,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { get_cookie } from '@/common';
 import { DateTime } from 'luxon'
 import { BASE_URL } from '@/common'
 import SiDebar from './SiDebar.vue'
 import { VueSpinnerTail } from 'vue3-spinners'
+
+const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
 const popular = ref([])
 const input = ref('')
@@ -100,6 +104,7 @@ async function search(sentence) {
 	try {
 		loading.value = true;
 		if (sentence.length !== 0) {
+			router.push({ path: '/codraw/search', query: { q: sentence, page: currentpage.value } })
 			const data = await fetch(`${BASE_URL}/search`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
@@ -175,7 +180,14 @@ async function join(room) {
 
 onMounted(async () => {
 	loading.value = true
-	await load_popular()
+	const query = route.query
+	if (query.q) {
+		input.value = query.q
+		currentpage.value = parseInt(query.page) || 1
+		await search(input.value)
+	} else {
+		await load_popular()
+	}
 	loading.value = false
 })
 </script>

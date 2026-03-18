@@ -377,10 +377,12 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                 return len(set(keywords) & board_keywords)
             client_tz = ZoneInfo(timezone)
             sorted_boards = sorted(matches, key=match_count, reverse=True)
-            redis_client.setex(f"search:{sentence}:{timezone}:{
-                               page}", 60*5, json.dumps(sorted_boards))
+            boards_for_cache = [board.room for board in sorted_boards]
+            redis_client.setex(f"search:{sentence}:{timezone}:{page}", 60*5, json.dumps(boards_for_cache))
         else:
-            sorted_boards = json.loads(sorted_boards)
+            room_ids = json.loads(sorted_boards)
+            sorted_boards = [models.Board.objects.get(room=room_id) for room_id in room_ids]
+        client_tz = ZoneInfo(timezone)
         if page == 1:
             sorted_boards = sorted_boards[:10]
         else:
