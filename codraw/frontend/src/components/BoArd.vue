@@ -168,13 +168,14 @@
 					display: flex;
 					flex-direction: column;
 					gap: 10px;
-					min-width: 180px;
+					min-width: 200px;
 					box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 					z-index: 20;
 					">
-						<button @click="copyInvitationLink" style="
+						<button class="invite-btn" @click="copyInvitationLink" style="
 							display: flex;
 							align-items: center;
+							justify-content: center;
 							gap: 8px;
 							background: #4f8cff;
 							color: #fff;
@@ -183,24 +184,27 @@
 							padding: 10px 14px;
 							font-size: 0.9rem;
 							cursor: pointer;
+							transition: ease-in-out 0.6s;
 						">
-							<img :src="url" alt="Copy" style="width: 16px; height: 16px;" />
+							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
-						<button v-if="visitor && MODE !== 'demo'" @click="toggleBookmark" style="
-							display: flex;
-							align-items: center;
-							gap: 8px;
-							background: #4f8cff;
-							color: #fff;
-							border: none;
-							border-radius: 8px;
-							padding: 10px 14px;
-							font-size: 0.9rem;
-							cursor: pointer;
-						">
-							<img :src="bookmarkIcon" decoding="async" loading="lazy" alt="Bookmark"
-								style="width: 16px; height: 16px;" />
+						<button v-if="visitor && MODE !== 'demo'" class="bookmark-btn" :class="{ bookmarked: isBookmarked }"
+							@click="toggleBookmark" :style="{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: '8px',
+								background: isBookmarked ? '#8b5cf6' : '#4f8cff',
+								color: '#fff',
+								border: 'none',
+								borderRadius: '8px',
+								padding: '10px 14px',
+								fontSize: '0.9rem',
+								cursor: 'pointer',
+								transition: 'ease-in-out 0.6s',
+							}">
+							<font-awesome-icon :icon="['fas', 'bookmark']" style="font-size: 14px;" />
 							{{ isBookmarked ? "Bookmarked" : "Bookmark" }}
 						</button>
 						<button id="clearall" v-if="admin || MODE === 'demo'" style="
@@ -213,9 +217,11 @@
 							cursor: pointer;
 							transition: ease-in-out 0.6s;
 							" @click="clear_all()">
+							<font-awesome-icon :icon="['fas', 'trash']" style="margin-right: 6px;" />
 							Clear all
 						</button>
 						<button id="focus-mode" @click="toggleFocusMode">
+							<font-awesome-icon :icon="['fas', 'expand']" style="margin-right: 6px;" />
 							Focus Mode
 						</button>
 					</div>
@@ -352,13 +358,11 @@
 </template>
 
 <script setup>
-import url from '@/assets/email.webp'
 import zoom_ico from '@/assets/zoom.webp'
 import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import { BASE_URL, WS_URL, wsConnections } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners'
-import bookmarkIcon from '@/assets/star.webp'
 const loading = ref(false)
 const csrf = get_cookie('csrftoken');
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
@@ -2103,7 +2107,6 @@ const check_owner = async () => {
 		}
 	} catch (e) {
 		admin.value = false
-		console.error(e)
 	}
 }
 
@@ -2112,6 +2115,9 @@ const copyInvitationLink = async () => {
 		let link = window.location.href;
 		if (MODE === 'demo') {
 			link = link.replace('home', 'home_inv')
+		} else {
+			link = link.slice(0, link.indexOf('?'))
+			link += '?origin=home'
 		}
 		await navigator.clipboard.writeText(link);
 		showPopup.value = true;
@@ -2183,7 +2189,8 @@ const save_definetely = async () => {
 			message.value = "There was an error saving your board."
 		}
 	} catch (e) {
-		console.error(e)
+		showPopup.value = true
+		message.value = "There was an error saving your board."
 	}
 }
 
@@ -3282,6 +3289,26 @@ body {
 	margin: 0;
 	height: 100%;
 	overflow: hidden !important;
+}
+
+.invite-btn:hover {
+	background: #fff !important;
+	color: #4f8cff !important;
+}
+
+.bookmark-btn:hover {
+	background: #fff !important;
+	color: #4f8cff !important;
+}
+
+.bookmark-btn.bookmarked:hover {
+	background: #fff !important;
+	color: #8b5cf6 !important;
+}
+
+.bookmark-btn.bookmarked:hover {
+	background: #fff !important;
+	color: #8b5cf6 !important;
 }
 </style>
 

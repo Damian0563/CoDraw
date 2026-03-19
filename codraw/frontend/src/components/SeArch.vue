@@ -133,6 +133,7 @@ async function search(sentence) {
 
 async function load_popular() {
 	try {
+		router.push({ path: '/codraw/search', query: { page: currentpage.value } })
 		const data = await fetch(`${BASE_URL}/get_popular`, {
 			method: "POST",
 			headers: {
@@ -171,7 +172,7 @@ async function join(room) {
 		})
 		const response = await data.json()
 		if (response.status === 200) {
-			window.location.href = `${response.url}?origin=search`
+			window.location.href = `${response.url}?origin=search?page=${currentpage.value}?q=${input.value}`
 		}
 	} catch (e) {
 		console.error(e)
