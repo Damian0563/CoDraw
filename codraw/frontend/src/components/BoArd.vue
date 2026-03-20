@@ -221,8 +221,14 @@
 							Clear all
 						</button>
 						<button id="focus-mode" @click="toggleFocusMode">
-							<font-awesome-icon :icon="['fas', 'expand']" style="margin-right: 6px;" />
-							Focus Mode
+							<div v-if="focusMode">
+								<font-awesome-icon :icon="['fas', 'compress']" style="margin-right: 6px;" />
+								Normal Mode
+							</div>
+							<div v-else>
+								<font-awesome-icon :icon="['fas', 'expand']" style="margin-right: 6px;" />
+								Focus Mode
+							</div>
 						</button>
 					</div>
 				</Transition>

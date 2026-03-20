@@ -30,6 +30,16 @@
       </div>
     </div>
   </div>
+  <section class="bento-section container my-5 scroll-reveal">
+    <div class="bento-grid">
+      <div class="bento-item">
+        <img src="/board.webp" alt="Board" loading="lazy" decoding="async"/>
+      </div>
+      <div class="bento-item">
+        <img src="/main.webp" alt="Main" loading="lazy" decoding="async"/>
+      </div>
+    </div>
+  </section>
   <section class="about-sec container text-center my-5 scroll-reveal" aria-label="Our mission">
     <text class="about-title">No subscriptions, no hidden fees</text><text class="about-text" style="font-size: 2.5rem;">- just free for everyone, forever with at most respect to privacy.</text>
   </section>
@@ -538,6 +548,45 @@ export default {
   .faq-button {
     font-size: 1rem;
     padding: 1rem;
+  }
+}
+
+.bento-section {
+  padding: 0 1rem;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.bento-item {
+  background: rgba(20, 20, 25, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 1rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  min-height: 200px;
+}
+
+.bento-item:hover {
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+  transform: scale(1.02);
+}
+
+.bento-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
