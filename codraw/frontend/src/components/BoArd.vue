@@ -189,8 +189,8 @@
 							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
-						<button v-if="visitor && MODE !== 'demo'" class="bookmark-btn" :class="{ bookmarked: isBookmarked }"
-							@click="toggleBookmark" :style="{
+						<button v-if="visitor && MODE !== 'demo' && !admin" class="bookmark-btn"
+							:class="{ bookmarked: isBookmarked }" @click="toggleBookmark" :style="{
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
