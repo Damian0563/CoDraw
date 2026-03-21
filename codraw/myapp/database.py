@@ -294,7 +294,9 @@ def exists(id: str) -> bool:
     return models.User.objects.filter(id=id).count() > 0
 
 
-def check_ownership(mail: str, room: str) -> bool:
+def check_ownership(mail: str | None, room: str) -> bool:
+    if not mail:
+        return False
     if models.Board.objects.filter(room=room).count() == 0:
         return True  # New Project
     return models.Board.objects.filter(owner=mail, room=room).count() > 0
@@ -378,10 +380,12 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
             client_tz = ZoneInfo(timezone)
             sorted_boards = sorted(matches, key=match_count, reverse=True)
             boards_for_cache = [board.room for board in sorted_boards]
-            redis_client.setex(f"search:{sentence}:{timezone}:{page}", 60*5, json.dumps(boards_for_cache))
+            redis_client.setex(f"search:{sentence}:{timezone}:{
+                               page}", 60*5, json.dumps(boards_for_cache))
         else:
             room_ids = json.loads(sorted_boards)
-            sorted_boards = [models.Board.objects.get(room=room_id) for room_id in room_ids]
+            sorted_boards = [models.Board.objects.get(
+                room=room_id) for room_id in room_ids]
         client_tz = ZoneInfo(timezone)
         if page == 1:
             sorted_boards = sorted_boards[:10]

@@ -454,7 +454,7 @@ def save_new(request):
     id = helpers.validate_request(request)
     if id is not None and database.save_new_project(project, payload, id, title, description, type, background):
         if preview is not None:
-            bucket.save(project, preview)
+            bucket.save(project, preview, title)
         redis_client.delete(f"images:{id}")
         redis_client.delete(f"images_user:{id}:admin")
         redis_client.delete(f"images_user:{id}:user")
