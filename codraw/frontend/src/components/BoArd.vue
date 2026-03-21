@@ -2410,17 +2410,25 @@ const dataURLtoBlob = (dataURL) => {
 const getPreviewPicture = () => {
 	const stage = stageRef.value.getStage();
 	const layer = layerRef.value.getNode();
+	const exportWidth = previewStage.width() * 32;
+	const exportHeight = previewStage.height() * 32;
 	const bgRect = new Konva.Rect({
-		x: -stage.x() / stage.scaleX(),
-		y: -stage.y() / stage.scaleY(),
-		width: stage.width() / stage.scaleX(),
-		height: stage.height() / stage.scaleY(),
+		x: 0,
+		y: 0,
+		width: exportWidth,
+		height: exportHeight,
 		fill: background.value,
 		listening: false,
 	});
 	layer.add(bgRect);
 	bgRect.moveToBottom();
-	const dataURL = stage.toDataURL({ pixelRatio: 2 });
+	const dataURL = stage.toDataURL({
+		x: 0,
+		y: 0,
+		width: exportWidth,
+		height: exportHeight,
+		pixelRatio: 2,
+	});
 	bgRect.destroy();
 	layer.batchDraw();
 	return dataURL;
