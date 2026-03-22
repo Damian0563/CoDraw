@@ -231,6 +231,7 @@ const resave = async (board) => {
 				credentials: "include",
 				body: JSON.stringify({
 					"title": board.title,
+					"same_title": board.original_title === board.title,
 					"description": board.description,
 					"timezone": DateTime.local().zoneName
 				})
