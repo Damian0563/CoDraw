@@ -16,6 +16,11 @@ class Bucket:
         blob = self.bucket.blob(f"{room}/{self.stringify_title(title)}.png")
         blob.upload_from_file(preview)
 
+    def edit_title(self, room: str, title: str) -> None:
+        blob = list(self.bucket.list_blobs(prefix=f"{room}/"))[0]
+        blob.name = f"{self.stringify_title(title)}.png"
+        blob.update()
+
     def get_images(self, rooms: list) -> dict:
         images = {}
         for room in rooms:

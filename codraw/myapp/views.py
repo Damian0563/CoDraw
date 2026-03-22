@@ -345,9 +345,12 @@ def edit(request, room):
     if id is not None:
         data = request.data
         title = data['title']
+        same_title = data['same_title']
         description = data['description']
         timezone = data['timezone']
         database.edit(room, title, description, timezone)
+        if not same_title:
+            bucket.edit_title(room, title)
         redis_client.delete(f"board:{room}")
         redis_client.delete(f"boards:{id}")
         redis_client.delete(f"images:{id}")
