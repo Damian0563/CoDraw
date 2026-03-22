@@ -378,13 +378,11 @@ onMounted(async () => {
 	overflow-y: auto;
 }
 
-/* Small screens - account for sidebar overlay */
 @media (max-width: 500px) {
 	.main-layout {
 		position: relative;
 	}
 
-	/* Add padding to prevent content from being hidden when sidebar is open */
 	.main-layout.sidebar-open {
 		overflow: hidden;
 	}

@@ -112,6 +112,7 @@ const get_boards = async () => {
 		const response = await data.json()
 		boards.value = response.boards
 		images.value = response.images
+		console.log(response.images)
 		previewing.value = response.boards.reduce((acc, board) => {
 			acc[board.room] = false
 			return acc
