@@ -134,10 +134,10 @@ onMounted(async() => {
 }
 .modern-tile {
   width: 100%;
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  border: 1px solid rgba(255, 193, 7, 0.2);
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 193, 7, 0.3);
   color: #ffffff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s ease;
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -145,31 +145,20 @@ onMounted(async() => {
   font-weight: 500;
   font-size: 0.95rem;
   letter-spacing: 0.3px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   position: relative;
-  overflow: hidden;
-}
-
-.modern-tile::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.modern-tile:hover::before {
-  left: 100%;
 }
 
 .modern-tile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
-  border-color: rgba(255, 193, 7, 0.5);
-  background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  color: #2a2a2a;
+  border-color: #ffc107;
+}
+
+.modern-tile:hover .tile-icon {
+  color: #2a2a2a;
 }
 
 .modern-tile:active {
@@ -178,7 +167,7 @@ onMounted(async() => {
 }
 
 .active-tile {
-  background: linear-gradient(145deg, #ffc107, #ffb300) !important;
+  background: #ffc107 !important;
   color: #1a1a1a !important;
   border-color: #ffc107 !important;
   box-shadow: 0 4px 16px rgba(255, 193, 7, 0.4);
@@ -195,7 +184,7 @@ onMounted(async() => {
 }
 
 .tile-text {
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
 }
 
 .modern-tile:hover .tile-text {
