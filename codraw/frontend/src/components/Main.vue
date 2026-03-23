@@ -15,27 +15,35 @@
 					<div v-for="(board, index) in boards" :key="index" class="card project-card text-center"
 						@click="join(board.room)">
 						<div class="card-body d-flex flex-column card-with-preview">
-							<div class="preview-section" v-if="images[board.room] && !previewing[board.room]">
+							<div class="preview-section">
 								<div class="preview-image-container">
 									<img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy"
-										decoding="async" />
+										decoding="async" v-if="images[board.room]" />
+									<div class="preview-image-container" v-else-if="!finishedAsync">
+										<VueSpinnerTail size="60" color="orange" />
+									</div>
+									<div class="preview-image-container" v-else>
+										<div class="text-center">
+											<h5 class="card-title fw-bold mb-2" style="color: #ffc107">No Preview Available</h5>
+										</div>
+									</div>
 								</div>
 							</div>
-							<div class="content-section">
-								<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
-								<p class="card-text small">{{ board.description }}</p>
-								<footer class="card-footer">
-									<div class="text-start small">
-										<span>Visibility: <span>{{ board.visibility }}</span></span>
-									</div>
-									<div class="d-flex justify-content-between small ">
-										<span>Views: <span>{{ board.views }}</span></span>
-									</div>
-									<div class="text-start small">
-										<span>{{ board.modified }}</span>
-									</div>
-								</footer>
-							</div>
+						</div>
+						<div class="content-section">
+							<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+							<p class="card-text small">{{ board.description }}</p>
+							<footer class="card-footer">
+								<div class="text-start small">
+									<span>Visibility: <span>{{ board.visibility }}</span></span>
+								</div>
+								<div class="d-flex justify-content-between small ">
+									<span>Views: <span>{{ board.views }}</span></span>
+								</div>
+								<div class="text-start small">
+									<span>{{ board.modified }}</span>
+								</div>
+							</footer>
 						</div>
 					</div>
 				</div>
@@ -63,7 +71,7 @@ const csrf = get_cookie('csrftoken')
 const boards = ref([])
 const username = ref("")
 const images = ref({})
-const previewing = ref({})
+const finishedAsync = ref(false)
 async function get_username() {
 	try {
 		const data = await fetch(`${BASE_URL}/username`, {
@@ -111,18 +119,22 @@ const get_boards = async () => {
 		})
 		const response = await data.json()
 		boards.value = response.boards
-		images.value = response.images
-		console.log(response.images)
-		previewing.value = response.boards.reduce((acc, board) => {
-			acc[board.room] = false
-			return acc
-		}, {})
 	} catch (e) {
 		console.error(e)
 	}
 }
 async function join(room) {
 	try {
+		if (!wsConnections[room]) {
+			await new Promise((resolve) => {
+				const ws = new WebSocket(`${WS_URL}/${room}/`)
+				ws.onopen = () => {
+					wsConnections[room] = ws
+					resolve()
+				}
+				ws.onerror = resolve
+			})
+		}
 		const data = await fetch(`${BASE_URL}/load`, {
 			"method": "POST",
 			"headers": {
@@ -143,6 +155,29 @@ async function join(room) {
 	}
 }
 
+const get_preview_images = async (rooms) => {
+	try {
+		const data = await fetch(`${BASE_URL}/codraw/get_preview_images`, {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrf
+			},
+			body: JSON.stringify({
+				"rooms": rooms
+			}),
+			credentials: "include"
+		})
+		const response = await data.json()
+		if (response.status === 200) {
+			images.value = response.images
+		}
+	} catch (e) {
+		console.error(e)
+	}
+	finishedAsync.value = true
+}
+
 async function create() {
 	try {
 		const data = await fetch(`${BASE_URL}/get_project_url`, {
@@ -157,9 +192,6 @@ async function create() {
 		if (response.status === 200) {
 			router.push(`${response.url}?origin=default`)
 		}
-		else {
-			console.log('error')
-		}
 	} catch (e) {
 		console.error(e)
 	}
@@ -172,17 +204,8 @@ onMounted(async () => {
 		get_boards(),
 		get_username()
 	])
-	await Promise.all(boards.value.map(board => {
-		return new Promise((resolve) => {
-			const ws = new WebSocket(`${WS_URL}/${board.room}/`)
-			ws.onopen = () => {
-				wsConnections[board.room] = ws
-				resolve()
-			}
-			ws.onerror = () => resolve()
-		})
-	}))
 	loading.value = false
+	get_preview_images(boards.value.map(board => board.room))
 })
 </script>
 
@@ -482,7 +505,7 @@ export default {
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
-	min-height: 0;
+	min-height: 4rem;
 	width: 100%;
 }
 

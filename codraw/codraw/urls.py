@@ -33,6 +33,8 @@ urlpatterns = [
     path('codraw/check_saved', views.check_saved, name="check_saved"),
     path('home', views.home, name="home"),
     path('codraw/', views.main, name="main"),
+    path('codraw/get_preview_images',
+         views.get_preview_images, name="get_preview_images"),
     path('log_out', views.logout, name='logout'),
     path('get_project_url', views.get_url, name='get_url'),
     path('board/<str:id>/<str:room>/?origin=<str:origin>',

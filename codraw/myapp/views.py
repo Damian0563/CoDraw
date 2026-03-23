@@ -186,6 +186,23 @@ def main(request):
         return Response({"status": 400, "message": "No session found"})
 
 
+@api_view(['POST'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='30/m', block=True)
+def get_preview_images(request):
+    data = request.data
+    rooms = data['rooms']
+    id = helpers.validate_request(request)
+    if id is not None:
+        if redis_client.get(f"images:{id}"):
+            images = json.loads(redis_client.get(f"images:{id}"))
+        else:
+            images = bucket.get_images(rooms)
+            redis_client.setex(f"images:{id}", 60*5, json.dumps(images))
+        return Response({'status': 200, "images": images})
+    return Response({'status': 400})
+
+
 @api_view(['GET'])
 @ensure_csrf_cookie
 @ratelimit(key='ip', rate='30/m', block=True)
@@ -275,15 +292,11 @@ def my_projects(request):
             if redis_client.get(f"boards:{id}"):
                 boards = json.loads(redis_client.get(
                     f"boards:{id}"))
-                images = json.loads(redis_client.get(f"images:{id}"))
             else:
                 boards = database.get_boards(id, timezone)
-                images = bucket.get_images([board['room'] for board in boards])
-                redis_client.setex(
-                    f"images:{id}", 60*5, json.dumps(images))
                 redis_client.setex(
                     f"boards:{id}", 60*5, json.dumps(boards))
-            return Response({'status': 200, "boards": boards, "images": images})
+            return Response({'status': 200, "boards": boards})
         return Response({'status': 400})
     except KeyError:
         return Response({'status': 500})
