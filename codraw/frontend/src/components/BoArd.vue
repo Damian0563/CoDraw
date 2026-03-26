@@ -17,7 +17,7 @@
 						style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
 						✕
 					</button>
-					<p>{{ message }}</p>
+					<p style="white-space: pre-line; text-align: left; line-height: 1.6;">{{ message }}</p>
 					<button v-if="message !== 'Are you sure you would like to clear the board? This action is irreversible.'"
 						@click="showPopup = false; showMoreMenu = false" id="close_form"
 						style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
@@ -229,6 +229,10 @@
 								<font-awesome-icon :icon="['fas', 'expand']" style="margin-right: 6px;" />
 								Focus Mode
 							</div>
+						</button>
+						<button id="manual" @click="toggleManualMode">
+							<font-awesome-icon :icon="['fas', 'book-open']" style="margin-right: 6px;" />
+							Manual
 						</button>
 					</div>
 				</Transition>
@@ -473,6 +477,28 @@ const previewBg = new Konva.Rect({
 previewStage.add(previewLayer);
 previewLayer.add(previewBg)
 
+
+const toggleManualMode = () => {
+	showPopup.value = true
+	message.value = `MOUSE
+Draw: Left-click + drag
+Pan: Right-click + drag (or use hand tool)
+Zoom: Scroll wheel
+Edit: Double-click shape/text
+
+TOUCH
+Draw: Touch + drag
+Pan: Two-finger drag
+Zoom: Pinch
+
+KEYBOARD
+Ctrl+Z: Undo
+Ctrl+Y: Redo
+
+SHAPES
+Select shape from toolbar, then click canvas`
+	showMoreMenu.value = false
+}
 
 const togglePreviewLayer = (mode) => {
 	const preview = document.getElementById('preview')
@@ -3523,6 +3549,22 @@ input:checked+.slider::before {
 	bottom: 10px;
 	background-color: white;
 	z-index: 10;
+}
+
+#manual {
+	background: #ffc107;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 8px 20px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: ease-in-out 0.6s;
+}
+
+#manual:hover {
+	background: #fff;
+	color: #ffc107;
 }
 
 #focus-mode {
