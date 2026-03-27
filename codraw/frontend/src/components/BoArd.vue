@@ -1190,8 +1190,6 @@ const handleTextClick = (konvaText) => {
 	konvaText.hide();
 	const stage = stageRef.value.getNode();
 	const textPosition = konvaText.getAbsolutePosition();
-	const stageBox = stage.container().getBoundingClientRect();
-	const scale = stage.scaleX();
 	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
 	const textarea = document.createElement("textarea");
 	textarea.id = "textarea"
@@ -1199,13 +1197,14 @@ const handleTextClick = (konvaText) => {
 	document.body.appendChild(textarea);
 	textarea.value = konvaText.text();
 	textarea.style.position = 'absolute';
-	textarea.style.top = (stageBox.top + textPosition.y * scale + 18) + 'px';
-	textarea.style.left = (stageBox.left + textPosition.x * scale) + 'px';
+	const stageBox = stage.container().getBoundingClientRect();
+	textarea.style.top = (stageBox.top + textPosition.y) + 'px';
+	textarea.style.left = (stageBox.left + textPosition.x) + 'px';
 	const textScaleX = konvaText.scaleX() || 1;
 	const textScaleY = konvaText.scaleY() || 1;
-	textarea.style.width = (konvaText.width() * textScaleX * scale) + 'px';
-	textarea.style.height = (konvaText.height() * textScaleY * scale) + 'px';
-	textarea.style.fontSize = (konvaText.fontSize() * textScaleX * scale) + 'px';
+	textarea.style.width = (konvaText.width() * textScaleX * stage.scaleX()) + 'px';
+	textarea.style.height = (konvaText.height() * textScaleY * stage.scaleY()) + 'px';
+	textarea.style.fontSize = (konvaText.fontSize() * textScaleX * stage.scaleX()) + 'px';
 	textarea.style.fontFamily = konvaText.fontFamily();
 	textarea.style.color = konvaText.fill();
 	textarea.style.backgroundColor = 'transparent';
