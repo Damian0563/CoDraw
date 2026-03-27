@@ -31,6 +31,7 @@
 				</div>
 			</div>
 		</Transition>
+		<TextCustomizer v-if="displayCustomizer" @close="displayCustomizer = false" />
 		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 850 }" style="
 				position: absolute;
 				top: 12px;
@@ -373,17 +374,19 @@ import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import { BASE_URL, WS_URL, wsConnections } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners'
+import Konva from 'konva';
+import { watch } from 'vue';
+import { nextTick } from 'vue';
+import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
+import { TextCustomizer } from '@/components/TextCustomizer.vue'
+const displayCustomizer = ref(false);
 const loading = ref(false)
 const csrf = get_cookie('csrftoken');
-import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
 const currentLine = ref(null)
 const MODE = new URL(window.location.href).pathname.split('/')[1] == 'demo' ? 'demo' : 'default'
 let drawFrameId = null
 let lastWsSendTime = 0
 let isTransforming = false
-import Konva from 'konva';
-import { watch } from 'vue';
-import { nextTick } from 'vue';
 const stageRef = ref(null);
 const windowWidth = ref(window.innerWidth);
 const admin = ref(false)
@@ -2815,6 +2818,7 @@ const handleMouseUp = () => {
 			draggable: true,
 			name: 'mainText',
 		});
+		displayCustomizer.value = true;
 		texts.push(maintext.id());
 		maintext.setAttr('originalFontSize', 32);
 		maintext.setAttr('originalWidth', 220);
