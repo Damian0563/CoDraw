@@ -31,7 +31,9 @@
 				</div>
 			</div>
 		</Transition>
-		<TextCustomizer v-if="displayCustomizer" @close="displayCustomizer = false" />
+		<TextCustomizer v-if="displayCustomizer" :textObject="selectedTextObject"
+			style="position: absolute; top: 100px; right: 20px; width: 280px; z-index: 9999;"
+			@update:textStyle="handleTextStyleUpdate" />
 		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 850 }" style="
 				position: absolute;
 				top: 12px;
@@ -380,6 +382,7 @@ import { nextTick } from 'vue';
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
 import { TextCustomizer } from '@/components/TextCustomizer.vue'
 const displayCustomizer = ref(false);
+const selectedTextObject = ref(null);
 const loading = ref(false)
 const csrf = get_cookie('csrftoken');
 const currentLine = ref(null)
@@ -527,6 +530,7 @@ const createShape = (shapeName) => {
 	switch (shapeName) {
 		case 'text': {
 			customMouseText.value = true;
+			displayCustomizer.value = true;
 			break;
 		}
 		case 'arrow': {
@@ -1180,6 +1184,8 @@ const createImageDeleteGroup = (konvaImg, transformer) => {
 const handleTextClick = (konvaText) => {
 	const layer = layerRef.value.getNode();
 	const tr = handleTransformerPop(konvaText)
+	displayCustomizer.value = true;
+	selectedTextObject.value = konvaText;
 	showGrabbing(konvaText)
 	konvaText.hide();
 	const stage = stageRef.value.getNode();
@@ -1529,6 +1535,33 @@ const finishTextEditing = () => {
 	disableTransformers();
 }
 
+const handleTextStyleUpdate = (style) => {
+	if (!selectedTextObject.value) return;
+	const textNode = selectedTextObject.value;
+	const layer = layerRef.value.getNode();
+	const previewText = previewLayer.findOne(`#${textNode.id()}`);
+	textNode.fontSize(parseInt(style.fontSize));
+	textNode.fontFamily(style.fontFamily);
+	textNode.fill(style.color);
+	textNode.fontStyle(style.fontWeight + ' ' + style.fontStyle);
+	textNode.textDecoration(style.textDecoration);
+	textNode.lineHeight(parseFloat(style.lineHeight));
+	textNode.letterSpacing(parseFloat(style.letterSpacing));
+	if (previewText) {
+		previewText.fontSize(parseInt(style.fontSize));
+		previewText.fontFamily(style.fontFamily);
+		previewText.fill(style.color);
+		previewText.fontStyle(style.fontWeight + ' ' + style.fontStyle);
+		previewText.textDecoration(style.textDecoration);
+		previewText.lineHeight(parseFloat(style.lineHeight));
+		previewText.letterSpacing(parseFloat(style.letterSpacing));
+		previewLayer.batchDraw();
+	}
+	layer.batchDraw();
+	displayCustomizer.value = false;
+	selectedTextObject.value = null;
+}
+
 const handleStageClick = (e) => {
 	isTransforming = false
 	const target = e.target;
@@ -1539,6 +1572,7 @@ const handleStageClick = (e) => {
 		return;
 	}
 	showShapeSelector.value = false
+	displayCustomizer.value = false
 	showMoreMenu.value = false
 	finishTextEditing();
 	disableTransformers();
@@ -2818,7 +2852,6 @@ const handleMouseUp = () => {
 			draggable: true,
 			name: 'mainText',
 		});
-		displayCustomizer.value = true;
 		texts.push(maintext.id());
 		maintext.setAttr('originalFontSize', 32);
 		maintext.setAttr('originalWidth', 220);

@@ -109,7 +109,13 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from 'vue'
+import { ref, computed, defineEmits, defineProps, watch } from 'vue'
+const props = defineProps({
+	textObject: {
+		type: Object,
+		default: null
+	}
+})
 const fontSize = ref(16)
 const fontFamily = ref('Arial, sans-serif')
 const color = ref('#000000')
@@ -120,6 +126,22 @@ const isUnderline = ref(false)
 const lineHeight = ref(1.5)
 const letterSpacing = ref(0)
 const emit = defineEmits(['update:textStyle'])
+
+watch(() => props.textObject, (newVal) => {
+	if (newVal) {
+		fontSize.value = newVal.fontSize() || 16
+		fontFamily.value = newVal.fontFamily() || 'Arial, sans-serif'
+		color.value = newVal.fill() || '#000000'
+		backgroundColor.value = newVal.fill() || 'transparent'
+		const fontStyle = newVal.fontStyle() || 'normal'
+		isBold.value = fontStyle.includes('bold')
+		isItalic.value = fontStyle.includes('italic')
+		const textDecoration = newVal.textDecoration() || 'none'
+		isUnderline.value = textDecoration.includes('underline')
+		lineHeight.value = newVal.lineHeight() || 1.5
+		letterSpacing.value = newVal.letterSpacing() || 0
+	}
+}, { immediate: true })
 
 const textStyle = computed(() => ({
 	fontSize: `${fontSize.value}px`,
