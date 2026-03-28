@@ -31,9 +31,8 @@
 				</div>
 			</div>
 		</Transition>
-		<TextCustomizer v-if="displayCustomizer" :textObject="selectedTextObject"
-			style="position: absolute; top: 100px; right: 20px; width: 280px; z-index: 9999;"
-			@update:textStyle="handleTextStyleUpdate" />
+		<TextCustomizer v-if="displayCustomizer" :textObject="selectedTextObject" @update:textStyle="handleTextStyleUpdate"
+			@close="displayCustomizer = false" />
 		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 850 }" style="
 				position: absolute;
 				top: 12px;
@@ -380,7 +379,7 @@ import Konva from 'konva';
 import { watch } from 'vue';
 import { nextTick } from 'vue';
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
-import { TextCustomizer } from '@/components/TextCustomizer.vue'
+import TextCustomizer from './TextCustomizer.vue'
 const displayCustomizer = ref(false);
 const selectedTextObject = ref(null);
 const loading = ref(false)
@@ -530,7 +529,6 @@ const createShape = (shapeName) => {
 	switch (shapeName) {
 		case 'text': {
 			customMouseText.value = true;
-			displayCustomizer.value = true;
 			break;
 		}
 		case 'arrow': {
@@ -2851,6 +2849,7 @@ const handleMouseUp = () => {
 			draggable: true,
 			name: 'mainText',
 		});
+		displayCustomizer.value = true;
 		texts.push(maintext.id());
 		maintext.setAttr('originalFontSize', 32);
 		maintext.setAttr('originalWidth', 220);
