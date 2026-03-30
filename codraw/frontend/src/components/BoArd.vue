@@ -1024,6 +1024,7 @@ const createShapeDeleteGroup = (shape, transformer) => {
 		}
 		const previewShape = previewLayer.findOne(`#${shape.id()}`);
 		deleteShape(shape, transformer, shapeDeleteGroup, previewShape);
+		displayCustomizer.value = false
 	});
 	shapeDeleteGroup.on('mouseenter', () => {
 		shapeDeleteCircle.fill('#c82333');
@@ -1485,6 +1486,7 @@ const deleteShape = (shapeNode, transformer, deleteBtn, previewShape) => {
 		}));
 	}
 	addToHistory();
+	displayCustomizer.value = false
 }
 
 const disableTransformers = () => {
@@ -1540,22 +1542,13 @@ const handleTextStyleUpdate = (style) => {
 	textNode.fontSize(parseInt(style.fontSize));
 	textNode.fontFamily(style.fontFamily);
 	textNode.fill(style.color);
-	textNode.fontStyle(style.fontWeight + ' ' + style.fontStyle);
-	textNode.textDecoration(style.textDecoration);
-	textNode.lineHeight(parseFloat(style.lineHeight));
-	textNode.letterSpacing(parseFloat(style.letterSpacing));
 	if (previewText) {
 		previewText.fontSize(parseInt(style.fontSize));
 		previewText.fontFamily(style.fontFamily);
 		previewText.fill(style.color);
-		previewText.fontStyle(style.fontWeight + ' ' + style.fontStyle);
-		previewText.textDecoration(style.textDecoration);
-		previewText.lineHeight(parseFloat(style.lineHeight));
-		previewText.letterSpacing(parseFloat(style.letterSpacing));
 		previewLayer.batchDraw();
 	}
 	layer.batchDraw();
-	displayCustomizer.value = false;
 	selectedTextObject.value = null;
 }
 

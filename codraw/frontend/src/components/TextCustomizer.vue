@@ -22,6 +22,7 @@
 					</span>
 					<select class="form-select bg-dark text-light border-secondary" v-model="fontFamily">
 						<option value="Arial, sans-serif">Arial</option>
+						<option value="Caveat">Caveat</option>
 						<option value="'Times New Roman', serif">Times New Roman</option>
 						<option value="'Courier New', monospace">Courier New</option>
 						<option value="Georgia, serif">Georgia</option>
@@ -42,15 +43,6 @@
 						title="Choose text color" />
 					<input type="text" class="form-control bg-dark text-light border-secondary color-text" v-model="color"
 						placeholder="#000000" />
-				</div>
-			</div>
-			<div class="mb-3">
-				<label class="form-label text-light small">Background Color</label>
-				<div class="d-flex align-items-center gap-2">
-					<input type="color" class="form-control form-control-color bg-dark border-secondary" v-model="backgroundColor"
-						title="Choose background color" />
-					<input type="text" class="form-control bg-dark text-light border-secondary color-text"
-						v-model="backgroundColor" placeholder="transparent" />
 				</div>
 			</div>
 			<div class="mt-4">
@@ -74,39 +66,32 @@ const props = defineProps({
 const fontSize = ref(16)
 const fontFamily = ref('Arial, sans-serif')
 const color = ref('#000000')
-const backgroundColor = ref('transparent')
-const isBold = ref(false)
-const emit = defineEmits(['update:textStyle', 'close'])
-
-watch(() => props.textObject, (newVal) => {
-	if (newVal) {
-		fontSize.value = newVal.fontSize() || 16
-		fontFamily.value = newVal.fontFamily() || 'Arial, sans-serif'
-		color.value = newVal.fill() || '#000000'
-		backgroundColor.value = newVal.fill() || 'transparent'
-		const fontStyle = newVal.fontStyle() || 'normal'
-		isBold.value = fontStyle.includes('bold')
-		// if (textStyle.value)
-		// 	emit('update:textStyle', textStyle.value)
-	}
-}, { immediate: true })
-
 const textStyle = computed(() => ({
 	fontSize: `${fontSize.value}px`,
 	fontFamily: fontFamily.value,
 	color: color.value,
-	backgroundColor: backgroundColor.value,
-	fontWeight: isBold.value ? 'bold' : 'normal',
 }))
+const originalTextStyle = ref(null)
+const emit = defineEmits(['update:textStyle', 'close'])
+watch(() => props.textObject, (newVal) => {
+	if (newVal) {
+		originalTextStyle.value = newVal
+		fontSize.value = newVal.fontSize()
+		fontFamily.value = newVal.fontFamily()
+		color.value = newVal.fill()
+	}
+}, { immediate: true })
 
-console.log(textStyle.value)
+watch([fontSize, fontFamily, color], () => {
+	emit('update:textStyle', textStyle.value)
+})
 
 function resetSettings() {
-	fontSize.value = 16
-	fontFamily.value = 'Arial, sans-serif'
-	color.value = '#000000'
-	backgroundColor.value = 'transparent'
-	isBold.value = false
+	if (originalTextStyle.value) {
+		fontSize.value = originalTextStyle.value.fontSize()
+		fontFamily.value = originalTextStyle.value.fontFamily()
+		color.value = originalTextStyle.value.fill()
+	}
 }
 </script>
 
