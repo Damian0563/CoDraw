@@ -1420,6 +1420,7 @@ const handleDblClick = (e) => {
 const deleteImage = (imageNode, transformer, deleteBtn) => {
 	const layer = layerRef.value.getNode();
 	if (!layer) return;
+	displayCustomizer.value = false
 	const imageId = imageNode.id();
 	if (texts.includes(imageId)) texts.splice(texts.indexOf(imageId), 1)
 	if (document.getElementById("textarea")) document.getElementById("textarea").remove()
@@ -1539,17 +1540,33 @@ const handleTextStyleUpdate = (style) => {
 	const textNode = selectedTextObject.value;
 	const layer = layerRef.value.getNode();
 	const previewText = previewLayer.findOne(`#${textNode.id()}`);
-	textNode.fontSize(parseInt(style.fontSize));
-	textNode.fontFamily(style.fontFamily);
-	textNode.fill(style.color);
+	const newFontSize = parseInt(style.fontSize) || 16;
+	const newFontFamily = style.fontFamily || 'Arial, sans-serif';
+	const newColor = style.color || '#000000';
+	textNode.fontSize(newFontSize);
+	textNode.fontFamily(newFontFamily);
+	textNode.fill(newColor);
 	if (previewText) {
-		previewText.fontSize(parseInt(style.fontSize));
-		previewText.fontFamily(style.fontFamily);
-		previewText.fill(style.color);
+		previewText.fontSize(newFontSize);
+		previewText.fontFamily(newFontFamily);
+		previewText.fill(newColor);
 		previewLayer.batchDraw();
 	}
+	const textarea = document.getElementById('textarea');
+	if (textarea) {
+		const stage = stageRef.value.getNode();
+		const stageScale = stage.scaleX();
+		const konvaScaleX = textNode.scaleX() || 1;
+		const konvaScaleY = textNode.scaleY() || 1;
+		const computedFontSize = Math.round(newFontSize * konvaScaleX * stageScale);
+		textarea.style.fontSize = computedFontSize + 'px';
+		textarea.style.fontFamily = newFontFamily;
+		textarea.style.color = newColor;
+		textarea.style.width = (textNode.width() * konvaScaleX * stageScale) + 'px';
+		textarea.style.height = (textNode.height() * konvaScaleY * stageScale) + 'px';
+	}
 	layer.batchDraw();
-	selectedTextObject.value = null;
+	//selectedTextObject.value = null;
 }
 
 const handleStageClick = (e) => {

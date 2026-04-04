@@ -10,7 +10,7 @@
 						<font-awesome-icon :icon="['fas', 'text-height']"></font-awesome-icon>
 					</span>
 					<input type="number" class="form-control bg-dark text-light border-secondary" v-model="fontSize" min="8"
-						max="144" placeholder="16" />
+						max="96" step="1">
 					<span class="input-group-text bg-dark text-light border-secondary">px</span>
 				</div>
 			</div>
@@ -71,11 +71,17 @@ const textStyle = computed(() => ({
 	fontFamily: fontFamily.value,
 	color: color.value,
 }))
-const originalTextStyle = ref(null)
+const originalFontSize = ref(null)
+const originalFontFamily = ref(null)
+const originalColor = ref(null)
 const emit = defineEmits(['update:textStyle', 'close'])
 watch(() => props.textObject, (newVal) => {
 	if (newVal) {
-		originalTextStyle.value = newVal
+		if (originalFontSize.value === null) {
+			originalFontSize.value = newVal.fontSize()
+			originalFontFamily.value = newVal.fontFamily()
+			originalColor.value = newVal.fill()
+		}
 		fontSize.value = newVal.fontSize()
 		fontFamily.value = newVal.fontFamily()
 		color.value = newVal.fill()
@@ -87,10 +93,11 @@ watch([fontSize, fontFamily, color], () => {
 })
 
 function resetSettings() {
-	if (originalTextStyle.value) {
-		fontSize.value = originalTextStyle.value.fontSize()
-		fontFamily.value = originalTextStyle.value.fontFamily()
-		color.value = originalTextStyle.value.fill()
+	console.log(originalFontSize.value)
+	if (originalFontSize.value !== null) {
+		fontSize.value = originalFontSize.value
+		fontFamily.value = originalFontFamily.value
+		color.value = originalColor.value
 	}
 }
 </script>
