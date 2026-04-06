@@ -1,3 +1,4 @@
+from .gcp import Bucket
 from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
@@ -10,6 +11,7 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from codraw.redis_client import get_redis_client
 redis_client = get_redis_client()
+bucket = Bucket()
 nltk.download('punkt')
 nltk.download('punkt_tab')
 nltk.download('averaged_perceptron_tagger_eng')
@@ -315,8 +317,12 @@ def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
         client_tz = ZoneInfo(timezone)
         entries = models.Board.objects.filter(owner__ne=decode_user(
             id), visibility='Public').order_by('-views')
+        print(len(entries))
         if page == 1:
-            entries = entries[:10]
+            if len(entries) > 10:
+                entries = entries[:10]
+            else:
+                entries = entries[:len(entries)]
         else:
             entries = entries[10*(page-1):10*page]
         res = [
@@ -325,6 +331,7 @@ def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
                 "title": entry.title,
                 "description": entry.description,
                 "views": entry.views,
+                "image": bucket.get_image_of_room(entry.room),
                 "owner": get_username(entry.owner),
                 "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }

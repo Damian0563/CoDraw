@@ -37,6 +37,19 @@ class Bucket:
                 )
         return images
 
+    def get_image_of_room(self, room: str) -> str:
+        try:
+            blob = list(self.bucket.list_blobs(prefix=f"{room}/"))[0]
+            return blob.generate_signed_url(
+                version="v4",
+                expiration=timedelta(minutes=15),
+                method="GET",
+                response_disposition=f"attachment; filename*=UTF-8'{
+                    blob.name}'",
+            )
+        except Exception:
+            return ""
+
     @staticmethod
     def stringify_title(title: str) -> str:
         title.replace(" ", "-")

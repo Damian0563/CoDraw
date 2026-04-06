@@ -577,13 +577,13 @@ def trending(request):
         data = request.data
         timezone = data['timezone']
         page = data['page']
-        if redis_client.get(f"trending:{id}:{timezone}"):
+        if redis_client.get(f"trending:{timezone}:{page}"):
             boards = json.loads(redis_client.get(
-                f"trending:{id}:{timezone}:{page}"))
+                f"trending:{timezone}:{page}"))
         else:
             boards = database.get_trending(id, timezone, page)
             redis_client.setex(
-                f"trending:{id}:{timezone}:{page}", 60*10, json.dumps(boards))
+                f"trending:{timezone}:{page}", 60*10, json.dumps(boards))
         return Response({'status': 200, 'boards': boards})
     return Response({'status': 400, 'boards': ''})
 
