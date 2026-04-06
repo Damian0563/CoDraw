@@ -31,11 +31,23 @@
 				<section id="results" class="mx-auto flex-grow-1">
 					<div class="container mx-auto">
 						<div class="row justify-content-center gap-2">
-							<div v-for="(board, index) in popular" :key="index"
-								:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-								class="card result-card project-card text-center"
-								style="height: 20rem; width: 18rem; cursor: pointer; position: relative;" @click="join(board.room)">
-								<div class="card-body d-flex flex-column" style="height: 100%;">
+						<div v-for="(board, index) in popular" :key="index"
+							:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
+							class="card result-card project-card text-center"
+							style="height: 22rem; width: 18rem; cursor: pointer; position: relative; overflow: hidden;" @click="join(board.room)">
+							<div class="card-body d-flex flex-column card-with-preview" style="height: 100%; padding: 0;">
+								<div class="preview-section">
+									<div class="preview-image-container">
+										<img :src="board.image" class="preview-image" alt="Preview of board" loading="lazy"
+											decoding="async" v-if="board.image" />
+										<div class="preview-image-container" v-else>
+											<div class="text-center">
+												<h5 class="card-title fw-bold mb-0" style="color: #ffc107; font-size: 0.875rem;">No Preview Available</h5>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="content-section">
 									<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
 									<p class="card-text small">{{ board.description }}</p>
 									<footer class="card-footer">
@@ -53,6 +65,7 @@
 									</footer>
 								</div>
 							</div>
+						</div>
 							<div v-if="popular.length === 0" class="justify-content-center w-100 py-5">
 								<text>No results found :(</text>
 							</div>
@@ -241,8 +254,8 @@ onMounted(async () => {
 
 	.project-card,
 	.result-card {
-		height: 20rem;
-		min-height: 20rem;
+		height: 22rem;
+		min-height: 22rem;
 	}
 }
 
@@ -396,5 +409,72 @@ onMounted(async () => {
 
 #results {
 	height: auto
+}
+
+.card-with-preview {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.preview-section {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 0.25rem 0.5rem;
+	position: relative;
+}
+
+.preview-section .preview-image-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	min-height: 4rem;
+	width: 100%;
+}
+
+.preview-section .preview-image {
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.content-section {
+	flex-shrink: 0;
+	padding: 0.75rem;
+	background: #1f2937;
+	border-top: 1px solid #374151;
+}
+
+.content-section .card-title {
+	font-size: 1rem;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+	color: #f9fafb;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.content-section .card-text {
+	font-size: 0.875rem;
+	color: #9ca3af;
+	line-height: 1.3;
+	margin-bottom: 0.5rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.content-section .card-footer {
+	margin-top: 0;
+	padding-top: 0.5rem;
+	border-top: 1px solid #374151;
 }
 </style>

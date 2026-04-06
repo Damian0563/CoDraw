@@ -315,16 +315,11 @@ def get_username(email: str) -> str | None:
 def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
     try:
         client_tz = ZoneInfo(timezone)
-        entries = models.Board.objects.filter(owner__ne=decode_user(
-            id), visibility='Public').order_by('-views')
-        print(len(entries))
-        if page == 1:
-            if len(entries) > 10:
-                entries = entries[:10]
-            else:
-                entries = entries[:len(entries)]
-        else:
-            entries = entries[10*(page-1):10*page]
+        offset = 10 * (page - 1)
+        entries = models.Board.objects.filter(
+            owner__ne=decode_user(id),
+            visibility='Public'
+        ).order_by('-views').skip(offset).limit(10)
         res = [
             {
                 "room": entry.room,
@@ -391,8 +386,9 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                                page}", 60*5, json.dumps(boards_for_cache))
         else:
             room_ids = json.loads(sorted_boards)
-            sorted_boards = [models.Board.objects.get(
-                room=room_id) for room_id in room_ids]
+            boards_dict = {
+                b.room: b for b in models.Board.objects.filter(room__in=room_ids)}
+            sorted_boards = [boards_dict[room_id] for room_id in room_ids]
         client_tz = ZoneInfo(timezone)
         if page == 1:
             sorted_boards = sorted_boards[:10]
