@@ -113,7 +113,7 @@ def get_code(mail: str) -> str:
         return ""
 
 
-def find_room(room: str, owner: str) -> bool:
+def find_room(room: str) -> bool:
     return models.Board.objects.filter(room=room)
 
 
@@ -352,7 +352,7 @@ def increase_view_count(room: str) -> None:
 def get_matches(sentence: str, timezone: str, page: int) -> list:
     try:
         sorted_boards = redis_client.get(
-            f"search:{sentence}:{timezone}:{page}")
+            f"search:{sentence.lower().strip()}:{page}")
         if not sorted_boards:
             tokenized = nltk.word_tokenize(sentence)
             tags = nltk.pos_tag(tokenized)
@@ -371,7 +371,7 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
             if len(keywords) == 0:
                 return []
             matches = models.Board.objects.filter(
-                summary__icontains=keywords[0]) if keywords else models.Board.objects.none()
+                summary__icontains=keywords[0], visibility="Public") if keywords else models.Board.objects.none()
 
             def match_count(board):
                 try:
@@ -379,11 +379,10 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                 except (TypeError, json.JSONDecodeError):
                     board_keywords = set()
                 return len(set(keywords) & board_keywords)
-            client_tz = ZoneInfo(timezone)
             sorted_boards = sorted(matches, key=match_count, reverse=True)
             boards_for_cache = [board.room for board in sorted_boards]
-            redis_client.setex(f"search:{sentence}:{timezone}:{
-                               page}", 60*5, json.dumps(boards_for_cache))
+            redis_client.setex(f"search:{sentence.lower().strip()}:{
+                               page}", 60*10, json.dumps(boards_for_cache))
         else:
             room_ids = json.loads(sorted_boards)
             boards_dict = {
@@ -391,9 +390,11 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
             sorted_boards = [boards_dict[room_id] for room_id in room_ids]
         client_tz = ZoneInfo(timezone)
         if page == 1:
-            sorted_boards = sorted_boards[:10]
+            if len(sorted_boards) > 10:
+                sorted_boards = sorted_boards[:10]
         else:
             sorted_boards = sorted_boards[10*(page-1):10*page]
+        client_tz = ZoneInfo(timezone)
         boards_list = [
             {
                 "room": board.room,
@@ -402,6 +403,7 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                 "visibility": board.visibility,
                 "summary": board.summary,
                 "owner": get_username(board.owner),
+                "image": bucket.get_image_of_room(board.room),
                 "views": board.views,
                 "modified": (datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }

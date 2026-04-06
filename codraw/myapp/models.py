@@ -24,5 +24,6 @@ class Board(Document):
     meta = {
         'indexes': [
             {'fields': ['visibility', '-views']},
+            {'fields': ["$summary"], "default_language": "english"}
         ]
     }

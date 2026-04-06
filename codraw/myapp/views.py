@@ -396,7 +396,7 @@ def board(request, id, room):
 def save(request):
     id = helpers.validate_request(request)
     room = request.POST.get('project')
-    if database.find_room(room, id):
+    if database.find_room(room):
         bg = request.POST.get('bg')
         payload = request.POST.get('payload')
         preview = request.FILES.get('preview')
@@ -424,7 +424,7 @@ def load_project(request):
     data = request.data
     id = helpers.validate_request(request)
     room = data.get('project')
-    found = database.find_room(room, id)
+    found = database.find_room(room)
     if found:
         return Response({'status': 200})
     return Response({'status': 400})
@@ -577,13 +577,13 @@ def trending(request):
         data = request.data
         timezone = data['timezone']
         page = data['page']
-        if redis_client.get(f"trending:{timezone}:{page}"):
+        if redis_client.get(f"trending:{page}"):
             boards = json.loads(redis_client.get(
-                f"trending:{timezone}:{page}"))
+                f"trending:{page}"))
         else:
             boards = database.get_trending(id, timezone, page)
             redis_client.setex(
-                f"trending:{timezone}:{page}", 60*10, json.dumps(boards))
+                f"trending:{page}", 60*10, json.dumps(boards))
         return Response({'status': 200, 'boards': boards})
     return Response({'status': 400, 'boards': ''})
 
