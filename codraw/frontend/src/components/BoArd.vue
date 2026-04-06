@@ -1535,9 +1535,9 @@ const finishTextEditing = () => {
 	disableTransformers();
 }
 
-const handleTextStyleUpdate = (style) => {
-	if (!selectedTextObject.value) return;
-	const textNode = selectedTextObject.value;
+const handleTextStyleUpdate = (style, nodeId = null) => {
+	if (!selectedTextObject.value && !nodeId) return;
+	const textNode = selectedTextObject.value || layerRef.value.getNode().findOne(`#${nodeId}`);
 	const layer = layerRef.value.getNode();
 	const previewText = previewLayer.findOne(`#${textNode.id()}`);
 	const newFontSize = parseInt(style.fontSize) || 16;
@@ -1566,7 +1566,13 @@ const handleTextStyleUpdate = (style) => {
 		textarea.style.height = (textNode.height() * konvaScaleY * stageScale) + 'px';
 	}
 	layer.batchDraw();
-	//selectedTextObject.value = null;
+	if (ws.value && ws.value.readyState === WebSocket.OPEN && !nodeId) {
+		ws.value.send(JSON.stringify({
+			type: "text-modify-style",
+			style: style,
+			node: textNode.id()
+		}));
+	}
 }
 
 const handleStageClick = (e) => {
@@ -2120,6 +2126,8 @@ ws.value.onmessage = async (event) => {
 			previewShape.destroy();
 			previewLayer.batchDraw();
 		}
+	} else if (data.type === "text-modify-style") {
+		handleTextStyleUpdate(data.style, data.node)
 	}
 };
 const handleContextMenu = (e) => {
