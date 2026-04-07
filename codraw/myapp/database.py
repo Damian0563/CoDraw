@@ -7,16 +7,9 @@ from . import helpers
 import time
 from zoneinfo import ZoneInfo
 from datetime import datetime
-import nltk
-from nltk.stem import WordNetLemmatizer
 from codraw.redis_client import get_redis_client
 redis_client = get_redis_client()
 bucket = Bucket()
-nltk.download('punkt')
-nltk.download('punkt_tab')
-nltk.download('averaged_perceptron_tagger_eng')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
 
 
 def encode_user(mail: str) -> str | None:
@@ -135,20 +128,7 @@ def edit(room: str, title: str, description: str, timezone: str) -> None:
         entry.description = description
         entry.last_edit = str(time.time())
         concat = str(str(title)+". "+str(description))
-        tokenized = nltk.word_tokenize(concat)
-        tags = nltk.pos_tag(tokenized)
-        lemmatizer = WordNetLemmatizer()
-        result = []
-        for instance in tags:
-            word, word_type = instance[0], instance[1]
-            word = word.lower()
-            if word_type.startswith("NN"):
-                result.append(lemmatizer.lemmatize(word, "n"))
-            elif word_type.startswith("V"):
-                result.append(lemmatizer.lemmatize(word, "v"))
-            elif word_type.startswith("JJ"):
-                result.append(lemmatizer.lemmatize(word, "a"))
-        entry.summary = json.dumps(list(set(result)))
+        entry.summary = concat
         entry.last_edit = client_tz
         entry.save()
     except models.Board.DoesNotExist:
@@ -333,10 +313,7 @@ def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
             for entry in entries
         ]
         return res
-    except models.Board.DoesNotExist:
-        return []
-    except Exception as e:
-        print(e)
+    except Exception:
         return []
 
 
@@ -354,32 +331,9 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
         sorted_boards = redis_client.get(
             f"search:{sentence.lower().strip()}:{page}")
         if not sorted_boards:
-            tokenized = nltk.word_tokenize(sentence)
-            tags = nltk.pos_tag(tokenized)
-            lemmatizer = WordNetLemmatizer()
-            result = []
-            for entry in tags:
-                word, word_type = entry[0], entry[1]
-                word = word.lower()
-                if word_type.startswith("NN"):
-                    result.append(lemmatizer.lemmatize(word, "n"))
-                elif word_type.startswith("V"):
-                    result.append(lemmatizer.lemmatize(word, "v"))
-                elif word_type.startswith("JJ"):
-                    result.append(lemmatizer.lemmatize(word, "a"))
-            keywords = list(set(result))
-            if len(keywords) == 0:
-                return []
-            matches = models.Board.objects.filter(
-                summary__icontains=keywords[0], visibility="Public") if keywords else models.Board.objects.none()
-
-            def match_count(board):
-                try:
-                    board_keywords = set(json.loads(board.summary))
-                except (TypeError, json.JSONDecodeError):
-                    board_keywords = set()
-                return len(set(keywords) & board_keywords)
-            sorted_boards = sorted(matches, key=match_count, reverse=True)
+            offset = 10 * (page - 1)
+            sorted_boards = models.Board.objects.search_text(
+                sentence).filter(visibility="Public").skip(offset).limit(10)
             boards_for_cache = [board.room for board in sorted_boards]
             redis_client.setex(f"search:{sentence.lower().strip()}:{
                                page}", 60*10, json.dumps(boards_for_cache))
@@ -389,11 +343,6 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                 b.room: b for b in models.Board.objects.filter(room__in=room_ids)}
             sorted_boards = [boards_dict[room_id] for room_id in room_ids]
         client_tz = ZoneInfo(timezone)
-        if page == 1:
-            if len(sorted_boards) > 10:
-                sorted_boards = sorted_boards[:10]
-        else:
-            sorted_boards = sorted_boards[10*(page-1):10*page]
         client_tz = ZoneInfo(timezone)
         boards_list = [
             {
@@ -423,30 +372,13 @@ def save_project(room: str, payload: str, bg: str) -> bool:
         entry.last_edit = str(time.time())
         entry.save()
         return True
-    except Exception as e:
+    except Exception:
         return False
 
 
 def save_new_project(room: str, payload: str, owner: str, title: str, description: str, type: str, bg: str) -> bool:
     try:
-        if type.lower() == "public":
-            summary = str(str(title)+". "+str(description))
-            tokenized = nltk.word_tokenize(summary)
-            tags = nltk.pos_tag(tokenized)
-            lemmatizer = WordNetLemmatizer()
-            result = []
-            for entry in tags:
-                word, word_type = entry[0], entry[1]
-                word = word.lower()
-                if word_type.startswith("NN"):
-                    result.append(lemmatizer.lemmatize(word, "n"))
-                elif word_type.startswith("V"):
-                    result.append(lemmatizer.lemmatize(word, "v"))
-                elif word_type.startswith("JJ"):
-                    result.append(lemmatizer.lemmatize(word, "a"))
-            result = json.dumps(list(set(result)))
-        else:
-            result = str(str(title)+". "+str(description))
+        concat = str(str(title)+". "+str(description))
         entry = models.Board.objects.create(
             owner=decode_user(owner),
             board=payload,
@@ -454,15 +386,14 @@ def save_new_project(room: str, payload: str, owner: str, title: str, descriptio
             description=description,
             visibility=type,
             title=title,
-            summary=result,
+            summary=concat,
             background=bg,
             views=1,
             last_edit=str(time.time())
         )
         entry.save()
         return True
-    except Exception as e:
-        print('save new project error: ', e)
+    except Exception:
         return False
 
 
@@ -470,6 +401,5 @@ def get_board_img(room: str) -> list | str:
     try:
         entry = models.Board.objects.get(room=room)
         return [entry.board, entry.background, entry.last_edit]
-    except Exception as e:
-        print("Error in fetching image: ", e)
+    except Exception:
         return ""
