@@ -1,4 +1,3 @@
-from .gcp import Bucket
 from . import models
 from werkzeug.security import check_password_hash, generate_password_hash
 from typing import List, Dict
@@ -9,7 +8,6 @@ from zoneinfo import ZoneInfo
 from datetime import datetime
 from codraw.redis_client import get_redis_client
 redis_client = get_redis_client()
-bucket = Bucket()
 
 
 def encode_user(mail: str) -> str | None:
@@ -306,7 +304,6 @@ def get_trending(id: str, timezone: str, page: int) -> list[Dict[str, str]]:
                 "title": entry.title,
                 "description": entry.description,
                 "views": entry.views,
-                "image": bucket.get_image_of_room(entry.room),
                 "owner": get_username(entry.owner),
                 "modified": (datetime.fromtimestamp(float(entry.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }
@@ -352,7 +349,6 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
                 "visibility": board.visibility,
                 "summary": board.summary,
                 "owner": get_username(board.owner),
-                "image": bucket.get_image_of_room(board.room),
                 "views": board.views,
                 "modified": (datetime.fromtimestamp(float(board.last_edit))).astimezone(client_tz).strftime("%H:%M    %d/%m/%Y")
             }

@@ -31,41 +31,46 @@
 				<section id="results" class="mx-auto flex-grow-1">
 					<div class="container mx-auto">
 						<div class="row justify-content-center gap-2">
-						<div v-for="(board, index) in popular" :key="index"
-							:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
-							class="card result-card project-card text-center"
-							style="height: 22rem; width: 18rem; cursor: pointer; position: relative; overflow: hidden;" @click="join(board.room)">
-							<div class="card-body d-flex flex-column card-with-preview" style="height: 100%; padding: 0;">
-								<div class="preview-section">
-									<div class="preview-image-container">
-										<img :src="board.image" class="preview-image" alt="Preview of board" loading="lazy"
-											decoding="async" v-if="board.image" />
-										<div class="preview-image-container" v-else>
-											<div class="text-center">
-												<h5 class="card-title fw-bold mb-0" style="color: #ffc107; font-size: 0.875rem;">No Preview Available</h5>
+							<div v-for="(board, index) in popular" :key="index"
+								:class="popular.length < 3 ? 'col-12 col-md-6 col-xl-4' : 'col-12 col-lg-4 col-xl-3'"
+								class="card result-card project-card text-center"
+								style="height: 22rem; width: 18rem; cursor: pointer; position: relative; overflow: hidden;"
+								@click="join(board.room)">
+								<div class="card-body d-flex flex-column card-with-preview" style="height: 100%; padding: 0;">
+									<div class="preview-section">
+										<div class="preview-image-container">
+											<img :src="images[board.room]" class="preview-image" alt="Preview of board" loading="lazy"
+												decoding="async" v-if="images[board.room]" />
+											<div class="preview-image-container" v-else-if="!finishedAsync">
+												<VueSpinnerTail size="60" color="orange" />
+											</div>
+											<div class="preview-image-container" v-else>
+												<div class="text-center">
+													<h5 class="card-title fw-bold mb-0" style="color: #ffc107; font-size: 0.875rem;">No Preview
+														Available</h5>
+												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-								<div class="content-section">
-									<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
-									<p class="card-text small">{{ board.description }}</p>
-									<footer class="card-footer">
-										<div class="text-start small">
-											<span>Visibility: <span>Public</span></span>
-										</div>
-										<div class="d-flex justify-content-between small">
-											<span>Views: <span>{{ board.views }}</span></span>
-											<span>{{ board.modified }}</span>
-										</div>
-										<div class="text-start small">
-											<span>Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop
-													style="color:#ff4f4f !important;">{{ board.owner }}</a></span>
-										</div>
-									</footer>
+									<div class="content-section">
+										<h5 class="card-title fw-bold mb-2">{{ board.title }}</h5>
+										<p class="card-text small">{{ board.description }}</p>
+										<footer class="card-footer">
+											<div class="text-start small">
+												<span>Visibility: <span>Public</span></span>
+											</div>
+											<div class="d-flex justify-content-between small">
+												<span>Views: <span>{{ board.views }}</span></span>
+												<span>{{ board.modified }}</span>
+											</div>
+											<div class="text-start small">
+												<span>Owner: <a :href="`/codraw/account/${board.owner}`" @click.stop
+														style="color:#ff4f4f !important;">{{ board.owner }}</a></span>
+											</div>
+										</footer>
+									</div>
 								</div>
 							</div>
-						</div>
 							<div v-if="popular.length === 0" class="justify-content-center w-100 py-5">
 								<text>No results found :(</text>
 							</div>
@@ -112,6 +117,8 @@ const input = ref('')
 const csrf = get_cookie('csrftoken')
 const currentpage = ref(1)
 const max_boards = 10
+const finishedAsync = ref(false)
+const images = ref({})
 
 async function search(sentence) {
 	try {
@@ -135,6 +142,7 @@ async function search(sentence) {
 			if (response.status === 200 && response.boards) {
 				popular.value = JSON.parse(response.boards)
 			}
+			get_preview_images(popular.value.map(board => board.room))
 		} else {
 			await load_popular()
 		}
@@ -165,9 +173,33 @@ async function load_popular() {
 		} else {
 			popular.value = response.boards
 		}
+		get_preview_images(popular.value.map(board => board.room))
 	} catch (e) {
 		console.error(e)
 	}
+}
+
+const get_preview_images = async (rooms) => {
+	try {
+		const data = await fetch(`${BASE_URL}/codraw/get_preview_images`, {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrf
+			},
+			body: JSON.stringify({
+				"rooms": rooms
+			}),
+			credentials: "include"
+		})
+		const response = await data.json()
+		if (response.status === 200) {
+			images.value = response.images
+		}
+	} catch (e) {
+		console.error(e)
+	}
+	finishedAsync.value = true
 }
 
 async function join(room) {

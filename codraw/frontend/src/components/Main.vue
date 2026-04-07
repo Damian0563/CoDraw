@@ -65,7 +65,6 @@ import { VueSpinnerTail } from 'vue3-spinners'
 import { DateTime } from 'luxon'
 
 const router = useRouter()
-
 const loading = ref(false)
 const csrf = get_cookie('csrftoken')
 const boards = ref([])
