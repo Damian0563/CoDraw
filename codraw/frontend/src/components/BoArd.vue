@@ -191,6 +191,10 @@
 							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
+						<button id="audio-call" @click="startAudioCall" v-if="!call_intiated">
+							<font-awesome-icon :icon="['fas', 'phone']" style="margin-right: 3px;" />
+							Audio call
+						</button>
 						<button v-if="visitor && MODE !== 'demo' && !admin" class="bookmark-btn"
 							:class="{ bookmarked: isBookmarked }" @click="toggleBookmark" :style="{
 								display: 'flex',
@@ -239,6 +243,8 @@
 					</div>
 				</Transition>
 			</div>
+			<button v-if="call_intiated" id="call-button" style="border-radius:40% !important ;"
+				@click=disconnect><font-awesome-icon :icon="['fas', 'phone']" alt="phone"></font-awesome-icon></button>
 		</div>
 		<Transition name="fade-slide">
 			<div v-if="isVisible" style="
@@ -403,6 +409,7 @@ const type = ref('Public')
 const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider = ref(5);
+const call_intiated = ref(false)
 const list = ref([])
 const zoom = computed(() => { return `${(zooming.value * 100).toFixed(0)}%` })
 const zooming = ref(1)
@@ -482,6 +489,20 @@ const previewBg = new Konva.Rect({
 previewStage.add(previewLayer);
 previewLayer.add(previewBg)
 
+let localStream;
+const startAudioCall = () => {
+	if (call_intiated.value) return
+	call_intiated.value = true
+	navigator.getUserMedia({ audio: true }, (stream) => {
+		localStream = stream;
+	}, (error) => {
+		console.error('getUserMedia error:', error);
+	});
+}
+const disconnect = () => {
+	call_intiated.value = false
+	localStream.getTracks().forEach(track => track.stop())
+}
 
 const toggleManualMode = () => {
 	showPopup.value = true
@@ -3653,6 +3674,27 @@ input:checked+.slider::before {
 #clearall:hover {
 	background: #fff !important;
 	color: #f68608 !important;
+}
+
+#audio-call,
+#call-button {
+	background: #00F376;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 8px 20px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: ease-in-out 0.6s;
+}
+
+#audio-call:hover {
+	background: #fff;
+	color: #00F376;
+}
+
+#call-button:hover {
+	background: red;
 }
 
 .to_many_chars {
