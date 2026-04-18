@@ -5,7 +5,7 @@ export const WS_URL = process.env.VUE_APP_WS_URL;
 export const GTAG = process.env.VUE_APP_GTAG;
 export const GOOGLE_ID = process.env.VUE_APP_GOOGLE_ID;
 export const wsConnections = reactive({});
-function get_cookie(name) {
+export function get_cookie(name) {
 	let cookieValue = null;
 	if (document.cookie && document.cookie !== '') {
 		const cookies = document.cookie.split(';');
@@ -19,4 +19,3 @@ function get_cookie(name) {
 	}
 	return cookieValue;
 }
-export { get_cookie };

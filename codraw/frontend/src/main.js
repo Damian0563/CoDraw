@@ -21,7 +21,7 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 library.add(faPalette, faPhone, faCircle, faFont, faRotateLeft, faTextHeight, faBookOpen, faArrowUpLong, faSquare, faHome, faBolt, faLightbulb, faUndo, faRedo, faSearch, faExclamationTriangle, faUser, faEye, faPencil, faFeatherPointed, faPaintBrush, faPaintRoller, faGithub, faHand, faLink, faBookmark, faTrash, faExpand, faCompress)
 
 const routes = [
-	{ path: '/', component: HeRo, meta: { showNav: true } },
+	{ path: '/', component: HeRo, meta: { showNav: true, canonical: true } },
 	{ path: '/signup', component: SignUp, meta: { showNav: true } },
 	{ path: '/signin', component: SignIn, meta: { showNav: true } },
 	{ path: '/codraw', component: MaIn, meta: { showNav: false } },
@@ -39,9 +39,22 @@ const router = createRouter({
 	routes,
 })
 
-router.afterEach(() => {
-	window.scrollTo({ top: 0, behavior: 'instant' })
-})
+const BASE_URL = 'https://codrawapp.com'
+router.afterEach((to) => {
+	window.scrollTo({ top: 0, behavior: 'instant' });
+	let canonicalUrl = BASE_URL + to.path;
+	if (canonicalUrl.length > 1 && canonicalUrl.endsWith('/')) {
+		canonicalUrl = canonicalUrl.slice(0, -1);
+	}
+	let link = document.querySelector('link[rel="canonical"]');
+	if (!link) {
+		link = document.createElement('link');
+		link.rel = 'canonical';
+		document.head.appendChild(link);
+	}
+	link.setAttribute('href', canonicalUrl);
+});
+
 createApp(App)
 	.use(router)
 	.use(
