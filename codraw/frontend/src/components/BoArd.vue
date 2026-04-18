@@ -5,6 +5,7 @@
       height: 100vh;
       overflow: hidden;
     ">
+		<audio id="peerPlayer" autoplay playsinline muted style="display: none;"></audio>
 		<div v-if="loading" class="spinner-overlay">
 			<VueSpinnerTail size="60" color="orange" />
 		</div>
@@ -191,7 +192,7 @@
 							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
-						<button id="audio-call" @click="startAudioCall" v-if="!call_intiated">
+						<button id="audio-call" @click="startAudioCall" v-if="!call_intiated && MODE === 'default'">
 							<font-awesome-icon :icon="['fas', 'phone']" style="margin-right: 3px;" />
 							Audio call
 						</button>
@@ -490,19 +491,87 @@ previewStage.add(previewLayer);
 previewLayer.add(previewBg)
 
 let localStream;
-const startAudioCall = () => {
+const constraints = {
+	audio: true,
+	video: false
+}
+let localPeerConnection;
+const pcConstraints = {
+	'optional': [
+		{ 'DtlsSrtpKeyAgreement': true },
+	],
+};
+const startAudioCall = async () => {
 	if (call_intiated.value) return
 	call_intiated.value = true
-	navigator.getUserMedia({ audio: true }, (stream) => {
-		localStream = stream;
-	}, (error) => {
-		console.error('getUserMedia error:', error);
-	});
+	await getPermission()
+	localPeerConnection = new RTCPeerConnection(pcConstraints);
+	localPeerConnection.onicecandidate = gotLocalIceCandidateOffer;
+	localPeerConnection.onaddstream = gotRemoteStream;
+	localPeerConnection.addStream(localStream);
+	localPeerConnection.createOffer().then(gotLocalDescription);
 }
 const disconnect = () => {
 	call_intiated.value = false
 	localStream.getTracks().forEach(track => track.stop())
 }
+const gotLocalDescription = (offer) => {
+	localPeerConnection.setLocalDescription(offer);
+};
+const gotLocalIceCandidateOffer = (event) => {
+	if (!event.candidate) {
+		const offer = localPeerConnection.localDescription;
+		ws.value.send(JSON.stringify({
+			type: "send_offer",
+			user: new URL(window.location.href).pathname.split("/")[2],
+			sdp: offer,
+		}))
+	}
+};
+const gotRemoteStream = (event) => {
+	const remotePlayer = document.getElementById('peerPlayer');
+	remotePlayer.srcObject = event.stream;
+};
+
+async function getPermission() {
+	return new Promise((resolve, reject) => {
+		navigator.getUserMedia(constraints, (stream) => {
+			localStream = stream;
+			resolve(stream)
+		}, (error) => {
+			console.error('getUserMedia error:', error);
+			reject(error)
+		});
+	})
+}
+
+const onAnswer = async (offer) => {
+	await getPermission();
+	localPeerConnection = new RTCPeerConnection(pcConstraints);
+	localPeerConnection.onicecandidate = gotLocalIceCandidateAnswer;
+	localPeerConnection.onaddstream = gotRemoteStream;
+	localPeerConnection.addStream(localStream);
+	localPeerConnection.setRemoteDescription(offer);
+	localPeerConnection.createAnswer().then(gotAnswerDescription);
+	const gotRemoteStream = (event) => {
+		const remotePlayer = document.getElementById('peerPlayer');
+		remotePlayer.srcObject = event.stream;
+	};
+	const gotAnswerDescription = (answer) => {
+		localPeerConnection.setLocalDescription(answer);
+	};
+	const gotLocalIceCandidateAnswer = (event) => {
+		if (!event.candidate) {
+			const answer = localPeerConnection.localDescription;
+			ws.value.send(JSON.stringify({
+				type: "send_answer",
+				user: new URL(window.location.href).pathname.split("/")[2],
+				sdp: answer,
+			}))
+		}
+	};
+};
+
 
 const toggleManualMode = () => {
 	showPopup.value = true
@@ -986,7 +1055,6 @@ const createCircleDeleteGroup = (circle, transformer) => {
 	return { deleteGroup: circleDeleteGroup, updatePosition: updateCircleDeletePosition };
 }
 
-
 const createShapeDeleteGroup = (shape, transformer) => {
 	const layer = layerRef.value.getNode();
 	const getShapeDeletePos = () => {
@@ -1200,7 +1268,6 @@ const createImageDeleteGroup = (konvaImg, transformer) => {
 	};
 	return { deleteGroup, updatePosition: updateImageDeletePosition };
 }
-
 const handleTextClick = (konvaText) => {
 	const layer = layerRef.value.getNode();
 	const tr = handleTransformerPop(konvaText)
@@ -1372,7 +1439,6 @@ const handleTextClick = (konvaText) => {
 	})
 	layer.draw();
 };
-
 
 const handleDblClick = (e) => {
 	const konvaImg = e.target;
@@ -2149,6 +2215,11 @@ ws.value.onmessage = async (event) => {
 		}
 	} else if (data.type === "text-modify-style") {
 		handleTextStyleUpdate(data.style, data.node)
+	} else if (data.type === "send_offer") {
+		if (data.user !== new URL(window.location.href).pathname.split("/")[2]) {
+			const offer = data.sdp
+			onAnswer(offer)
+		}
 	}
 };
 const handleContextMenu = (e) => {
