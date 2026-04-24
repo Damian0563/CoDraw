@@ -126,7 +126,7 @@
 <script setup>
 import { get_cookie } from '@/common';
 import { DateTime } from 'luxon';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, nextTick } from 'vue';
 import { BASE_URL, wsConnections, WS_URL } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners';
 import SiDebar from './SiDebar.vue'
@@ -328,11 +328,13 @@ async function join(room) {
 
 onMounted(async () => {
 	loading.value = true;
+	await nextTick();
 	const pathParts = window.location.pathname.split('/');
 	username.value = pathParts[pathParts.length - 1];
 	admin.value = await get_status(username.value);
-	await Promise.all[get_boards(username.value), get_bookmarks(username.value)]
+	await Promise.all([get_boards(username.value), get_bookmarks(username.value)])
 	const all_boards = boards.value.concat(bookmarks.value)
+	loading.value = false;
 	await Promise.all(all_boards.map(board => {
 		return new Promise((resolve) => {
 			const ws = new WebSocket(`${WS_URL}/${board.room}/`)
@@ -343,7 +345,6 @@ onMounted(async () => {
 			ws.onerror = () => resolve()
 		})
 	}))
-	loading.value = false;
 })
 </script>
 
