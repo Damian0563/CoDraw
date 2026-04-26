@@ -1,5 +1,5 @@
 <template>
-	<PopUp :message="message" :invalid="invalid" @close="invalid = false" top="4rem" />
+	<PopUp :message="message" :invalid="invalid" :auto-close="true" @close="invalid = false" top="4rem" />
 	<div v-if="visible" class="overlay">
 		<div class="popup-card">
 			<button @click="visible = false" aria-label="Close" class="float-end"
@@ -47,7 +47,7 @@
 				<div class="mb-2">
 					<label for="password" class="form-label text-black text-start w-100">Password</label>
 					<input v-model="password" type="password" class="form-control bg-dark text-white border-secondary"
-						id="password" placeholder="Enter password" required>
+						id="password" placeholder="Enter password" autocomplete="new-password" required>
 					<div class="invalid-feedback">
 						Please specify password.
 					</div>

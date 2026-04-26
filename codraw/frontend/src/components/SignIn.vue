@@ -1,5 +1,5 @@
 <template>
-	<PopUp :message="message" :invalid="invalid" @close="invalid = false" top="4rem" />
+	<PopUp :message="message" :invalid="invalid" :auto-close="true" @close="invalid = false" />
 	<Transition name="fade-slide">
 		<div v-if="recoverySuccess" class="alert alert-success text-center custom-alert p-2" role="alert"
 			style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(40,167,69,0.10); background: #222; border: 1.5px solid #28a745;">
@@ -48,7 +48,7 @@
 				<div class="mb-2">
 					<label for="password" class="form-label text-black text-start w-100" autocomplete="on">Password</label>
 					<input type="password" v-model="password" class="form-control bg-dark text-white border-secondary"
-						id="password" placeholder="Enter password" required>
+						id="password" placeholder="Enter password" autocomplete="current-password" required>
 					<div class="invalid-feedback">
 						Please specify password.
 					</div>

@@ -9,7 +9,7 @@
 		<div v-if="loading" class="spinner-overlay">
 			<VueSpinnerTail size="60" color="orange" />
 		</div>
-		<PopUp :message="message" :invalid="showPopup" @close="showPopup = false">
+		<PopUp :message="message" :invalid="showPopup" :autoclose="false" @close="showPopup = false">
 			<template #buttons>
 				<button v-if="message !== 'Are you sure you would like to clear the board? This action is irreversible.'"
 					@click="showPopup = false; showMoreMenu = false" id="close_form"
