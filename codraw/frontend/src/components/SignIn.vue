@@ -1,433 +1,429 @@
 <template>
-  <Transition name="fade-slide">
-    <div v-if="invalid" class="alert alert-danger text-center custom-alert p-2"
-       role="alert"
-       style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(220,53,69,0.10); background: #222; border: 1.5px solid #dc3545;">
-    <button @click="invalid=false" class="close-btn rounded-circle float-end" aria-label="Close" style="background-color: #dc3545; color: #fff; border: none; width: 1.5rem; height: 1.5rem; font-size: 1.1rem; margin-top: -0.3rem; margin-right: -0.3rem; line-height: 1.1rem;">&times;</button>
-    <div class="alert-content" style="padding-top: 0.2rem;">
-      <strong style="color: #ffc107; font-size: 1rem;">{{ message }}</strong>
-    </div>
-    </div>
-  </Transition>
-  <Transition name="fade-slide">
-    <div v-if="recoverySuccess" class="alert alert-success text-center custom-alert p-2"
-       role="alert"
-       style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(40,167,69,0.10); background: #222; border: 1.5px solid #28a745;">
-    <button @click="recoverySuccess=false" class="float-end" style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
-    <div class="alert-content" style="padding-top: 0.2rem;">
-      <strong style="color: #28a745; font-size: 1rem;">{{ message }}</strong>
-    </div>
-    </div>
-  </Transition>
-  <div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
-    <VueSpinnerTail size="60" color="orange" />
-  </div>
-  <Transition name="fade-slide">
-    <div v-if="recovery" class="recovery-container" role="alert">
-      <button @click="recovery=false" class="float-end" style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
-      <h2 class="recovery-title">Input your email, recovery link will be sent to you!</h2>
-      <form
-        class="mb-3 needs-validation"
-        :class="{ 'was-validated': validated }"
-        novalidate
-        @submit.prevent="sendReset"
-      >
-        <label for="emailInput" class="form-label recovery-label">Email Address</label>
-        <input
-          type="email"
-          class="form-control form-control-lg mb-3 recovery-input"
-          placeholder="e.g. name@example.com"
-          required
-          v-model="name_or_mail"
-        />
-        <div class="invalid-feedback mb-2 recovery-invalid-feedback">
-          Please specify a valid email address.
-        </div>
-        <button type="submit" class="btn recovery-btn btn-lg w-100 shadow-sm mt-3">
-          Send Recovery Link
-        </button>
-      </form>
-    </div>
-  </Transition>
-  <div class="d-flex justify-content-center pt-5 mb-5 hero-background">
-    <div class="card p-3 shadow-lg w-60 mx-5" style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
-      <h2 class="text-center mb-3 text-black">Sign In</h2>
-      <form ref="formRef" @submit="SignIn" class="needs-validation" novalidate>
-        <div class="mb-2">
-          <label for="email" class="form-label text-black text-start w-100" autocomplete="on">Email address</label>
-          <input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email" placeholder="Enter email" required>
-          <div class="invalid-feedback">
-            Please specify email.
-          </div>
-        </div>
-        <div class="mb-2">
-          <label for="password" class="form-label text-black text-start w-100" autocomplete="on">Password</label>
-          <input type="password" v-model="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password" required>
-          <div class="invalid-feedback">
-            Please specify password.
-          </div>
-        </div>
-        <div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap" style="padding: 0 !important;gap: 1.2rem;">
-          <label class="form-check-label text-black fw-medium mb-0" for="rememberMe">
-            Remember me
-          </label>
-          <input type="checkbox" ref="ticked" @click="ticked=!ticked" id="rememberMe" style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
-        </div>
-        <button id="sign" type="submit" class="btn btn-success w-50 mt-2" style="background-color: yellow;color: black;">Sign In</button>
+	<PopUp :message="message" :invalid="invalid" @close="invalid = false" top="4rem" />
+	<Transition name="fade-slide">
+		<div v-if="recoverySuccess" class="alert alert-success text-center custom-alert p-2" role="alert"
+			style="max-width: 70vw; width: 440px; position: fixed; top: 4rem; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 0.95rem; border-radius: 0.7rem; box-shadow: 0 2px 8px rgba(40,167,69,0.10); background: #222; border: 1.5px solid #28a745;">
+			<button @click="recoverySuccess = false" class="float-end"
+				style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
+			<div class="alert-content" style="padding-top: 0.2rem;">
+				<strong style="color: #28a745; font-size: 1rem;">{{ message }}</strong>
+			</div>
+		</div>
+	</Transition>
+	<div v-if="loading" class="spinner-overlay d-flex justify-content-center align-items-center">
+		<VueSpinnerTail size="60" color="orange" />
+	</div>
+	<Transition name="fade-slide">
+		<div v-if="recovery" class="recovery-container" role="alert">
+			<button @click="recovery = false" class="float-end"
+				style="background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">✕</button>
+			<h2 class="recovery-title">Input your email, recovery link will be sent to you!</h2>
+			<form class="mb-3 needs-validation" :class="{ 'was-validated': validated }" novalidate
+				@submit.prevent="sendReset">
+				<label for="emailInput" class="form-label recovery-label">Email Address</label>
+				<input type="email" class="form-control form-control-lg mb-3 recovery-input" placeholder="e.g. name@example.com"
+					required v-model="name_or_mail" />
+				<div class="invalid-feedback mb-2 recovery-invalid-feedback">
+					Please specify a valid email address.
+				</div>
+				<button type="submit" class="btn recovery-btn btn-lg w-100 shadow-sm mt-3">
+					Send Recovery Link
+				</button>
+			</form>
+		</div>
+	</Transition>
+	<div class="d-flex justify-content-center pt-5 mb-5 hero-background">
+		<div class="card p-3 shadow-lg w-60 mx-5"
+			style="max-width: 1000px; width: 100%; background: white; border: none; min-height: unset;">
+			<h2 class="text-center mb-3 text-black">Sign In</h2>
+			<form ref="formRef" @submit="SignIn" class="needs-validation" novalidate>
+				<div class="mb-2">
+					<label for="email" class="form-label text-black text-start w-100" autocomplete="on">Email address</label>
+					<input type="email" v-model="name_or_mail" class="form-control bg-dark text-white border-secondary" id="email"
+						placeholder="Enter email" required>
+					<div class="invalid-feedback">
+						Please specify email.
+					</div>
+				</div>
+				<div class="mb-2">
+					<label for="password" class="form-label text-black text-start w-100" autocomplete="on">Password</label>
+					<input type="password" v-model="password" class="form-control bg-dark text-white border-secondary"
+						id="password" placeholder="Enter password" required>
+					<div class="invalid-feedback">
+						Please specify password.
+					</div>
+				</div>
+				<div class="form-check d-flex align-items-center mb-3 w-100 flex-wrap"
+					style="padding: 0 !important;gap: 1.2rem;">
+					<label class="form-check-label text-black fw-medium mb-0" for="rememberMe">
+						Remember me
+					</label>
+					<input type="checkbox" ref="ticked" @click="ticked = !ticked" id="rememberMe"
+						style="accent-color:#ffc107;margin: 0 !important;width:1.25rem;height:1.25rem;">
+				</div>
+				<button id="sign" type="submit" class="btn btn-success w-50 mt-2"
+					style="background-color: yellow;color: black;">Sign In</button>
 				<div class="d-flex justify-content-center mt-2">
 					<div id="google-signin-button" class="g-signin2"></div>
 				</div>
-      </form>
-      <div class="text-center mt-2">
-        <span class="text-secondary">Do not have an account?</span>
-        <RouterLink to="/signup" class="ms-2 text-info">Sign up</RouterLink>
-      </div>
-      <div class="text-center mt-2">
-        <text @click="recovery=true" class="ms-2 text-info" style="cursor: pointer;">Forgot your password?</text>
-      </div>
-    </div>
-  </div>
-  <FoOter />
+			</form>
+			<div class="text-center mt-2">
+				<span class="text-secondary">Do not have an account?</span>
+				<RouterLink to="/signup" class="ms-2 text-info">Sign up</RouterLink>
+			</div>
+			<div class="text-center mt-2">
+				<text @click="recovery = true" class="ms-2 text-info" style="cursor: pointer;">Forgot your password?</text>
+			</div>
+		</div>
+	</div>
+	<FoOter />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { get_cookie } from '@/common'
-import {BASE_URL} from '../common.js'
-import {GOOGLE_ID} from '../common.js'
-import {VueSpinnerTail} from 'vue3-spinners'
+import { BASE_URL } from '../common.js'
+import { GOOGLE_ID } from '../common.js'
+import { VueSpinnerTail } from 'vue3-spinners'
 import FoOter from './Footer.vue'
+import PopUp from './PopUp.vue'
 
 let message = ref('')
 let invalid = ref(false)
-let ticked= ref(false)
-const loading=ref(false);
+let ticked = ref(false)
+const loading = ref(false);
 const name_or_mail = ref('')
 const password = ref('')
 const validated = ref(false);
-const recovery=ref(false);
-const recoverySuccess=ref(false);
+const recovery = ref(false);
+const recoverySuccess = ref(false);
 const formRef = ref(null);
 
-
-async function sendReset(event){
-  try{
-    const form = event.currentTarget;
-    validated.value = true;
-    if (!form.checkValidity()) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-    recovery.value=false;
-    loading.value=true;
-    invalid.value = false;
-    recoverySuccess.value = false;
-    const data=await fetch(`${BASE_URL}/restore_password/${name_or_mail.value}`, {
-        method: 'GET',
-        headers: {
-          'X-CSRFToken': get_cookie('csrftoken')
-        },
-        credentials: 'include'
-    })
-    const response=await data.json()
-    loading.value=false;
-    if(response.status===200){
-      message.value="Recovery link sent, its validity is 5 minutes! Please check your email.";
-      recoverySuccess.value = true;
-    } else {
-      message.value = 'This email is not registered. Please check your email address.';
-      invalid.value = true;
-    }
-  }catch(e){
-    console.error(e)
-    loading.value=false;
-    message.value = 'An error occurred while sending reset email. Please try again later.';
-    invalid.value = true;
-  }
+async function sendReset(event) {
+	try {
+		const form = event.currentTarget;
+		validated.value = true;
+		if (!form.checkValidity()) {
+			event.preventDefault();
+			event.stopPropagation();
+			return;
+		}
+		recovery.value = false;
+		loading.value = true;
+		invalid.value = false
+		recoverySuccess.value = false;
+		const data = await fetch(`${BASE_URL}/restore_password/${name_or_mail.value}`, {
+			method: 'GET',
+			headers: {
+				'X-CSRFToken': get_cookie('csrftoken')
+			},
+			credentials: 'include'
+		})
+		const response = await data.json()
+		loading.value = false;
+		if (response.status === 200) {
+			message.value = "Recovery link sent, its validity is 5 minutes! Please check your email.";
+			recoverySuccess.value = true;
+		} else {
+			message.value = 'This email is not registered. Please check your email address.';
+			invalid.value = true
+		}
+	} catch (e) {
+		console.error(e)
+		loading.value = false;
+		message.value = 'An error occurred while sending reset email. Please try again later.';
+		invalid.value = true;
+	}
 }
 
-async function SignIn(e){
-  e.preventDefault()
-  const form = formRef.value;
-  form.classList.add('was-validated')
-  if (!form.checkValidity()) {
-    e.stopPropagation()
-    return;
-  }
-  loading.value=true;
-  try{
-    const csrf=get_cookie('csrftoken')
-    const data = await fetch(`${BASE_URL}/signin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken':csrf
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        "mail": name_or_mail.value,
-        "password": password.value,
-        "remember": ticked.value
-      })
-    });
-    const response = await data.json();
-    if(response.status===200){
-      window.location.href = '/codraw';
-    }else{
-      invalid.value = true;
-      message.value ='Invalid credentials. Please try again.';
-    }
-    loading.value=false;
-  }catch(e){
-    console.error(e)
-    invalid.value = true
-    message.value = 'An error occurred while signing in.'
-    loading.value=false;
-  }
+async function SignIn(e) {
+	e.preventDefault()
+	const form = formRef.value;
+	form.classList.add('was-validated')
+	if (!form.checkValidity()) {
+		e.stopPropagation()
+		return;
+	}
+	loading.value = true;
+	try {
+		const csrf = get_cookie('csrftoken')
+		const data = await fetch(`${BASE_URL}/signin`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrf
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				"mail": name_or_mail.value,
+				"password": password.value,
+				"remember": ticked.value
+			})
+		});
+		const response = await data.json();
+		if (response.status === 200) {
+			window.location.href = '/codraw';
+		} else {
+			invalid.value = true;
+			message.value = 'Invalid credentials. Please try again.';
+		}
+		loading.value = false;
+	} catch (e) {
+		console.error(e)
+		invalid.value = true
+		message.value = 'An error occurred while signing in.'
+		loading.value = false;
+	}
 }
-async function status(){
-  try {
-    const csrf=get_cookie('csrftoken')
-    const data = await fetch(`${BASE_URL}/signin`, {
-      method: 'GET',
-      headers:{'X-CSRFToken':csrf},
-      credentials: 'include'
-    });
-    const response = await data.json();
-    if (response.status === 300) {
-      window.location.href = '/codraw';
-    }
-  } catch (e) {
-    console.error(e);
-  }
+async function status() {
+	try {
+		const csrf = get_cookie('csrftoken')
+		const data = await fetch(`${BASE_URL}/signin`, {
+			method: 'GET',
+			headers: { 'X-CSRFToken': csrf },
+			credentials: 'include'
+		});
+		const response = await data.json();
+		if (response.status === 300) {
+			window.location.href = '/codraw';
+		}
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 async function handleCredentialResponse(response) {
-  try {
-    loading.value = true;
-    const csrf = get_cookie('csrftoken');
-    // Decode the JWT token to get user info
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const data = await fetch(`${BASE_URL}/google-signin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrf
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        "token": payload.sub,
-        "email": payload.email,
-        "name": payload.name,
-      })
-    });
-    const result = await data.json();
-		console.log(result.status);
-    if (result.status === 200) {
-      window.location.href = '/codraw';
-    } else if (result.status === 401) {
-      invalid.value = true;
-      message.value = 'Google sign-in failed, the following email is already registered. Did you forget your password?';
-    } else {
-      invalid.value = true;
-      message.value = 'Google sign-in failed. Please sign up first.';
-    }
-  } catch (e) {
-    invalid.value = true;
-    message.value = 'An error occurred during Google sign-in.';
-  } finally {
-    loading.value = false;
-  }
+	try {
+		loading.value = true;
+		const csrf = get_cookie('csrftoken');
+		// Decode the JWT token to get user info
+		const payload = JSON.parse(atob(response.credential.split('.')[1]));
+		const data = await fetch(`${BASE_URL}/google-signin`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrf
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				"token": payload.sub,
+				"email": payload.email,
+				"name": payload.name,
+			})
+		});
+		const result = await data.json();
+		if (result.status === 200) {
+			window.location.href = '/codraw';
+		} else if (result.status === 401) {
+			invalid.value = true;
+			message.value = 'Google sign-in failed, the following email is already registered. Did you forget your password?';
+		} else {
+			invalid.value = true;
+			message.value = 'Google sign-in failed. Please sign up first.';
+		}
+	} catch (e) {
+		invalid.value = true;
+		message.value = 'An error occurred during Google sign-in.';
+	} finally {
+		loading.value = false;
+	}
 }
 
 onMounted(() => {
-  window.google.accounts.id.initialize({
-    client_id: `${GOOGLE_ID}.apps.googleusercontent.com`,
-    callback: handleCredentialResponse
-  });
-  window.google.accounts.id.renderButton(
-    document.getElementById("google-signin-button"),
-    { theme: "outline", size: "large" }
-  );
+	window.google.accounts.id.initialize({
+		client_id: `${GOOGLE_ID}.apps.googleusercontent.com`,
+		callback: handleCredentialResponse
+	});
+	window.google.accounts.id.renderButton(
+		document.getElementById("google-signin-button"),
+		{ theme: "outline", size: "large" }
+	);
 	status();
 });
 </script>
 <style scoped>
 .fade-slide-enter-from,
 .fade-slide-leave-to {
-  opacity: 0;
-  transform:translateY(-20px);
+	opacity: 0;
+	transform: translateY(-20px);
 }
 
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+	transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
 .fade-slide-enter-to,
 .fade-slide-leave-from {
-  opacity: 1;
-  transform:translateY(0);
+	opacity: 1;
+	transform: translateY(0);
 }
 
 .card {
-  background: linear-gradient(135deg, #181818 80%, #222 100%);
-  color: #fff;
-  border-radius: 1.5rem;
-  border: 2px solid #ffc107;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(255,255,0,0.08);
-  padding: 2rem 1.5rem;
-  margin-top: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+	background: linear-gradient(135deg, #181818 80%, #222 100%);
+	color: #fff;
+	border-radius: 1.5rem;
+	border: 2px solid #ffc107;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(255, 255, 0, 0.08);
+	padding: 2rem 1.5rem;
+	margin-top: 1.5rem;
+	transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .card:hover {
-  box-shadow: 0 12px 36px rgba(255, 255, 0, 0.18), 0 8px 32px rgba(0,0,0,0.45);
+	box-shadow: 0 12px 36px rgba(255, 255, 0, 0.18), 0 8px 32px rgba(0, 0, 0, 0.45);
 }
+
 .card h2 {
-  color: #ffc107;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 1.2rem;
+	color: #ffc107;
+	font-weight: 700;
+	letter-spacing: 1px;
+	margin-bottom: 1.2rem;
 }
+
 .card label {
-  color: #ffc107;
-  font-weight: 500;
+	color: #ffc107;
+	font-weight: 500;
 }
+
 .card input {
-  background: #222;
-  color: #fff;
-  border: 1.5px solid #ffc107;
-  border-radius: 0.5rem;
-  margin-bottom: 0.7rem;
+	background: #222;
+	color: #fff;
+	border: 1.5px solid #ffc107;
+	border-radius: 0.5rem;
+	margin-bottom: 0.7rem;
 }
+
 .card input:focus {
-  border-color: #007bff;
-  background: #333;
+	border-color: #007bff;
+	background: #333;
 }
+
 #sign {
-  background: linear-gradient(90deg, #ffe066 60%, #ffd700 100%);
-  color: #181818;
-  font-weight: 700;
-  border: none;
-  border-radius: 0.7rem;
-  box-shadow: 0 2px 8px rgba(255,255,0,0.08);
-  transition: background 0.2s, color 0.2s, transform 0.2s;
+	background: linear-gradient(90deg, #ffe066 60%, #ffd700 100%);
+	color: #181818;
+	font-weight: 700;
+	border: none;
+	border-radius: 0.7rem;
+	box-shadow: 0 2px 8px rgba(255, 255, 0, 0.08);
+	transition: background 0.2s, color 0.2s, transform 0.2s;
 }
+
 #sign:hover {
-  background: #007bff !important;
-  color: #fff !important;
-  transform: scale(1.05);
+	background: #007bff !important;
+	color: #fff !important;
+	transform: scale(1.05);
 }
+
 input::placeholder {
-  color: #ccc !important;
-  opacity: 1;
+	color: #ccc !important;
+	opacity: 1;
 }
 
 .recovery-container {
-  max-width: 80vw;
-  width: 500px;
+	max-width: 80vw;
+	width: 500px;
 	min-width: 400px;
-  position: fixed;
-  top: 8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5000;
-  font-size: 0.95rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(255,255,0,0.18);
-  background: linear-gradient(135deg, #181818 80%, #222 100%);
-  border: 2px solid #ffc107;
-  padding: 2rem 1.5rem;
-  text-align: center;
+	position: fixed;
+	top: 8rem;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 5000;
+	font-size: 0.95rem;
+	border-radius: 1.5rem;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(255, 255, 0, 0.18);
+	background: linear-gradient(135deg, #181818 80%, #222 100%);
+	border: 2px solid #ffc107;
+	padding: 2rem 1.5rem;
+	text-align: center;
 }
 
 .recovery-container .close-btn {
-  background-color: #dc3545;
-  color: #fff;
-  border: none;
-  width: 1.8rem;
-  height: 1.8rem;
-  font-size: 1.2rem;
-  line-height: 1.2rem;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+	background-color: #dc3545;
+	color: #fff;
+	border: none;
+	width: 1.8rem;
+	height: 1.8rem;
+	font-size: 1.2rem;
+	line-height: 1.2rem;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
 }
 
 .recovery-container .close-btn:hover {
-  background-color: #c82333;
-  transform: scale(1.1);
+	background-color: #c82333;
+	transform: scale(1.1);
 }
 
 .recovery-title {
-  color: #ffc107;
-  font-weight: 700;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  margin-top: 1.5rem;
-  line-height: 1.3;
+	color: #ffc107;
+	font-weight: 700;
+	font-size: 1.5rem;
+	margin-bottom: 1.5rem;
+	margin-top: 1.5rem;
+	line-height: 1.3;
 }
 
 .recovery-label {
-  color: #ffc107;
-  font-weight: 500;
-  font-size: 0.95rem;
-  display: block;
-  text-align: left;
-  margin-bottom: 0.5rem;
+	color: #ffc107;
+	font-weight: 500;
+	font-size: 0.95rem;
+	display: block;
+	text-align: left;
+	margin-bottom: 0.5rem;
 }
 
 .recovery-input {
-  background: #222;
-  color: #fff;
-  border: 1.5px solid #ffc107;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+	background: #222;
+	color: #fff;
+	border: 1.5px solid #ffc107;
+	border-radius: 0.5rem;
+	padding: 0.75rem 1rem;
+	font-size: 1rem;
 }
 
 .recovery-input::placeholder {
-  color: #ccc;
-  opacity: 1;
+	color: #ccc;
+	opacity: 1;
 }
 
 .recovery-input:focus {
-  border-color: #007bff;
-  background: #333;
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-  color: #fff;
+	border-color: #007bff;
+	background: #333;
+	box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+	color: #fff;
 }
 
 .recovery-btn {
-  background: linear-gradient(90deg, #ffe066 60%, #ffd700 100%);
-  color: #181818;
-  font-weight: 700;
-  border: none;
-  border-radius: 0.7rem;
-  box-shadow: 0 2px 8px rgba(255,255,0,0.08);
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-  padding: 0.75rem;
+	background: linear-gradient(90deg, #ffe066 60%, #ffd700 100%);
+	color: #181818;
+	font-weight: 700;
+	border: none;
+	border-radius: 0.7rem;
+	box-shadow: 0 2px 8px rgba(255, 255, 0, 0.08);
+	transition: background 0.2s, color 0.2s, transform 0.2s;
+	padding: 0.75rem;
 }
 
 .recovery-btn:hover {
-  background: #007bff !important;
-  color: #fff !important;
-  transform: scale(1.05);
+	background: #007bff !important;
+	color: #fff !important;
+	transform: scale(1.05);
 }
 
 .recovery-invalid-feedback {
-  color: #dc3545;
-  font-size: 0.875rem;
-  text-align: left;
+	color: #dc3545;
+	font-size: 0.875rem;
+	text-align: left;
 }
 
 .hero-background {
-  background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
-  min-height: 50vh;
-  width: 100%;
+	background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
+	min-height: 50vh;
+	width: 100%;
 }
 </style>

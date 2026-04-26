@@ -4,7 +4,7 @@
 		<div class="container-fluid">
 			<RouterLink class="navbar-brand d-flex align-items-center" to="/">
 				<img :src="imageUrl" alt="logo" loading="lazy" decoding="async" height="60" class="me-2" />
-				<span>CoDraw</span>
+				<span style="font-family: Caveat;">CoDraw</span>
 			</RouterLink>
 			<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
 				aria-controls="offcanvasNavbar">

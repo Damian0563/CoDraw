@@ -9,29 +9,20 @@
 		<div v-if="loading" class="spinner-overlay">
 			<VueSpinnerTail size="60" color="orange" />
 		</div>
-		<Transition name="fade-slide">
-			<div v-if="showPopup"
-				style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); z-index: 100; display: flex; align-items: center; justify-content: center;">
-				<div
-					style="background: #23272f; color: #fff; padding: 32px 40px; border-radius: 16px; min-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); position: relative;">
-					<button @click="showPopup = false"
-						style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #ccc; font-size: 20px; cursor: pointer;">
-						✕
-					</button>
-					<p style="white-space: pre-line; text-align: left; line-height: 1.6;">{{ message }}</p>
-					<button v-if="message !== 'Are you sure you would like to clear the board? This action is irreversible.'"
-						@click="showPopup = false; showMoreMenu = false" id="close_form"
-						style="margin-top: 20px; background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
-						Close
-					</button>
-					<button v-if="message === 'Are you sure you would like to clear the board? This action is irreversible.'"
-						@click="clearDefinetely(true); showMoreMenu = false" id="confirm_clear"
-						style="margin-top: 20px;background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
-						Confirm
-					</button>
-				</div>
-			</div>
-		</Transition>
+		<PopUp :message="message" :invalid="showPopup" @close="showPopup = false">
+			<template #buttons>
+				<button v-if="message !== 'Are you sure you would like to clear the board? This action is irreversible.'"
+					@click="showPopup = false; showMoreMenu = false" id="close_form"
+					style="background: #4f8cff; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+					Close
+				</button>
+				<button v-if="message === 'Are you sure you would like to clear the board? This action is irreversible.'"
+					@click="clearDefinetely(true); showMoreMenu = false" id="confirm_clear"
+					style="background: green; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 1rem; cursor: pointer;">
+					Confirm
+				</button>
+			</template>
+		</PopUp>
 		<TextCustomizer v-if="displayCustomizer" :textObject="selectedTextObject" @update:textStyle="handleTextStyleUpdate"
 			@close="displayCustomizer = false" />
 		<div id="toolbar" :class="{ 'vertical-toolbar': windowWidth < 850 }" style="
@@ -387,6 +378,7 @@ import { watch } from 'vue';
 import { nextTick } from 'vue';
 import { onMounted, ref, onBeforeUnmount, computed, onUnmounted } from 'vue';
 import TextCustomizer from './TextCustomizer.vue'
+import PopUp from './PopUp.vue'
 const displayCustomizer = ref(false);
 const selectedTextObject = ref(null);
 const loading = ref(false)
