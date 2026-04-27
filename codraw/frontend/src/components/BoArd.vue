@@ -183,7 +183,7 @@
 							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
-						<button id="audio-call" @click="startAudioCall" v-if="!call_intiated && MODE === 'default'">
+						<button v-if="callState === 'idle'" id="audio-call" @click="startAudioCall">
 							<font-awesome-icon :icon="['fas', 'phone']" style="margin-right: 3px;" />
 							Audio call
 						</button>
@@ -235,8 +235,14 @@
 					</div>
 				</Transition>
 			</div>
-			<button v-if="call_intiated" id="call-button" style="border-radius:40% !important ;"
-				@click=disconnect><font-awesome-icon :icon="['fas', 'phone']" alt="phone"></font-awesome-icon></button>
+			<button v-if="callState === 'connected' || callState === 'calling'" id="call-button" class="call-btn call-btn-end"
+				@click=disconnect>
+				<font-awesome-icon :icon="['fas', 'phone-slash']" alt="phone" />
+			</button>
+			<button v-if="callState === 'connected' || callState === 'calling'" id="mute-button" class="call-btn"
+				:class="{ 'call-btn-muted': isMuted }" @click=toggleMute>
+				<font-awesome-icon :icon="isMuted ? ['fas', 'microphone-slash'] : ['fas', 'microphone']" alt="mute" />
+			</button>
 		</div>
 		<Transition name="fade-slide">
 			<div v-if="isVisible" style="
@@ -402,7 +408,8 @@ const type = ref('Public')
 const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider = ref(5);
-const call_intiated = ref(false)
+const callState = ref('idle') // idle | calling | receiving | connected
+const isMuted = ref(false)
 const list = ref([])
 const zoom = computed(() => { return `${(zooming.value * 100).toFixed(0)}%` })
 const zooming = ref(1)
@@ -493,9 +500,16 @@ const pcConstraints = {
 		{ 'DtlsSrtpKeyAgreement': true },
 	],
 };
+const toggleMute = () => {
+	isMuted.value = !isMuted.value
+	localStream.getTracks().forEach(track => {
+		if (track.kind === 'audio') track.enabled = !isMuted.value
+	})
+}
+
 const startAudioCall = async () => {
-	if (call_intiated.value) return
-	call_intiated.value = true
+	if (callState.value !== 'idle') return
+	callState.value = 'calling'
 	await getPermission()
 	localPeerConnection = new RTCPeerConnection(pcConstraints);
 	localPeerConnection.onicecandidate = gotLocalIceCandidateOffer;
@@ -504,8 +518,13 @@ const startAudioCall = async () => {
 	localPeerConnection.createOffer().then(gotLocalDescription);
 }
 const disconnect = () => {
-	call_intiated.value = false
+	callState.value = 'idle'
+	isMuted.value = false
 	localStream.getTracks().forEach(track => track.stop())
+	if (localPeerConnection) {
+		localPeerConnection.close()
+		localPeerConnection = null
+	}
 }
 const gotLocalDescription = (offer) => {
 	localPeerConnection.setLocalDescription(offer);
@@ -521,6 +540,7 @@ const gotLocalIceCandidateOffer = (event) => {
 	}
 };
 const gotRemoteStream = (event) => {
+	callState.value = 'connected'
 	const remotePlayer = document.getElementById('peerPlayer');
 	remotePlayer.srcObject = event.stream;
 };
@@ -538,6 +558,7 @@ async function getPermission() {
 }
 
 const onAnswer = async (offer) => {
+	callState.value = 'connected'
 	await getPermission();
 	localPeerConnection = new RTCPeerConnection(pcConstraints);
 	localPeerConnection.onicecandidate = gotLocalIceCandidateAnswer;
@@ -545,10 +566,6 @@ const onAnswer = async (offer) => {
 	localPeerConnection.addStream(localStream);
 	localPeerConnection.setRemoteDescription(offer);
 	localPeerConnection.createAnswer().then(gotAnswerDescription);
-	const gotRemoteStream = (event) => {
-		const remotePlayer = document.getElementById('peerPlayer');
-		remotePlayer.srcObject = event.stream;
-	};
 	const gotAnswerDescription = (answer) => {
 		localPeerConnection.setLocalDescription(answer);
 	};
@@ -3552,6 +3569,36 @@ body {
 
 .feature-icon:hover {
 	transform: scale(1.2) rotate(5deg);
+}
+
+.call-btn {
+	width: 40px;
+	height: 40px;
+	border: none;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.call-btn fa-icon {
+	color: #fff;
+}
+
+.call-btn-end {
+	background: #ff4f4f;
+}
+
+.call-btn:not(.call-btn-end) {
+	background: #ffc107;
+}
+
+.call-btn-muted {
+	background: #ffc107;
+	box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
 }
 
 .fade-slide-enter-from,
