@@ -5,7 +5,7 @@
       height: 100vh;
       overflow: hidden;
     ">
-		<audio id="peerPlayer" autoplay playsinline muted style="display: none;"></audio>
+
 		<div v-if="loading" class="spinner-overlay">
 			<VueSpinnerTail size="60" color="orange" />
 		</div>
@@ -183,10 +183,7 @@
 							<font-awesome-icon :icon="['fas', 'link']" style="font-size: 14px;" />
 							Copy Invitation
 						</button>
-						<button v-if="callState === 'idle'" id="audio-call" @click="startAudioCall">
-							<font-awesome-icon :icon="['fas', 'phone']" style="margin-right: 3px;" />
-							Audio call
-						</button>
+
 						<button v-if="visitor && MODE !== 'demo' && !admin" class="bookmark-btn"
 							:class="{ bookmarked: isBookmarked }" @click="toggleBookmark" :style="{
 								display: 'flex',
@@ -235,14 +232,7 @@
 					</div>
 				</Transition>
 			</div>
-			<button v-if="callState === 'connected' || callState === 'calling'" id="call-button" class="call-btn call-btn-end"
-				@click=disconnect>
-				<font-awesome-icon :icon="['fas', 'phone-slash']" alt="phone" />
-			</button>
-			<button v-if="callState === 'connected' || callState === 'calling'" id="mute-button" class="call-btn"
-				:class="{ 'call-btn-muted': isMuted }" @click=toggleMute>
-				<font-awesome-icon :icon="isMuted ? ['fas', 'microphone-slash'] : ['fas', 'microphone']" alt="mute" />
-			</button>
+
 		</div>
 		<Transition name="fade-slide">
 			<div v-if="isVisible" style="
@@ -408,8 +398,7 @@ const type = ref('Public')
 const tool = ref('brush');
 const isDrawing = ref(false);
 const width_slider = ref(5);
-const callState = ref('idle') // idle | calling | receiving | connected
-const isMuted = ref(false)
+
 const list = ref([])
 const zoom = computed(() => { return `${(zooming.value * 100).toFixed(0)}%` })
 const zooming = ref(1)
@@ -489,97 +478,8 @@ const previewBg = new Konva.Rect({
 previewStage.add(previewLayer);
 previewLayer.add(previewBg)
 
-let localStream;
-const constraints = {
-	audio: true,
-	video: false
-}
-let localPeerConnection;
-const pcConstraints = {
-	'optional': [
-		{ 'DtlsSrtpKeyAgreement': true },
-	],
-};
-const toggleMute = () => {
-	isMuted.value = !isMuted.value
-	localStream.getTracks().forEach(track => {
-		if (track.kind === 'audio') track.enabled = !isMuted.value
-	})
-}
 
-const startAudioCall = async () => {
-	if (callState.value !== 'idle') return
-	callState.value = 'calling'
-	await getPermission()
-	localPeerConnection = new RTCPeerConnection(pcConstraints);
-	localPeerConnection.onicecandidate = gotLocalIceCandidateOffer;
-	localPeerConnection.onaddstream = gotRemoteStream;
-	localPeerConnection.addStream(localStream);
-	localPeerConnection.createOffer().then(gotLocalDescription);
-}
-const disconnect = () => {
-	callState.value = 'idle'
-	isMuted.value = false
-	localStream.getTracks().forEach(track => track.stop())
-	if (localPeerConnection) {
-		localPeerConnection.close()
-		localPeerConnection = null
-	}
-}
-const gotLocalDescription = (offer) => {
-	localPeerConnection.setLocalDescription(offer);
-};
-const gotLocalIceCandidateOffer = (event) => {
-	if (!event.candidate) {
-		const offer = localPeerConnection.localDescription;
-		ws.value.send(JSON.stringify({
-			type: "send_offer",
-			user: new URL(window.location.href).pathname.split("/")[2],
-			sdp: offer,
-		}))
-	}
-};
-const gotRemoteStream = (event) => {
-	callState.value = 'connected'
-	const remotePlayer = document.getElementById('peerPlayer');
-	remotePlayer.srcObject = event.stream;
-};
 
-async function getPermission() {
-	return new Promise((resolve, reject) => {
-		navigator.getUserMedia(constraints, (stream) => {
-			localStream = stream;
-			resolve(stream)
-		}, (error) => {
-			console.error('getUserMedia error:', error);
-			reject(error)
-		});
-	})
-}
-
-const onAnswer = async (offer) => {
-	callState.value = 'connected'
-	await getPermission();
-	localPeerConnection = new RTCPeerConnection(pcConstraints);
-	localPeerConnection.onicecandidate = gotLocalIceCandidateAnswer;
-	localPeerConnection.onaddstream = gotRemoteStream;
-	localPeerConnection.addStream(localStream);
-	localPeerConnection.setRemoteDescription(offer);
-	localPeerConnection.createAnswer().then(gotAnswerDescription);
-	const gotAnswerDescription = (answer) => {
-		localPeerConnection.setLocalDescription(answer);
-	};
-	const gotLocalIceCandidateAnswer = (event) => {
-		if (!event.candidate) {
-			const answer = localPeerConnection.localDescription;
-			ws.value.send(JSON.stringify({
-				type: "send_answer",
-				user: new URL(window.location.href).pathname.split("/")[2],
-				sdp: answer,
-			}))
-		}
-	};
-};
 
 
 const toggleManualMode = () => {
@@ -2224,11 +2124,6 @@ ws.value.onmessage = async (event) => {
 		}
 	} else if (data.type === "text-modify-style") {
 		handleTextStyleUpdate(data.style, data.node)
-	} else if (data.type === "send_offer") {
-		if (data.user !== new URL(window.location.href).pathname.split("/")[2]) {
-			const offer = data.sdp
-			onAnswer(offer)
-		}
 	}
 };
 const handleContextMenu = (e) => {
@@ -3571,36 +3466,6 @@ body {
 	transform: scale(1.2) rotate(5deg);
 }
 
-.call-btn {
-	width: 40px;
-	height: 40px;
-	border: none;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.call-btn fa-icon {
-	color: #fff;
-}
-
-.call-btn-end {
-	background: #ff4f4f;
-}
-
-.call-btn:not(.call-btn-end) {
-	background: #ffc107;
-}
-
-.call-btn-muted {
-	background: #ffc107;
-	box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
-}
-
 .fade-slide-enter-from,
 .fade-slide-leave-to {
 	opacity: 0;
@@ -3784,27 +3649,6 @@ input:checked+.slider::before {
 #clearall:hover {
 	background: #fff !important;
 	color: #f68608 !important;
-}
-
-#audio-call,
-#call-button {
-	background: #00F376;
-	color: #fff;
-	border: none;
-	border-radius: 8px;
-	padding: 8px 20px;
-	font-size: 1rem;
-	cursor: pointer;
-	transition: ease-in-out 0.6s;
-}
-
-#audio-call:hover {
-	background: #fff;
-	color: #00F376;
-}
-
-#call-button:hover {
-	background: red;
 }
 
 .to_many_chars {

@@ -61,45 +61,46 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 
 ### Client-Server Architecture
 ```
-┌─────────────────┐      HTTPS/WSS      ┌──────────────────┐
-│   Vue.js Client │◄──────────────────► │  Django Backend  │
-│                 │                     │  (ASGI/Daphne)   │
-└─────────────────┘                     └──────────────────┘
-         │                                       │
-         │                                       │
-         ▼                                       ▼
-   User Interactions                    ┌──────────────────┐
-   - Drawing strokes                    │    MongoDB       │
-   - Real-time updates                  │  (Data Storage)  │
-   - Search queries                     └──────────────────┘
-         │                                       │
-         │                                       │
-         ▼                                       ▼
-   WebSocket Events                     ┌──────────────────┐
-   (via Daphne)                         │     Redis        │
-                                        │   (Caching &     │
-                                        │    Sessions)     │
-                                        └──────────────────┘
+┌─────────────────┐      HTTPS/WSS      ┌──────────────────┐      HTTP/WS       ┌──────────────────┐
+│   Vue.js Client │◄──────────────────► │      Nginx      │◄─────────────────►│  Django Backend  │
+│                 │                     │  (Reverse Proxy) │                   │  (ASGI/Daphne)   │
+└─────────────────┘                     └──────────────────┘                   └────────┬─────────┘
+                                                                                      │
+                                                                          ┌───────────┼───────────┐
+                                                                          │           │           │
+                                                                          ▼           ▼           ▼
+                                                                  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+                                                                  │   MongoDB   │ │    Redis     │ │  Google Cloud│
+                                                                  │ (Data Store)│ │(Cache/Session)│ │  Storage (GCS)│
+                                                                  └──────────────┘ └──────────────┘ └──────────────┘
+                                                                                      │
+                                                                                      ▼
+                                                                              ┌──────────────────┐
+                                                                              │   Prometheus    │
+                                                                              │ (Metrics Scrape │
+                                                                              │   Django Endpoint)│
+                                                                              └──────────────────┘
 ```
 
 ### Data Flow
 
 **1. User Authentication Flow**
-- Frontend (Vue.js) sends login credentials via HTTPS to Django
+- Frontend (Vue.js) sends login credentials via HTTPS to Nginx
+- Nginx proxies the request to Django backend
 - Django validates credentials and creates session in Redis
 - Session token is returned and stored in browser cookies
 - Subsequent requests include the session token for authentication
 
 **2. Real-time Drawing Collaboration**
 - User draws on canvas (Konva.js captures mouse/touch events)
-- Vue.js sends drawing data via WebSocket to Daphne ASGI server
+- Vue.js sends drawing data via WebSocket through Nginx to Daphne ASGI server
 - Django broadcasts updates to all connected clients in the same room
 - Other users' canvases receive and render the updates in real-time
 - Drawing state is periodically saved to MongoDB for persistence
 
 **3. Project Search & Discovery**
 - User enters search query in Vue.js interface
-- Query is sent to Django REST API endpoint via HTTPS
+- Query is sent through Nginx to Django REST API endpoint via HTTPS
 - Django processes the query using natural language processing
 - MongoDB aggregation pipeline searches across project metadata
 - Results are cached in Redis for faster subsequent searches
@@ -107,13 +108,13 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 
 **4. Image Upload & Storage**
 - User saves project, triggering canvas toDataURL() conversion
-- Vue.js converts data URL to Blob and sends via FormData (multipart/form-data)
+- Vue.js converts data URL to Blob and sends via FormData through Nginx (multipart/form-data)
 - Django receives the file and uploads to Google Cloud Storage
 - Signed URL is generated and stored in MongoDB with project metadata
 - Preview images are served directly from GCS via signed URLs
 
 **5. Monitoring & Observability**
-- Django exposes metrics endpoints for Prometheus scraping
+- Django exposes metrics endpoints through Nginx for Prometheus scraping
 - Prometheus collects metrics on request latency, errors, and system health
 - Google Analytics tracks website traffic
 - Nginx logs are aggregated for traffic analysis
@@ -123,10 +124,9 @@ An interactive whiteboard platform providing a seamless real-time collaborative 
 
 | Component | Protocol | Purpose |
 |-----------|----------|---------|
-| Vue.js ↔ Django | HTTPS/REST | API calls for CRUD operations |
-| Vue.js ↔ Daphne | WSS | Real-time WebSocket connections |
+| Vue.js ↔ Nginx | HTTPS/WSS | Client connections (SSL termination) |
+| Nginx ↔ Django/Daphne | HTTP/WSS | Reverse proxy routing |
 | Django ↔ MongoDB | MongoDB Wire Protocol | Data persistence |
 | Django ↔ Redis | RESP | Caching and session storage |
 | Django ↔ GCS | HTTPS | Image storage and retrieval |
-| Nginx ↔ Django | HTTP/WSGI | Reverse proxy routing |
 | Prometheus ↔ Django | HTTP | Metrics scraping |
