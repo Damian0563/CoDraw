@@ -19,3 +19,20 @@ export function get_cookie(name) {
 	}
 	return cookieValue;
 }
+
+export async function status() {
+	const csrf = get_cookie('csrftoken');
+	try {
+		const data = await fetch(`${BASE_URL}/codraw/`, {
+			method: 'GET',
+			headers: { 'X-CSRFToken': csrf },
+			credentials: 'include'
+		});
+		const response = await data.json();
+		if (response.status !== 200 && window.location.pathname !== '/') {
+			window.location.href = '/';
+		}
+	} catch (e) {
+		console.error(e);
+	}
+}

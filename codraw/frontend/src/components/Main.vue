@@ -59,7 +59,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { get_cookie } from '@/common';
-import { BASE_URL, WS_URL, wsConnections } from '../common.js'
+import { BASE_URL, WS_URL, wsConnections, status } from '../common.js'
 import SiDebar from './SiDebar.vue'
 import { VueSpinnerTail } from 'vue3-spinners'
 import { DateTime } from 'luxon'
@@ -87,22 +87,6 @@ async function get_username() {
 		console.error(e)
 	}
 }
-async function status() {
-	try {
-		const data = await fetch(`${BASE_URL}/codraw/`, {
-			method: 'GET',
-			headers: { 'X-CSRFToken': csrf },
-			credentials: 'include'
-		});
-		const response = await data.json();
-		if (response.status !== 200 && window.location.pathname !== '/') {
-			window.location.href = '/';
-		}
-	} catch (e) {
-		console.error(e);
-	}
-}
-
 const get_boards = async () => {
 	try {
 		const data = await fetch(`${BASE_URL}/codraw/get_boards`, {

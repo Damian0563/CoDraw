@@ -118,6 +118,7 @@ import { get_cookie } from '@/common';
 import { DateTime } from 'luxon'
 import { BASE_URL } from '@/common'
 import SiDebar from './SiDebar.vue'
+import { status } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners'
 
 const router = useRouter()
@@ -293,6 +294,7 @@ const outside_click_handler = (e) => {
 
 onMounted(async () => {
 	loading.value = true
+	status()
 	const query = route.query
 	if (query.q) {
 		input.value = query.q

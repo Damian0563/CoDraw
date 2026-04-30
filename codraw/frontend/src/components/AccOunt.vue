@@ -127,7 +127,7 @@
 import { get_cookie } from '@/common';
 import { DateTime } from 'luxon';
 import { onMounted, ref, nextTick } from 'vue';
-import { BASE_URL, wsConnections, WS_URL } from '../common.js'
+import { BASE_URL, wsConnections, WS_URL, status } from '../common.js'
 import { VueSpinnerTail } from 'vue3-spinners';
 import SiDebar from './SiDebar.vue'
 import bin from '@/assets/bin.webp'
@@ -328,6 +328,7 @@ async function join(room) {
 
 onMounted(async () => {
 	loading.value = true;
+	status()
 	await nextTick();
 	const pathParts = window.location.pathname.split('/');
 	username.value = pathParts[pathParts.length - 1];
