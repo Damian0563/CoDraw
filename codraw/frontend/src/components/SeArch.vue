@@ -14,7 +14,7 @@
 				<div class="row justify-content-center mx-2 mb-2">
 					<div class="col-md-6 col-sm-10 col-12" style="position: relative;" ref="searchContainer">
 						<div class="input-group shadow-sm rounded mx-2">
-							<input type="text" class="form-control border-0 p-3 minput" id="query"
+							<input type="text" autocomplete="off" class="form-control border-0 p-3 minput" id="query"
 								placeholder="Search public boards..." aria-label="Search public boards" v-model="input"
 								@keyup.enter="search(input)">
 								<button class="btn btn-primary" type="button" @click="search(input)">
@@ -27,7 +27,7 @@
 									</svg>
 								</button>
 						</div>
-						<div class="query-history-dropdown" v-if="queryHistory.length > 0 && clicked">
+						<div class="query-history-dropdown" v-if="queryHistory.length > 0 && clicked && input.length === 0">
 							<div v-for="(q, idx) in queryHistory" :key="idx" class="query-history-item" @click="input = q; search(q)">
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
 									<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
@@ -132,19 +132,55 @@ const currentpage = ref(1)
 const max_boards = 10
 const finishedAsync = ref(false)
 const images = ref({})
-const queryHistory = ref([
-	'whiteboard collaboration',
-	'diagram editor',
-	'mind mapping tool',
-	'flowchart templates',
-	'UI wireframes'
-])
+const queryHistory = ref([])
+
+
+async function push_query(sentence) {
+	queryHistory.value.unshift(sentence)
+	if (queryHistory.value.length > 6) {
+		queryHistory.value.pop()
+	}
+	try {
+		await fetch(`${BASE_URL}/queries`, {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrf
+			},
+			body: JSON.stringify({
+				"query": sentence
+			}),
+			credentials: "include"
+		})
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+async function load_query_history() {
+	try {
+		const data = await fetch(`${BASE_URL}/queries`, {
+			method: "GET",
+			headers: {
+				'X-CSRFToken': csrf
+			},
+			credentials: "include"
+		})
+		const response = await data.json()
+		if (response.ok) {
+			queryHistory.value = response.query_history
+		}
+	} catch (e) {
+		console.error(e)
+	}
+}
 
 async function search(sentence) {
 	try {
 		loading.value = true;
 		if (sentence.length !== 0) {
 			router.push({ path: '/codraw/search', query: { q: sentence, page: currentpage.value } })
+			push_query(sentence)
 			const data = await fetch(`${BASE_URL}/search`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
@@ -265,6 +301,7 @@ onMounted(async () => {
 	} else {
 		await load_popular()
 	}
+	load_query_history()
 	document.getElementById('query').addEventListener('click', input_query_handler)
 	document.addEventListener('click', outside_click_handler)
 	loading.value = false

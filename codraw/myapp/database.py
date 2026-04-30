@@ -323,7 +323,28 @@ def increase_view_count(room: str) -> None:
         pass
 
 
-def get_matches(sentence: str, timezone: str, page: int) -> list:
+def push_query(id: str, query: str) -> bool:
+    try:
+        entry = models.User.objects.get(id=id)
+        entry.queries.append(query)
+        entry.save()
+        return True
+    except Exception:
+        return False
+
+
+def get_query_history(id: str) -> list:
+    try:
+        entry = models.User.objects.get(id=id)
+        history = list(set(entry.queries))
+        if len(history) > 6:
+            history = history[-6:]
+        return history
+    except Exception:
+        return []
+
+
+def get_matches(sentence: str, timezone: str, page: int) -> str:
     try:
         sorted_boards = redis_client.get(
             f"search:{sentence.lower().strip()}:{page}")
@@ -357,7 +378,7 @@ def get_matches(sentence: str, timezone: str, page: int) -> list:
         return json.dumps(boards_list)
     except Exception as e:
         print(e)
-        return []
+        return ""
 
 
 def save_project(room: str, payload: str, bg: str) -> bool:

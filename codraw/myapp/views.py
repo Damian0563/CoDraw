@@ -608,3 +608,28 @@ def search(request):
                                timezone}:{page}", 60*5, json.dumps(result))
         return Response({"status": 200, "boards": result})
     return Response({"status": 400})
+
+
+@api_view(['POST', 'GET'])
+@ensure_csrf_cookie
+@ratelimit(key='ip', rate='60/m', block=True)
+def push_query(request):
+    id = helpers.validate_request(request)
+    if id is None:
+        return Response({"status": 401}, status=401)
+    if request.method == "POST":
+        data = request.data
+        query = data['query']
+        if database.push_query(id, query):
+            redis_client.delete(f"push_query:{id}")
+            return Response({"status": 200}, status=200)
+        return Response({"status": 400}, status=400)
+    elif request.method == "GET":
+        if redis_client.get(f"push_query:{id}"):
+            result = json.loads(redis_client.get(f"push_query:{id}"))
+            return Response({"status": 200, "query_history": result}, status=200)
+        else:
+            history = database.get_query_history(id)
+            redis_client.setex(f"push_query:{id}", 60*5, json.dumps(history))
+            return Response({"status": 200, "query_history": history}, status=200)
+    return Response({"status": 404}, status=404)
