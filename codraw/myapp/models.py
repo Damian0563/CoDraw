@@ -8,6 +8,13 @@ class User(Document):
     code = fields.StringField(max_length=5)
     valid = fields.BooleanField(default=False)
     bookmarks = fields.ListField(fields.StringField(), default=list)
+    queries = fields.ListField(fields.StringField(), default=list)
+    meta = {
+        'indexes': [
+            {'fields': ['username']},
+            {'fields': ['mail']},
+        ]
+    }
 
 
 class Board(Document):

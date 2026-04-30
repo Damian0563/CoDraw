@@ -108,13 +108,14 @@ async function status() {
 		console.error(e);
 	}
 }
-status();
 async function SignUp(e) {
+	loading.value = true;
 	e.preventDefault()
 	const form = formRef.value;
 	form.classList.add('was-validated')
 	if (!form.checkValidity()) {
 		e.stopPropagation()
+		loading.value = false;
 		return;
 	}
 	const csrf = get_cookie('csrftoken')
@@ -133,6 +134,7 @@ async function SignUp(e) {
 			credentials: 'include'
 		})
 		const response = await data.json()
+		loading.value = false;
 		if (response.status === 200) {
 			visible.value = true
 			await nextTick()
@@ -143,6 +145,7 @@ async function SignUp(e) {
 		}
 	} catch (e) {
 		console.error(e)
+		loading.value = false;
 	}
 }
 function handleInput(event, index) {
@@ -242,6 +245,7 @@ onMounted(() => {
 		}
 	);
 	loading.value = false;
+	status();
 });
 </script>
 
@@ -379,5 +383,18 @@ input::placeholder {
 	background: linear-gradient(180deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
 	min-height: 50vh;
 	width: 100%;
+}
+
+.spinner-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	background-color: rgba(0, 0, 0, 0.7);
 }
 </style>

@@ -12,10 +12,11 @@
 					<p class="text-muted small mb-2">Find boards and ideas shared by the community</p>
 				</div>
 				<div class="row justify-content-center mx-2 mb-2">
-					<div class="col-md-6 col-sm-10 col-12">
+					<div class="col-md-6 col-sm-10 col-12" style="position: relative;" ref="searchContainer">
 						<div class="input-group shadow-sm rounded mx-2">
-							<input type="text" class="form-control border-0 p-3 minput" placeholder="Search public boards..."
-								aria-label="Search public boards" v-model="input" @keyup.enter="search(input)">
+							<input type="text" class="form-control border-0 p-3 minput" id="query"
+								placeholder="Search public boards..." aria-label="Search public boards" v-model="input"
+								@keyup.enter="search(input)">
 								<button class="btn btn-primary" type="button" @click="search(input)">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 										class="bi bi-search" viewBox="0 0 16 16">
@@ -25,6 +26,16 @@
 									5.5 0 0 1 0 11z" />
 									</svg>
 								</button>
+						</div>
+						<div class="query-history-dropdown" v-if="queryHistory.length > 0 && clicked">
+							<div v-for="(q, idx) in queryHistory" :key="idx" class="query-history-item" @click="input = q; search(q)">
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+									<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+									<path
+										d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z" />
+								</svg>
+								<span>{{ q }}</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -101,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { get_cookie } from '@/common';
 import { DateTime } from 'luxon'
@@ -113,12 +124,21 @@ const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
 const popular = ref([])
+const clicked = ref(false)
+const searchContainer = ref(null)
 const input = ref('')
 const csrf = get_cookie('csrftoken')
 const currentpage = ref(1)
 const max_boards = 10
 const finishedAsync = ref(false)
 const images = ref({})
+const queryHistory = ref([
+	'whiteboard collaboration',
+	'diagram editor',
+	'mind mapping tool',
+	'flowchart templates',
+	'UI wireframes'
+])
 
 async function search(sentence) {
 	try {
@@ -224,6 +244,17 @@ async function join(room) {
 	}
 }
 
+
+const input_query_handler = () => {
+	clicked.value = true
+}
+
+const outside_click_handler = (e) => {
+	if (searchContainer.value && !searchContainer.value.contains(e.target)) {
+		clicked.value = false
+	}
+}
+
 onMounted(async () => {
 	loading.value = true
 	const query = route.query
@@ -234,7 +265,14 @@ onMounted(async () => {
 	} else {
 		await load_popular()
 	}
+	document.getElementById('query').addEventListener('click', input_query_handler)
+	document.addEventListener('click', outside_click_handler)
 	loading.value = false
+})
+
+onUnmounted(() => {
+	document.getElementById('query')?.removeEventListener('click', input_query_handler)
+	document.removeEventListener('click', outside_click_handler)
 })
 </script>
 
@@ -508,5 +546,46 @@ onMounted(async () => {
 	margin-top: 0;
 	padding-top: 0.5rem;
 	border-top: 1px solid #374151;
+}
+
+.query-history-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #1f2937;
+	border: 1px solid #374151;
+	border-radius: 0.5rem;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+	max-height: 240px;
+	overflow-y: auto;
+	z-index: 100;
+	margin-top: 0.25rem;
+}
+
+.query-history-item {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.6rem 0.85rem;
+	color: #e5e7eb;
+	font-size: 0.875rem;
+	cursor: pointer;
+	transition: background 0.15s ease;
+	border-bottom: 1px solid #2d3748;
+}
+
+.query-history-item:last-child {
+	border-bottom: none;
+}
+
+.query-history-item:hover {
+	background: #374151;
+	color: #ffc107;
+}
+
+.query-history-item svg {
+	color: #9ca3af;
+	flex-shrink: 0;
 }
 </style>
