@@ -5,7 +5,6 @@
       height: 100vh;
       overflow: hidden;
     ">
-
 		<div v-if="loading" class="spinner-overlay">
 			<VueSpinnerTail size="60" color="orange" />
 		</div>
@@ -365,6 +364,7 @@
 
 <script setup>
 import zoom_ico from '@/assets/zoom.webp'
+import brushCursor from '@/assets/brush-cursor.svg'
 import { v4 as uuidv4 } from 'uuid'
 import { get_cookie } from '@/common';
 import { BASE_URL, WS_URL, wsConnections } from '../common.js'
@@ -478,10 +478,6 @@ const previewBg = new Konva.Rect({
 previewStage.add(previewLayer);
 previewLayer.add(previewBg)
 
-
-
-
-
 const toggleManualMode = () => {
 	showPopup.value = true
 	message.value = `MOUSE
@@ -503,7 +499,6 @@ SHAPES
 Select shape from toolbar, then click canvas`
 	showMoreMenu.value = false
 }
-
 const togglePreviewLayer = (mode) => {
 	const preview = document.getElementById('preview')
 	if (!preview) return
@@ -1703,7 +1698,7 @@ ws.value.onmessage = async (event) => {
 			points: data.points,
 			lineCap: "round",
 			lineJoin: "round",
-			tension: 0.5
+			tension: 0.4
 		};
 		const previewLineConfig = {
 			stroke: isEraserRemote ? background.value : data.stroke,
@@ -1712,7 +1707,7 @@ ws.value.onmessage = async (event) => {
 			points: data.points,
 			lineCap: "round",
 			lineJoin: "round",
-			tension: 0.5
+			tension: 0.4
 		};
 		const mainLine = new Konva.Line(mainLineConfig);
 		const previewLine = new Konva.Line(previewLineConfig);
@@ -2778,7 +2773,7 @@ const handleMouseDown = (e) => {
 			return;
 		}
 		isDrawing.value = true;
-		stage.container().style.cursor = 'default';
+		stage.container().style.cursor = `url(${brushCursor}) 4 26, crosshair`;
 		const pos = getRelativePointerPosition(stage);
 		const isEraser = tool.value === 'eraser';
 		const mainStrokeColor = isEraser ? 'rgba(0,0,0,1)' : color.value;
@@ -3013,6 +3008,8 @@ const handleMouseUp = () => {
 	if (isPanning.value) {
 		stage.draggable(false);
 		isPanning.value = false;
+	} else {
+		stage.container().style.cursor = 'default';
 	}
 	if (drawFrameId !== null) {
 		cancelAnimationFrame(drawFrameId);
