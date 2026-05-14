@@ -963,19 +963,19 @@ const createShapeDeleteGroup = (shape, transformer) => {
 	const layer = layerRef.value.getNode();
 	const getShapeDeletePos = () => {
 		let x, y;
+		const scaleX = shape.scaleX() || 1;
 		if (shape.className === 'Arrow') {
 			const box = shape.getClientRect();
-			x = box.x + box.width + 15;
-			y = box.y - 15;
+			x = box.x / zooming.value + box.width / zooming.value - 15;
+			y = box.y / zooming.value - 15;
+			console.log(box, zooming.value, x, y)
 			return { x, y };
 		}
 		if (shape.className === 'Circle') {
-			const scaleX = shape.scaleX() || 1;
 			x = shape.x() + shape.radius() * scaleX - 15;
 			y = shape.y() - shape.radius() * scaleX - 15;
 			return { x, y };
 		}
-		const scaleX = shape.scaleX() || 1;
 		x = shape.x() + shape.width() * scaleX - 15;
 		y = shape.y() - 15;
 		return { x, y };
@@ -2149,9 +2149,8 @@ function changeZoom(mode) {
 	const oldScale = stage.scaleX() * 100;
 	const direction = mode === "up" ? 1 : -1;
 	if ((oldScale === 50 && direction === -1) || (oldScale === 200 && direction === 1)) return;
-	const newScale = scrolles[scrolles.indexOf(oldScale) + direction] / 100;
-	zooming.value = newScale
-	stage.scale({ x: newScale, y: newScale });
+	zooming.value = scrolles[scrolles.indexOf(oldScale) + direction] / 100;
+	stage.scale({ x: zooming.value, y: zooming.value });
 	stage.batchDraw();
 }
 
